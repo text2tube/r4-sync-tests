@@ -22,9 +22,3 @@
 >
 	<IconPlayFill size={32} />
 </button>
-
-<style>
-	button[data-loading='true'] {
-		cursor: wait;
-	}
-</style>

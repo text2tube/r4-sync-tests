@@ -8,8 +8,7 @@
 
 	/** @type {AppState }*/
 	let appState = $state({
-		playlist_slug: '',
-		is_playing: false
+		playlist_slug: ''
 	})
 
 	/** @type {Channel|undefined} */

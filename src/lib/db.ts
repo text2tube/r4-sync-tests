@@ -32,10 +32,10 @@ export const pg = await PGlite.create(dbUrl, {
 window.oskar = {pg}
 
 export async function dropAllTables() {
-	console.log('dropping all tables')
-	await pg.sql`drop table if exists app_state CASCADE`
-	await pg.sql`drop table if exists channels CASCADE`
-	await pg.sql`drop table if exists tracks`
+	await pg.sql`drop table if exists app_state CASCADE;`
+	await pg.sql`drop table if exists channels CASCADE;`
+	await pg.sql`drop table if exists tracks;`
+	console.log('dropped tables')
 }
 
 export async function initDb(reset = false) {
@@ -49,6 +49,7 @@ export async function initDb(reset = false) {
       slug TEXT UNIQUE NOT NULL,
       description TEXT,
       image TEXT,
+      tracks_outdated BOOLEAN,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
@@ -70,9 +71,11 @@ export async function initDb(reset = false) {
       playlist_tracks JSONB,
       is_playing BOOLEAN DEFAULT false,
       volume INTEGER DEFAULT 70,
-      theme TEXT DEFAULT 'light',
+      theme TEXT,
       counter INTEGER DEFAULT 0
     );
+
+    INSERT INTO app_state (id) values (1) on conflict do nothing;
   `)
 	console.timeEnd('initDb')
 }

@@ -1,6 +1,7 @@
 <script>
 	import {pg} from '$lib/db'
 	import ChannelCard from './channel-card.svelte'
+	import {syncAllTracks} from '$lib/sync'
 
 	/** @type {import('$lib/types').Channel[]}*/
 	let channels = $state([])
@@ -19,12 +20,14 @@
 			[],
 			'id',
 			(res) => {
-				// console.log('channel query updated', res)
+				console.log('channel query updated', res)
 				channels = res.rows
 			}
 		)
 	})
 </script>
+
+<button onclick={syncAllTracks}>sync</button>
 
 <ul>
 	{#each channels as channel}

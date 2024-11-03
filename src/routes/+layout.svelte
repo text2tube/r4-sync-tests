@@ -13,11 +13,11 @@
 	let preloading = $state(true)
 
 	$effect(() => {
-		initDb().then(() => {
-			syncChannels().then(() => {
+		initDb()
+			.then(syncChannels)
+			.then(() => {
 				preloading = false
 			})
-		})
 	})
 
 	/** @type {HTMLInputElement|undefined} */
@@ -78,6 +78,9 @@
 		a:first-child {
 			margin-right: auto;
 		}
+	}
+	main {
+		padding-bottom: 5rem;
 	}
 	footer {
 		position: fixed;

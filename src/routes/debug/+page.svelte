@@ -1,13 +1,14 @@
 <script>
 	import {PGlite} from '@electric-sql/pglite'
 	import {dropAllTables, pg} from '$lib/db'
+	import {syncChannels, syncTracks} from '$lib/sync'
 
 	let state = $state({})
 	let channels = $state([])
 	let tracks = $state([])
 
-	$effect(() => {
-		pg.live.query(`select * from app_state where id = 1`, [], (res) => {
+	function update() {
+		pg.query(`select * from app_state where id = 1`).then((res) => {
 			state = res.rows[0]
 		})
 		pg.query(`select * from channels`).then((res) => {
@@ -16,12 +17,18 @@
 		pg.query(`select * from tracks`).then((res) => {
 			tracks = res.rows
 		})
+	}
+
+	$effect(() => {
+		update()
+		pg.live.query(`select * from app_state where id = 1`, [], (res) => {
+			state = res.rows[0]
+		})
 	})
 
-	function resetDb() {
-		dropAllTables().then(() => {
-			location.reload()
-		})
+	async function resetDb() {
+		await dropAllTables()
+		location.reload()
 	}
 
 	async function exportDb() {
@@ -42,6 +49,15 @@
 		const rows = await pg2.query('SELECT name FROM channels;')
 		console.log('test query using the exported file as db', rows)
 	}
+
+	async function sync() {
+		await syncChannels()
+		await update()
+		const res = await pg.query(`select * from channels`)
+		const promises = res.rows.map((c) => syncTracks(c.slug))
+		const what = await Promise.allSettled(promises)
+		console.log(what)
+	}
 </script>
 
 <article>
@@ -50,6 +66,7 @@
 		<button onclick={resetDb}>Reset local database</button>
 		<button onclick={exportDb}>Export local database</button>
 		<button disabled>Import local database</button>
+		<button onclick={sync}>Pull from Radio4000</button>
 	</menu>
 	<pre>{JSON.stringify(state, null, 2)}</pre>
 	<pre>{channels.length} channels</pre>
