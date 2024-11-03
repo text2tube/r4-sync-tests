@@ -1,14 +1,7 @@
-import { defineConfig } from 'drizzle-kit';
-if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
+import {defineConfig} from 'drizzle-kit'
 
+// We're not really using this because we only use pglite
 export default defineConfig({
-	schema: './src/lib/server/db/schema.ts',
-
-	dbCredentials: {
-		url: process.env.DATABASE_URL
-	},
-
-	verbose: true,
-	strict: true,
-	dialect: 'sqlite'
-});
+	dialect: 'postgresql',
+	schema: './src/lib/db/schema.ts'
+})

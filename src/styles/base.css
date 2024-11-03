@@ -1,0 +1,94 @@
+* {
+	box-sizing: border-box;
+}
+
+@font-face {
+	src: url('/fonts/firava.woff2') format('woff2-variations');
+	font-display: swap;
+	font-family: 'firava';
+	font-weight: 100 900;
+}
+@font-face {
+	src: url('/fonts/firava-italic.woff2') format('woff2-variations');
+	font-display: swap;
+	font-family: 'firava';
+	font-style: italic;
+	font-weight: 100 900;
+}
+
+html {
+	line-height: 1.5;
+	font-size: var(--font-size-regular);
+	/* font-size: calc(clamp(1em, 0.5em + 1vw, 2em)); */
+	font-weight: 400;
+	text-rendering: optimizeLegibility;
+	text-size-adjust: 100%; /* ios? */
+	font-family: firava, system-ui, sans-serif;
+	scroll-behavior: smooth;
+	color-scheme: light dark;
+	background: var(--color-bg-primary);
+	color: var(--color-text-primary);
+}
+
+body {
+	margin: 0;
+	cursor: default;
+	/* WAIT LETS JUST TRY IT */
+	user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+}
+
+h1 {
+	font-size: var(--font-size-title1);
+}
+h2 {
+	font-size: var(--font-size-title2);
+}
+h3 {
+	font-size: var(--font-size-title3);
+}
+
+img {
+	max-width: 100%;
+	display: block;
+}
+
+a {
+	text-decoration-skip-ink: auto;
+}
+a {
+	hyphens: auto;
+}
+a:link,
+a:visited {
+	color: var(--color-text-primary);
+}
+a:hover {
+	color: var(--color-text-secondary);
+}
+a:active,
+a:focus {
+}
+
+input,
+button,
+textarea,
+select {
+	font: inherit;
+}
+
+hr {
+	display: block;
+	border: 0;
+	height: 1px;
+	background: var(--color-border-tertiary);
+}
+
+small {
+	color: var(--color-text-tertiary);
+}

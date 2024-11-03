@@ -1,0 +1,65 @@
+import {PGlite} from '@electric-sql/pglite'
+import {live} from '@electric-sql/pglite/live'
+
+// If we wanted to use Drizzle, we'd do this
+// import { drizzle } from 'drizzle-orm/pglite'
+// export {sql} from 'drizzle-orm'
+// export const db = drizzle({ client: pg })
+// export const db = drizzle(pg)
+
+const persist = true
+const dbUrl = persist ? 'idb://radio4000-debug' : 'memory://'
+export const pg = await PGlite.create(dbUrl, {
+	extensions: {
+		live
+	}
+})
+
+// @ts-expect-error just for debugging
+window.oskar = {pg}
+
+export async function dropAllTables() {
+	console.log('dropping all tables')
+	await pg.sql`drop table if exists app_state CASCADE`
+	await pg.sql`drop table if exists channels CASCADE`
+	await pg.sql`drop table if exists tracks`
+}
+
+export async function initDb(reset = false) {
+	console.time('initDb')
+	if (reset) await dropAllTables()
+
+	await pg.exec(`
+    CREATE TABLE IF NOT EXISTS channels (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      slug TEXT UNIQUE NOT NULL,
+      description TEXT,
+      image TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS tracks (
+      id TEXT PRIMARY KEY,
+      channel_id TEXT REFERENCES channels(id) ON DELETE CASCADE,
+      url TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      discogs_url TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS app_state (
+      id INTEGER PRIMARY KEY,
+      playlist_slug TEXT,
+      playlist_tracks JSONB,
+      is_playing BOOLEAN DEFAULT false,
+      volume INTEGER DEFAULT 70,
+      theme TEXT DEFAULT 'light',
+      counter INTEGER DEFAULT 0
+    );
+  `)
+	console.timeEnd('initDb')
+}

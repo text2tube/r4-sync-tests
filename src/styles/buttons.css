@@ -1,0 +1,44 @@
+button,
+.btn {
+	display: inline-flex;
+	vertical-align: top;
+	align-items: center;
+	justify-content: center;
+	white-space: nowrap;
+	flex-shrink: 0;
+	font-weight: 500;
+	line-height: normal;
+	transition-property: border, background-color, color, opacity;
+	transition-duration: 150ms;
+	user-select: none;
+	position: relative;
+	font-size: var(--font-size-small);
+	/* questionable styles */
+	min-width: 1.5rem;
+	min-height: 1.5rem;
+	padding: 0 0.5rem;
+	border: 1px solid var(--color-border-tertiary);
+	border-radius: var(--border-radius);
+	background: var(--color-bg-secondary);
+	color: var(--color-text-secondary);
+	box-shadow:
+		lch(0 0 0 / 0.06) 0px 4px 4px -1px,
+		lch(0 0 0 / 0.12) 0px 1px 1px 0px;
+}
+
+button:hover,
+.btn:hover {
+	background: var(--color-bg-tertiary);
+	color: var(--color-text-primary);
+}
+
+button:disabled,
+.btn:disabled {
+	color: var(--color-text-quaternary);
+}
+
+.IconBtn {
+	border: 0;
+	background: none;
+	padding: 0;
+}

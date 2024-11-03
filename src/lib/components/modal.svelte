@@ -1,0 +1,102 @@
+<script>
+	import {IconClose} from 'obra-icons-svelte'
+	let {showModal = $bindable(), header, children} = $props()
+
+	let dialog = $state() // HTMLDialogElement
+
+	$effect(() => {
+		if (showModal) dialog.showModal()
+	})
+</script>
+
+<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+<dialog
+	bind:this={dialog}
+	onclose={() => (showModal = false)}
+	onclick={(e) => {
+		if (e.target === dialog) dialog.close()
+	}}
+>
+	<div>
+		<header>
+			{@render header?.()}
+			<!-- svelte-ignore a11y_autofocus -->
+			<button class="IconBtn" autofocus onclick={() => dialog.close()} title="Close modal">
+				<IconClose size={20} />
+			</button>
+		</header>
+		{@render children?.()}
+	</div>
+</dialog>
+
+<style>
+	dialog {
+		border: none;
+		width: 100%;
+		background: none;
+		/* position: absolute;
+		top: 0;
+		left: 0;
+		height: 100vh;
+		padding: calc(0.2px + 13vh) 12px 13vh;
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		background: yellow;
+		z-index: 100; */
+	}
+	dialog::backdrop {
+		background: rgba(0, 0, 0, 0.25);
+	}
+	dialog > div {
+		margin: auto;
+		flex: 1;
+		/* min-height: 450px; */
+		background: var(--color-bg-primary);
+		/* color: var(--color-text-primary); */
+		box-shadow:
+			lch(0 0 0 / 0.15) 0px 4px 40px,
+			lch(0 0 0 / 0.188) 0px 3px 20px,
+			lch(0 0 0 / 0.188) 0px 3px 12px,
+			lch(0 0 0 / 0.188) 0px 2px 8px,
+			lch(0 0 0 / 0.188) 0px 1px 1px;
+		border: 1px solid var(--color-border-tertiary);
+		border-radius: var(--border-radius);
+		padding: 1em;
+	}
+	dialog[open] {
+		animation: zoom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+	@keyframes zoom {
+		from {
+			transform: scale(0.95);
+		}
+		to {
+			transform: scale(1);
+		}
+	}
+	dialog[open]::backdrop {
+		animation: fade 0.2s ease-out;
+	}
+	@keyframes fade {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+	header {
+		display: flex;
+		justify-content: space-between;
+		margin-bottom: 1rem;
+	}
+	header :global(h2) {
+		margin: 0;
+		font-size: var(--font-size-regular);
+		color: var(--color-text-tertiary);
+	}
+	button {
+		display: block;
+	}
+</style>
