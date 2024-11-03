@@ -11,7 +11,7 @@ button,
 	transition-property: border, background-color, color, opacity;
 	transition-duration: 150ms;
 	user-select: none;
-	position: relative;
+		position: relative;
 	font-size: var(--font-size-small);
 	/* questionable styles */
 	min-width: 1.5rem;
