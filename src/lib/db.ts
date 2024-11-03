@@ -50,6 +50,7 @@ export async function initDb(reset = false) {
       description TEXT,
       image TEXT,
       tracks_outdated BOOLEAN,
+      busy BOOLEAN,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
