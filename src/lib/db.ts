@@ -1,5 +1,6 @@
-import {PGlite} from '@electric-sql/pglite'
+// import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
+import {PGliteWorker} from '@electric-sql/pglite/worker'
 
 // If we wanted to use Drizzle, we'd do this
 // import { drizzle } from 'drizzle-orm/pglite'
@@ -7,13 +8,25 @@ import {live} from '@electric-sql/pglite/live'
 // export const db = drizzle({ client: pg })
 // export const db = drizzle(pg)
 
-const persist = true
-const dbUrl = persist ? 'idb://radio4000-debug' : 'memory://'
-export const pg = await PGlite.create(dbUrl, {
-	extensions: {
-		live
+// const persist = true
+// const dbUrl = persist ? 'idb://radio4000-debug' : 'memory://'
+
+export const pg = new PGliteWorker(
+	new Worker(new URL('./my-pglite-worker.js?worker', import.meta.url), {
+		type: 'module'
+	}),
+	{
+		extensions: {
+			live
+		}
 	}
-})
+)
+
+// export const pg = await PGlite.create(dbUrl, {
+// 	extensions: {
+// 		live
+// 	}
+// })
 
 // @ts-expect-error just for debugging
 window.oskar = {pg}

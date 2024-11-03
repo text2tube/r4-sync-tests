@@ -36,9 +36,11 @@
 {#if preloading}
 	<header>
 		<a href="/"> R0 </a>
-		<p>Preloading...</p>
 		<a href="/debug">Debug</a>
 	</header>
+	<center>
+		<p>Preloading...</p>
+	</center>
 {:else}
 	<header>
 		<a href="/">
