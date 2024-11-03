@@ -34,10 +34,6 @@
 			a.href = url
 			a.download = file.name
 			a.click()
-		} else {
-			// Save the dump to a file using node fs
-			const fs = await import('fs')
-			fs.writeFileSync(file.name, await file.arrayBuffer())
 		}
 
 		const pg2 = new PGlite({
