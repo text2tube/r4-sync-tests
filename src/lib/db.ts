@@ -50,9 +50,11 @@ export async function initDb(reset = false) {
       tracks_outdated BOOLEAN,
       busy BOOLEAN,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      source TEXT
     );
-		CREATE INDEX IF NOT EXISTS idx_channels_slug ON channels(slug);
+
+    CREATE INDEX IF NOT EXISTS idx_channels_slug ON channels(slug);
 
     CREATE TABLE IF NOT EXISTS tracks (
       id TEXT PRIMARY KEY,
@@ -64,7 +66,8 @@ export async function initDb(reset = false) {
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
-		CREATE INDEX IF NOT EXISTS idx_tracks_channel_id ON tracks(channel_id);
+
+    CREATE INDEX IF NOT EXISTS idx_tracks_channel_id ON tracks(channel_id);
 
     CREATE TABLE IF NOT EXISTS app_state (
       id INTEGER PRIMARY KEY,
@@ -73,7 +76,8 @@ export async function initDb(reset = false) {
       is_playing BOOLEAN DEFAULT false,
       volume INTEGER DEFAULT 70,
       theme TEXT,
-      counter INTEGER DEFAULT 0
+      counter INTEGER DEFAULT 0,
+      channels_display TEXT
     );
 
     INSERT INTO app_state (id) values (1) on conflict do nothing;
