@@ -1,4 +1,18 @@
 :root {
+	/* --green: hsl(120, 21%, 52%); */
+	/* --lavender: hsl(257, 62%, 82%); */
+	/* --red: hsl(11, 78%, 38%); */
+	/* --yellow: hsl(33, 82%, 58%); */
+
+	--color-lavender: #c6b6ee; /* Variable parameters */
+	--color-light-gray: #e8e8d3; /* Default text, namespace */
+	--color-light-blue: #8fbfdc; /* Includes, directives, operators */
+	--color-slate: #668799; /* Punctuation, delimiters */
+	--color-green: #799d6a; /* Magic variables, escape chars */
+	--color-red: #cf6a4c; /* Constants, enum members */
+	--color-orange: #ffb964; /* Built-in primitive types */
+	--color-tan: #c59f6f; /* Storage modifiers */
+
 	--border-radius: 0.4rem;
 	--font-size-micro: 0.6875rem;
 	--font-size-mini: 0.75rem;

@@ -2,6 +2,7 @@
 	import {playChannel} from '$lib/api'
 	import {IconPlayFill} from 'obra-icons-svelte'
 
+	/** @type {{channel: import('$lib/types').Channel}} */
 	let {channel} = $props()
 
 	let loading = $state(false)

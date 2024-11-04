@@ -5,6 +5,7 @@
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
+	import InternetIndicator from '$lib/components/internet-indicator.svelte'
 	import {IconChevronUp, IconChevronDown} from 'obra-icons-svelte'
 
 	let {children} = $props()
@@ -81,7 +82,7 @@
 		right: 1rem;
 		bottom: 0;
 		background: var(--color-bg-secondary);
-		border: 1px solid var(--color-border-secondary);
+		border: 1px solid var(--color-border-tertiary);
 		border-top-left-radius: var(--border-radius);
 		border-top-right-radius: var(--border-radius);
 	}
