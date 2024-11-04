@@ -2,149 +2,121 @@ import {pg} from '$lib/db'
 import {sdk} from '@radio4000/sdk'
 
 /**
- * Loads all channels from Radio4000 API into the local database
- * @param {number} limit
+ * Pull channel metadata from Radio4000 into local database
+ * @param {Object} options
+ * @param {number} [options.limit=15] - Number of channels to pull
  */
-export async function syncChannels(limit = 15) {
-	console.time('syncChannels')
-
+export async function pullChannels({limit = 15} = {}) {
 	const {data: channels, error} = await sdk.channels.readChannels(limit)
 	if (error) throw error
 
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {
 			await tx.sql`
-      INSERT INTO channels (id, name, slug, description, image, created_at, updated_at)
-      VALUES (
-        ${channel.id},
-        ${channel.name},
-        ${channel.slug},
-        ${channel.description},
-        ${channel.image},
-        ${channel.created_at},
-        ${channel.updated_at}
-      )
-      ON CONFLICT (id) DO UPDATE SET
-        name = EXCLUDED.name,
-        slug = EXCLUDED.slug,
-        description = EXCLUDED.description,
-        image = EXCLUDED.image,
-        created_at = EXCLUDED.created_at,
-        updated_at = EXCLUDED.updated_at;
-    `
+        INSERT INTO channels (id, name, slug, description, image, created_at, updated_at)
+        VALUES (
+          ${channel.id}, ${channel.name}, ${channel.slug}, 
+          ${channel.description}, ${channel.image},
+          ${channel.created_at}, ${channel.updated_at}
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          slug = EXCLUDED.slug,
+          description = EXCLUDED.description,
+          image = EXCLUDED.image,
+          updated_at = EXCLUDED.updated_at;
+      `
 		}
 	})
-	console.timeEnd('syncChannels')
 }
 
 /**
- * Pulls R4 tracks for a single channel into the local database
- * @param {string} slug
+ * Pull all tracks for a channel from Radio4000 into local database
+ * @param {string} slug - Channel slug
  */
-export async function syncTracks(slug) {
-	await pg.sql`update channels set busy = ${true} where slug = ${slug}`
-	const {data: tracks, error} = await sdk.channels.readChannelTracks(slug)
-	if (error) throw error
+export async function pullTracks(slug) {
+	// Mark channel as busy while pulling
+	await pg.sql`update channels set busy = true where slug = ${slug}`
 
-	const {rows} = await pg.sql`select id from channels where slug = ${slug}`
-	const channelId = rows[0]?.id
-	if (!channelId) throw new Error('Failed to sync tracks, missing channel id')
+	try {
+		// Get channel ID for foreign key relationship
+		const {rows} = await pg.sql`select id from channels where slug = ${slug}`
+		const channelId = rows[0]?.id
+		if (!channelId) throw new Error(`Channel not found: ${slug}`)
 
-	await pg.transaction(async (tx) => {
-		const inserts = tracks.map(
-			(track) => tx.sql`
-      INSERT INTO tracks (id, channel_id, url, title, description, discogs_url, created_at, updated_at)
-      VALUES (
-        ${track.id},
-        ${channelId},
-        ${track.url},
-        ${track.title},
-        ${track.description},
-        ${track.discogs_url},
-        ${track.created_at},
-        ${track.updated_at}
-      )
-      ON CONFLICT (id) DO UPDATE SET
-        url = EXCLUDED.url,
-        title = EXCLUDED.title,
-        description = EXCLUDED.description,
-        discogs_url = EXCLUDED.discogs_url,
-        created_at = EXCLUDED.created_at,
-        updated_at = EXCLUDED.updated_at
-    `
-		)
-		await Promise.all(inserts) // Key change: await the promises inside the transaction
-	})
-	await pg.sql`update channels set tracks_outdated = ${false}, busy = ${false} where slug = ${slug}`
-	console.log(`syncTracks`, slug)
+		// Pull tracks
+		const {data, error} = await sdk.channels.readChannelTracks(slug)
+		if (error) throw error
+		await pg.transaction(async (tx) => {
+			/** @type {import('$lib/types').Track[]} */
+			const tracks = data
+			const inserts = tracks.map(
+				(track) => tx.sql`
+        INSERT INTO tracks (
+          id, channel_id, url, title, description, 
+          discogs_url, created_at, updated_at
+        )
+        VALUES (
+          ${track.id}, ${channelId}, ${track.url}, 
+          ${track.title}, ${track.description},
+          ${track.discogs_url}, ${track.created_at}, ${track.updated_at}
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          url = EXCLUDED.url,
+          title = EXCLUDED.title,
+          description = EXCLUDED.description,
+          discogs_url = EXCLUDED.discogs_url,
+          updated_at = EXCLUDED.updated_at
+      `
+			)
+			await Promise.all(inserts)
+		})
+	} finally {
+		// Always mark channel as not busy when done
+		await pg.sql`update channels set busy = false, tracks_outdated = false where slug = ${slug}`
+	}
 }
 
 /**
- * Compares the latest updated track on local vs R4
- * @param {string} channelId
+ * Check if a channel's tracks need pulling
+ * @param {string} slug - Channel slug
  * @returns {Promise<boolean>}
  */
-export async function shouldReloadTracks(channelId) {
+export async function needsUpdate(slug) {
 	try {
-		// Get latest track update from remote
+		// Get channel ID for remote query
+		const {rows} = await pg.sql`select id from channels where slug = ${slug}`
+		const channelId = rows[0]?.id
+		if (!channelId) throw new Error(`Channel not found: ${slug}`)
+
+		// Get latest remote track update
 		const {data: remoteLatest, error: remoteError} = await sdk.supabase
 			.from('channel_track')
-			.select('track_id, updated_at')
+			.select('updated_at')
 			.eq('channel_id', channelId)
 			.order('updated_at', {ascending: false})
 			.limit(1)
 			.single()
 		if (remoteError) throw remoteError
 
-		// const ids = [1,2,3]
-		// await sdk.supabase
-		// 	.from('channel_track')
-		// 	.select('track_id, updated_at')
-		// 	.in('channel_id', [ids])
-		// 	.order('updated_at', {ascending: false})
-
-		// Get latest track update from local DB
-		const {rows} =
-			await pg.sql`select id, updated_at from tracks where channel_id = ${channelId} order by updated_at desc limit 1`
-		const localLatest = rows[0]
-		// If no local tracks, definitely reload
+		// Get latest local track update
+		const {rows: localRows} = await pg.sql`
+      select updated_at 
+      from tracks 
+      where channel_id = ${channelId}
+      order by updated_at desc 
+      limit 1
+    `
+		const localLatest = localRows[0]
 		if (!localLatest) return true
 
 		// Compare timestamps (ignoring milliseconds)
-		const a = new Date(remoteLatest.updated_at).setMilliseconds(0)
-		const b = new Date(localLatest.updated_at).setMilliseconds(0)
-		const tolerance = 20 * 1000
-		return a - b > tolerance
+		const remoteMsRemoved = new Date(remoteLatest.updated_at).setMilliseconds(0)
+		const localMsRemoved = new Date(localLatest.updated_at).setMilliseconds(0)
+		const toleranceMs = 20 * 1000
+		return remoteMsRemoved - localMsRemoved > toleranceMs
 	} catch (error) {
-		console.error('Error checking track updates:', error)
-		// On error, reload to be safe
-		return true
+		console.error('Error checking for updates', error)
+		return true // On error, suggest update to be safe
 	}
-}
-
-/** Pulls tracks for all channels (respecting "shouldReload") */
-export async function syncChannelTracks() {
-	const {rows: channels} = await pg.sql`select * from channels;`
-	console.time('syncChannelTracks')
-	// const promises = res.rows.map((c) => syncTracks(c.slug))
-	// const what = await Promise.allSettled(promises)
-	// await Promise.allSettled(channels.map(c => shouldReloadTracks(c.id)))
-	// await Promise.allSettled(channels.filter(c => c.tracks_outdated).map(c => syncTracks(c.slug)))
-	for (const channel of channels) {
-		try {
-			const needsUpdate = await shouldReloadTracks(channel.id)
-			if (needsUpdate) {
-				// await pg.sql`update channels set busy = ${true} where id = ${channel.id}`
-				console.log(channel.slug, {needsUpdate})
-				await syncTracks(channel.slug)
-				// await pg.sql`update channels set busy = ${false} where id = ${channel.id}`
-			} else {
-				await pg.sql`update channels set tracks_outdated = ${needsUpdate} where id = ${channel.id}`
-				// console.log(channel.slug, {needsUpdate})
-			}
-		} catch (err) {
-			console.err(err)
-		}
-	}
-	console.timeEnd('syncChannelTracks')
 }

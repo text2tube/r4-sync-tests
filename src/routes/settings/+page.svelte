@@ -1,7 +1,6 @@
 <script>
-	import {PGlite} from '@electric-sql/pglite'
-	import {initDb, pg} from '$lib/db'
-	import {syncChannels, syncChannelTracks} from '$lib/sync'
+	import {initDb, pg, exportDb} from '$lib/db'
+	import {pullChannels, needsUpdate, pullTracks} from '$lib/sync'
 
 	/** @type {import('$lib/types').AppState}*/
 	let appState = $state({})
@@ -32,33 +31,27 @@
 		})
 	})
 
-	async function exportDb() {
-		const file = await pg.dumpDataDir()
-
-		if (typeof window !== 'undefined') {
-			// Download the dump
-			const url = URL.createObjectURL(file)
-			const a = document.createElement('a')
-			a.href = url
-			a.download = file.name
-			console.log(url, file, a)
-			// a.click()
+	let busyTracks = $state(false)
+	async function maybePullAllTracks() {
+		busyTracks = true
+		for (const channel of channels) {
+			if (await needsUpdate(channel.slug)) {
+				await pullTracks(channel.slug)
+				update()
+			}
 		}
-
-		const pg2 = new PGlite({
-			loadDataDir: file
-		})
-		const rows = await pg2.query('SELECT name FROM channels;')
-		console.log('test query using the exported file as db', rows)
+		busyTracks = false
 	}
 </script>
 
 <article>
-	<h2>Debug</h2>
+	<h2>Settings</h2>
 	<menu>
 		<button onclick={() => initDb(true).then(update)}>Reset local database</button>
-		<button onclick={() => syncChannels().then(update)}>Pull channels</button>
-		<button onclick={() => syncChannelTracks().then(update)}>Pull tracks</button>
+		<button onclick={() => pullChannels().then(update)}>Pull channels</button>
+		<button data-loading={busyTracks} disabled={busyTracks} onclick={maybePullAllTracks}
+			>{#if busyTracks}Pulling{:else}Pull{/if} tracks</button
+		>
 		<button disabled>Import local database</button>
 		<button onclick={exportDb}>Export local database</button>
 	</menu>
@@ -69,14 +62,10 @@
 	<hr />
 
 	<h3>What's going on here?</h3>
-	<p>
-		On load, this website prepares a PostgreSQL database in your browser via WASM. We query all
-		channels from the Radio4000 API and copy them into our local one. Same will happen for tracks,
-		as they are needed.
-	</p>
-	<p>Channels are refreshed on load.</p>
+	<p>On boot, this website prepares a PostgreSQL database in your browser via WASM.</p>
+	<p>Channels are pulled in the start up. Tracks are loaded on demand.</p>
 	<p>Tracks are currently not refreshed once loaded. To be decided.</p>
-	<p>All state is stored and updated directly to the database.</p>
+	<p>All application and most component state is stored and updated directly to the database.</p>
 </article>
 
 <style>

@@ -76,3 +76,23 @@ export async function initDb(reset = false) {
   `)
 	console.timeEnd('Initializing database')
 }
+
+export async function exportDb() {
+	const file = await pg.dumpDataDir()
+
+	if (typeof window !== 'undefined') {
+		// Download the dump
+		const url = URL.createObjectURL(file)
+		const a = document.createElement('a')
+		a.href = url
+		a.download = file.name
+		console.log(url, file, a)
+		// a.click()
+	}
+
+	const pg2 = new PGlite({
+		loadDataDir: file
+	})
+	const rows = await pg2.query('SELECT name FROM channels;')
+	console.log('test query using the exported file as db', rows)
+}

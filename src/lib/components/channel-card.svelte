@@ -2,11 +2,24 @@
 	import {pg} from '$lib/db'
 	import ButtonPlay from './button-play.svelte'
 	import ChannelAvatar from './channel-avatar.svelte'
-	import {shouldReloadTracks, syncTracks} from '$lib/sync'
+	import {needsUpdate, pullTracks} from '$lib/sync'
 
 	/** @type {{channel: import('$lib/types').Channel}}*/
 	let {channel} = $props()
 
+	/** @param {MouseEvent} event */
+	async function doubleclick(event) {
+		event.currentTarget?.querySelector('button')?.click()
+	}
+
+	// Just for testing. Shouldn't be visible in the UI.
+	async function maybePull() {
+		await pg.sql`update channels set busy = true where slug = ${channel.slug}`
+		if (await needsUpdate(channel.slug)) await pullTracks(channel.slug)
+		await pg.sql`update channels set busy = false where slug = ${channel.slug}`
+	}
+
+	// Just for testing
 	let deleting = $state(false)
 	async function deleteTracks() {
 		deleting = true
@@ -14,16 +27,6 @@
 		await pg.sql`update channels set tracks_outdated = ${true} where id = ${channel.id}`
 		console.log('Deleted tracks')
 		deleting = false
-	}
-
-	/** @param {MouseEvent} event */
-	async function doubleclick(event) {
-		event.currentTarget.querySelector('button')?.click()
-	}
-
-	async function checkCache() {
-		const needsUpdate = await shouldReloadTracks(channel.id)
-		if (needsUpdate) await syncTracks(channel.slug)
 	}
 </script>
 
@@ -33,24 +36,23 @@
 	<div>
 		<h3>{channel.name}</h3>
 		<p>
-			{#if channel.busy}<small>busy</small>{/if}
 			{#if channel.track_count}
 				<small>({channel.track_count})</small>
 			{/if}
 		</p>
 	</div>
-	<menu>
-		{#if channel.tracks_outdated}
-			<button data-loading={channel.busy} onclick={checkCache}>Pull</button>
-		{:else}
-			<button
-				data-loading={deleting}
-				title="Just for testing"
-				onclick={() => deleteTracks(channel.id)}
-			>
-				{#if deleting}Deleting{:else}Delete tracks{/if}
-			</button>
-		{/if}
+	<menu hidden>
+		<button data-loading={channel.busy} onclick={maybePull}
+			>{#if channel.busy}Pulling...{:else}Pull{/if}</button
+		>
+		{#if channel.tracks_outdated}{:else}{/if}
+		<button
+			data-loading={deleting}
+			title="Just for testing"
+			onclick={() => deleteTracks(channel.id)}
+		>
+			{#if deleting}Deleting...{:else}Delete tracks{/if}
+		</button>
 	</menu>
 </article>
 
@@ -82,6 +84,8 @@
 	}
 	menu {
 		margin-left: auto;
+	}
+	menu:not([hidden]) {
 		display: flex;
 	}
 	h3 {

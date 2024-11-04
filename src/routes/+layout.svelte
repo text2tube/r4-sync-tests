@@ -1,7 +1,6 @@
 <script>
 	import '../styles/style.css'
 	import {initDb} from '$lib/db'
-	import {syncChannels} from '$lib/sync'
 	import Player from '$lib/components/player.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
@@ -13,11 +12,7 @@
 	let preloading = $state(true)
 
 	$effect(() => {
-		initDb()
-			// .then(syncChannels)
-			.then(() => {
-				preloading = false
-			})
+		initDb().then(() => (preloading = false))
 	})
 
 	/** @type {HTMLInputElement|undefined} */
@@ -33,37 +28,38 @@
 
 <svelte:window onkeydown={handleKeyDown} />
 
-{#if preloading}
-	<header>
-		<a href="/"> R0 </a>
-		<a href="/debug">Debug</a>
-	</header>
-	<center>
-		<p>Preloading...</p>
-	</center>
-{:else}
-	<header>
-		<a href="/">
+<header>
+	<a href="/">
+		{#if preloading}
+			R0
+		{:else}
 			<TestCounter />
-		</a>
-		<AddTrackModal />
-		<a href="/debug">Debug</a>
-		<ThemeToggle />
-	</header>
+		{/if}
+	</a>
+	<InternetIndicator />
+	<AddTrackModal />
+	<ThemeToggle />
+	<a href="/settings">Settings</a>
+</header>
 
-	<main>
+<main>
+	{#if preloading}
+		<center>
+			<p>Preloading...</p>
+		</center>
+	{:else}
 		{@render children()}
-	</main>
+	{/if}
+</main>
 
-	<footer>
-		<label>
-			<IconChevronUp size={24} strokeWidth={2} />
-			<IconChevronDown size={24} strokeWidth={2} />
-			<input type="checkbox" name="playerLayout" bind:this={playerLayoutCheckbox} />
-		</label>
-		<Player />
-	</footer>
-{/if}
+<footer>
+	<label>
+		<IconChevronUp size={24} strokeWidth={2} />
+		<IconChevronDown size={24} strokeWidth={2} />
+		<input type="checkbox" name="playerLayout" bind:this={playerLayoutCheckbox} />
+	</label>
+	<Player />
+</footer>
 
 <style>
 	header {
