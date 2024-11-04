@@ -14,7 +14,9 @@
 	let preloading = $state(true)
 
 	$effect(() => {
-		initDb().then(() => (preloading = false))
+		initDb().then(() => {
+			preloading = false
+		})
 	})
 
 	/** @type {HTMLInputElement|undefined} */

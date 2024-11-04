@@ -5,6 +5,7 @@
 
 	/** @param {KeyboardEvent} event */
 	function handleKeyDown(event) {
+		if (event.target?.tagName === 'PGLITE-REPL') return
 		if (event.key === 'c') showModal = true
 	}
 </script>

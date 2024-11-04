@@ -1,6 +1,7 @@
 <script>
 	import {initDb, pg, exportDb} from '$lib/db'
 	import {pullChannels, needsUpdate, pullTracks} from '$lib/sync'
+	import PgliteRepl from '$lib/components/pglite-repl.svelte'
 
 	/** @type {import('$lib/types').AppState}*/
 	let appState = $state({})
@@ -58,6 +59,8 @@
 	<pre>{JSON.stringify(appState, null, 2)}</pre>
 	<pre>{channels.length} channels</pre>
 	<pre>{tracks.length} tracks</pre>
+
+	<PgliteRepl />
 
 	<hr />
 

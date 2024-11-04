@@ -50,7 +50,7 @@
 		<button
 			data-loading={deleting}
 			title="Just for testing"
-			onclick={() => deleteTracks(channel.id)}
+			onclick={() => deleteTracks()}
 		>
 			{#if deleting}Deleting...{:else}Delete tracks{/if}
 		</button>
