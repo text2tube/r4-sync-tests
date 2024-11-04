@@ -1,5 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
+	import {IconGrid, IconUnorderedList} from 'obra-icons-svelte'
 	import ChannelCard from './channel-card.svelte'
 
 	/** @type {import('$lib/types').Channel[]}*/
@@ -29,12 +30,44 @@
 			}
 		)
 	})
+
+	let display = $state('list')
 </script>
 
-<ul class="list">
+<menu>
+	<button onclick={() => (display = 'list')}><IconUnorderedList /> List</button>
+	<button onclick={() => (display = 'grid')}><IconGrid /> Grid</button>
+</menu>
+
+<ul class={display}>
 	{#each channels as channel}
 		<li>
 			<ChannelCard {channel} />
 		</li>
 	{/each}
 </ul>
+
+<style>
+	menu :global(svg) {
+		width: 1.5em;
+		margin-right: 0.3em;
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		/* gap: 1rem; */
+		list-style: none;
+		padding: 0;
+
+		> * {
+			/* border: 1px solid; */
+		}
+
+		:global(figure) {
+			width: 100%;
+			aspect-ratio: 1 / 1;
+			background: var(--color-bg-secondary);
+			border-radius: var(--border-radius);
+		}
+	}
+</style>

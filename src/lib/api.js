@@ -1,7 +1,10 @@
 import {pg} from '$lib/db'
 import {needsUpdate, pullTracks} from '$lib/sync'
 
-/** @param {import('$lib/types').Channel} channel */
+/**
+ * Just play the channel already. Wait, what does playing a channel even mean? Who am i?
+ *
+ * @param {import('$lib/types').Channel} channel */
 export async function playChannel(channel) {
 	const {id, slug} = channel
 
@@ -31,3 +34,9 @@ export async function playChannel(channel) {
 		await pullTracks(slug)
 	}
 }
+
+// function playSomething({channel, playlist}) {
+// 	if (channel) return playChannel(channel)
+// 	if (!playlist) throw new Error('No channel or playlist provided')
+// 	console.log('@todo play playlist')
+// }

@@ -6,7 +6,7 @@ import {sdk} from '@radio4000/sdk'
  * @param {Object} options
  * @param {number} [options.limit=15] - Number of channels to pull
  */
-export async function pullChannels({limit = 15} = {}) {
+export async function pullChannels({limit = 150} = {}) {
 	const {data: channels, error} = await sdk.channels.readChannels(limit)
 	if (error) throw error
 
