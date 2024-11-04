@@ -44,12 +44,12 @@
 	})
 
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
-	$effect(() => {
-		window.addEventListener('beforeunload', async (event) => {
-			event.preventDefault()
-			await pg.close()
-		})
-	})
+	// $effect(() => {
+	// 	window.addEventListener('beforeunload', async (event) => {
+	// 		event.preventDefault()
+	// 		await pg.close()
+	// 	})
+	// })
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />
