@@ -1,15 +1,18 @@
 <script>
 	import {PGlite} from '@electric-sql/pglite'
-	import {dropAllTables, pg} from '$lib/db'
-	import {syncChannels, syncTracks} from '$lib/sync'
+	import {initDb, pg} from '$lib/db'
+	import {syncChannels, syncChannelTracks} from '$lib/sync'
 
-	let state = $state({})
+	/** @type {import('$lib/types').AppState}*/
+	let appState = $state({})
+	/** @type {import('$lib/types').Channel[]}*/
 	let channels = $state([])
+	/** @type {import('$lib/types').Track[]}*/
 	let tracks = $state([])
 
 	function update() {
 		pg.query(`select * from app_state where id = 1`).then((res) => {
-			state = res.rows[0]
+			appState = res.rows[0]
 		})
 		pg.query(`select * from channels`).then((res) => {
 			channels = res.rows
@@ -20,16 +23,14 @@
 	}
 
 	$effect(() => {
+		// Fetch on load.
 		update()
+
+		// Listen to app state updates and update UI.
 		pg.live.query(`select * from app_state where id = 1`, [], (res) => {
-			state = res.rows[0]
+			appState = res.rows[0]
 		})
 	})
-
-	async function resetDb() {
-		await dropAllTables()
-		location.reload()
-	}
 
 	async function exportDb() {
 		const file = await pg.dumpDataDir()
@@ -40,7 +41,8 @@
 			const a = document.createElement('a')
 			a.href = url
 			a.download = file.name
-			a.click()
+			console.log(url, file, a)
+			// a.click()
 		}
 
 		const pg2 = new PGlite({
@@ -49,26 +51,18 @@
 		const rows = await pg2.query('SELECT name FROM channels;')
 		console.log('test query using the exported file as db', rows)
 	}
-
-	async function sync() {
-		await syncChannels()
-		await update()
-		const res = await pg.query(`select * from channels`)
-		const promises = res.rows.map((c) => syncTracks(c.slug))
-		const what = await Promise.allSettled(promises)
-		console.log(what)
-	}
 </script>
 
 <article>
 	<h2>Debug</h2>
 	<menu>
-		<button onclick={resetDb}>Reset local database</button>
-		<button onclick={exportDb}>Export local database</button>
+		<button onclick={() => initDb(true).then(update)}>Reset local database</button>
+		<button onclick={() => syncChannels().then(update)}>Pull channels</button>
+		<button onclick={() => syncChannelTracks().then(update)}>Pull tracks</button>
 		<button disabled>Import local database</button>
-		<button onclick={sync}>Pull from Radio4000</button>
+		<button onclick={exportDb}>Export local database</button>
 	</menu>
-	<pre>{JSON.stringify(state, null, 2)}</pre>
+	<pre>{JSON.stringify(appState, null, 2)}</pre>
 	<pre>{channels.length} channels</pre>
 	<pre>{tracks.length} tracks</pre>
 

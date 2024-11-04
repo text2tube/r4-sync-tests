@@ -14,7 +14,7 @@
 			.then((what) => {
 				const initialTheme = what.rows[0]?.theme
 				theme = initialTheme ?? (prefersLight ? 'light' : 'dark')
-				console.log('ThemeToggle', {initialTheme, prefersLight, theme})
+				// console.log('ThemeToggle', {initialTheme, prefersLight, theme})
 			})
 			.catch(console.warn)
 	})

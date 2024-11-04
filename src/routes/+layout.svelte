@@ -14,7 +14,7 @@
 
 	$effect(() => {
 		initDb()
-			.then(syncChannels)
+			// .then(syncChannels)
 			.then(() => {
 				preloading = false
 			})
@@ -59,7 +59,7 @@
 		<label>
 			<IconChevronUp size={24} strokeWidth={2} />
 			<IconChevronDown size={24} strokeWidth={2} />
-			<input type="checkbox" bind:this={playerLayoutCheckbox} />
+			<input type="checkbox" name="playerLayout" bind:this={playerLayoutCheckbox} />
 		</label>
 		<Player />
 	</footer>
@@ -78,9 +78,6 @@
 		a:first-child {
 			margin-right: auto;
 		}
-	}
-	main {
-		padding-bottom: 5rem;
 	}
 	footer {
 		position: fixed;

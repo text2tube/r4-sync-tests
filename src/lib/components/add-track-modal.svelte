@@ -19,10 +19,16 @@
 	{/snippet}
 	<form>
 		<label for="url">URL</label>
-		<input type="url" required name="url" placeholder="Paste in a YouTube URL..." />
+		<input type="url" required name="url" id="url" placeholder="Paste in a YouTube URL..." />
 
 		<label for="description">Description</label>
-		<input type="text" required name="text" placeholder="Add description..." />
+		<input
+			type="text"
+			required
+			name="description"
+			id="description"
+			placeholder="Add description..."
+		/>
 		<hr />
 		<button type="submit">Create track</button>
 	</form>

@@ -1,5 +1,6 @@
 import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
+import {sdk} from '@radio4000/sdk'
 // import {PGliteWorker} from '@electric-sql/pglite/worker'
 
 // If we wanted to use Drizzle, we'd do this
@@ -29,17 +30,17 @@ export const pg = await PGlite.create(dbUrl, {
 })
 
 // @ts-expect-error just for debugging
-window.oskar = {pg}
+window.oskar = {pg, sdk}
 
 export async function dropAllTables() {
 	await pg.sql`drop table if exists app_state CASCADE;`
+	await pg.sql`drop table if exists tracks CASCADE;`
 	await pg.sql`drop table if exists channels CASCADE;`
-	await pg.sql`drop table if exists tracks;`
-	console.log('dropped tables')
+	console.log('Dropped all tables')
 }
 
 export async function initDb(reset = false) {
-	console.time('initDb')
+	console.time('Initializing database')
 	if (reset) await dropAllTables()
 
 	await pg.exec(`
@@ -78,5 +79,5 @@ export async function initDb(reset = false) {
 
     INSERT INTO app_state (id) values (1) on conflict do nothing;
   `)
-	console.timeEnd('initDb')
+	console.timeEnd('Initializing database')
 }

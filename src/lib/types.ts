@@ -6,6 +6,9 @@ export interface Channel {
 	slug: string
 	description?: string
 	image?: string
+	// custom ones
+	tracks_outdated?: boolean
+	track_count?: number
 }
 
 export type Track = {
@@ -17,6 +20,8 @@ export type Track = {
 	title: string
 	description?: string
 	discogs_url?: string
+	// custom ones
+	busy: boolean
 }
 
 export interface AppState {
@@ -24,4 +29,6 @@ export interface AppState {
 	playlist_slug?: string
 	is_playing?: boolean
 	theme?: string
+	volume?: number
+	counter?: number
 }

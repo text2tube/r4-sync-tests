@@ -1,6 +1,7 @@
 <script>
 	import {pg} from '$lib/db'
 	import ChannelAvatar from './channel-avatar.svelte'
+	import Tracklist from '$lib/components/tracklist.svelte'
 
 	/** @typedef {import('$lib/types').Channel} Channel */
 	/** @typedef {import('$lib/types').Track} Track */
@@ -47,45 +48,55 @@
 
 <article>
 	{#if appState?.playlist_slug}
-		<figure>
-			<ChannelAvatar id={channel?.image} alt={channel?.name} />
-		</figure>
-		<div>
-			<h2>{channel?.name}</h2>
-			<p>
-				<small>
-					@{appState.playlist_slug}
-					{#if tracks?.length}<span>{tracks.length} tracks</span>{/if}
-				</small>
-			</p>
-			{#if channel?.description}
-				<p class="desc">{channel.description}</p>
-			{/if}
-		</div>
+		<header>
+			<figure>
+				<ChannelAvatar id={channel?.image} alt={channel?.name} />
+			</figure>
+			<div>
+				<h2>{channel?.name}</h2>
+				<p>
+					<small>
+						@{appState.playlist_slug}
+						{#if tracks?.length}<span>{tracks.length} tracks</span>{/if}
+					</small>
+				</p>
+				{#if channel?.description}
+					<p class="desc">{channel.description}</p>
+				{/if}
+			</div>
+		</header>
+		<aside class="scroller">
+			<Tracklist channelId={channel?.id} />
+		</aside>
 	{/if}
 </article>
 
 <style>
-	article {
+	header {
 		display: grid;
 		grid-template-columns: 3rem auto;
 		gap: 0.5rem;
-		padding: 0.25rem;
 		align-items: center;
+		padding: 0.5rem 0.25rem;
 	}
 
-	h2 {
-		font-size: var(--font-size-medium);
+	aside.scroller {
+		overflow: auto;
+		width: 100%;
+		display: none;
 	}
 
 	:global(footer:has(input:checked) > article) {
-		padding: 3rem 0.5rem 0;
-		background: var(--color-background-secondary);
 		display: flex;
-		flex-flow: column nowrap;
-		place-content: center;
 		height: 100%;
-		gap: 0;
+
+		header {
+			margin-top: 3rem;
+			grid-template-columns: auto;
+			place-items: center;
+			text-align: center;
+			margin-bottom: auto;
+		}
 		figure {
 			margin-bottom: 1rem;
 		}
@@ -94,15 +105,20 @@
 		}
 		.desc {
 			display: block;
+			max-width: 80ch;
+		}
+		aside.scroller {
+			display: initial;
 		}
 	}
+
 	h2,
 	p,
 	figure {
 		margin: 0;
 	}
-	figure :global(img) {
-		border-radius: var(--border-radius);
+	h2 {
+		font-size: var(--font-size-medium);
 	}
 	.desc {
 		margin-top: 1rem;
@@ -110,6 +126,5 @@
 	}
 	small {
 		font-size: 1rem;
-		color: var(--color-text-tertiary);
 	}
 </style>

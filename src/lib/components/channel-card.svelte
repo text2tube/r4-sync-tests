@@ -7,15 +7,18 @@
 	/** @type {{channel: import('$lib/types').Channel}}*/
 	let {channel} = $props()
 
+	let deleting = $state(false)
 	async function deleteTracks() {
+		deleting = true
 		await pg.sql`DELETE FROM tracks WHERE channel_id = ${channel.id}`
 		await pg.sql`update channels set tracks_outdated = ${true} where id = ${channel.id}`
-		console.log('deleted tracks')
+		console.log('Deleted tracks')
+		deleting = false
 	}
 
+	/** @param {MouseEvent} event */
 	async function doubleclick(event) {
-		console.log('doubleclick', event)
-		event.target.querySelector('button').click()
+		event.currentTarget.querySelector('button')?.click()
 	}
 
 	async function checkCache() {
@@ -24,21 +27,30 @@
 	}
 </script>
 
-<article ondblclick={doubleclick}>
-	<ChannelAvatar id={channel.image} alt={channel.name} />
+<article ondblclick={doubleclick} data-busy={channel.busy}>
+	<figure><ChannelAvatar id={channel.image} alt={channel.name} /></figure>
 	<ButtonPlay {channel} />
 	<div>
-		{channel.name}<br />
-		{#if channel.busy}<small>busy</small>{/if}
-		{#if channel.track_count}
-			<small>({channel.track_count})</small>
-		{/if}
+		<h3>{channel.name}</h3>
+		<p>
+			{#if channel.busy}<small>busy</small>{/if}
+			{#if channel.track_count}
+				<small>({channel.track_count})</small>
+			{/if}
+		</p>
 	</div>
 	<menu>
 		{#if channel.tracks_outdated}
 			<button data-loading={channel.busy} onclick={checkCache}>Pull</button>
+		{:else}
+			<button
+				data-loading={deleting}
+				title="Just for testing"
+				onclick={() => deleteTracks(channel.id)}
+			>
+				{#if deleting}Deleting{:else}Delete tracks{/if}
+			</button>
 		{/if}
-		<button onclick={() => deleteTracks(channel.id)}>Delete tracks</button>
 	</menu>
 </article>
 
@@ -49,22 +61,36 @@
 		flex-flow: row wrap;
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.5rem 1rem;
+		padding: 0.25rem 0.5rem;
 	}
-
+	figure {
+		width: 3rem;
+	}
+	article :global(figure + button) {
+		position: absolute;
+		left: 0.75rem;
+		background: var(--color-bg-secondary);
+		width: 2.5rem;
+		border: 0;
+		box-shadow: none;
+	}
 	:global(li:not(:hover) .IconBtn) {
 		opacity: 0;
 	}
-	article :global(img) {
-		max-width: 3rem;
-	}
-	article :global(img + button) {
-		position: absolute;
-		left: 1.3rem;
-		background: var(--color-bg-secondary);
+	[data-busy='true'] {
+		cursor: wait;
 	}
 	menu {
 		margin-left: auto;
 		display: flex;
+	}
+	h3 {
+		font-size: 1rem;
+		font-weight: normal;
+	}
+	h3,
+	p {
+		margin: 0;
+		line-height: 1.2;
 	}
 </style>

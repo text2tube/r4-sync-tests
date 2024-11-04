@@ -11,6 +11,8 @@
 }
 
 :root.light {
+	color-scheme: light;
+
 	--color-bg-primary: lch(98.7% 0 282.863);
 	--color-bg-secondary: lch(94.2% 2 282.863 / 1);
 	--color-bg-tertiary: lch(92.2% 2 282.863 / 1);
@@ -23,7 +25,6 @@
 	--color-border-primary: lch(94.65% 0 282.863 / 1);
 	--color-border-secondary: lch(89.25% 0 282.863 / 1);
 	--color-border-tertiary: lch(85.2% 0 282.863 / 1);
-	color-scheme: light;
 }
 @media (prefers-color-scheme: light) {
 	:root {
@@ -43,6 +44,8 @@
 }
 
 :root.dark {
+	color-scheme: dark;
+
 	--bg: hsl(0, 0%, 4%);
 	--bg2: hsl(240, 6%, 7%);
 	--bg3: hsl(225, 8%, 10%);
@@ -62,8 +65,6 @@
 	--color-border-primary: lch(9.77% 3.54 272 / 1);
 	--color-border-secondary: lch(14.74% 3.54 272 / 1);
 	--color-border-tertiary: lch(19% 3.54 272 / 1);
-
-	color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {

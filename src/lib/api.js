@@ -14,7 +14,7 @@ export async function playChannel(channel) {
 
 	// Check if we need to sync tracks
 	const {rows: tracks} = await pg.sql`select * from tracks where channel_id = ${id}`
-	console.log('playChannel', slug, tracks?.length)
+	console.log('Play channel', slug, tracks?.length)
 	if (!tracks.length) {
 		await syncTracks(slug)
 		// Update app_state to play the channel

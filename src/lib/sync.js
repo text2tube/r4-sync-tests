@@ -5,7 +5,7 @@ import {sdk} from '@radio4000/sdk'
  * Loads all channels from Radio4000 API into the local database
  * @param {number} limit
  */
-export async function syncChannels(limit = 20) {
+export async function syncChannels(limit = 15) {
 	console.time('syncChannels')
 
 	const {data: channels, error} = await sdk.channels.readChannels(limit)
@@ -37,31 +37,8 @@ export async function syncChannels(limit = 20) {
 	console.timeEnd('syncChannels')
 }
 
-export async function syncAllTracks() {
-	const {rows: channels} = await pg.sql`select * from channels;`
-	console.time('xxx')
-	// await Promise.allSettled(channels.map(c => shouldReloadTracks(c.id)))
-	// await Promise.allSettled(channels.filter(c => c.tracks_outdated).map(c => syncTracks(c.slug)))
-	for (const channel of channels) {
-		try {
-			const needsUpdate = await shouldReloadTracks(channel.id)
-			if (needsUpdate) {
-				await pg.sql`update channels set busy = ${true} where id = ${channel.id}`
-				console.log(channel.slug, {needsUpdate})
-				await syncTracks(channel.slug)
-				await pg.sql`update channels set busy = ${false} where id = ${channel.id}`
-			} else {
-				await pg.sql`update channels set tracks_outdated = ${needsUpdate} where id = ${channel.id}`
-			}
-		} catch (err) {
-			console.log(err)
-		}
-	}
-	console.timeEnd('xxx')
-}
-
 /**
- * Loads all tracks for a channel from Radio4000 API into the local database
+ * Pulls R4 tracks for a single channel into the local database
  * @param {string} slug
  */
 export async function syncTracks(slug) {
@@ -103,7 +80,7 @@ export async function syncTracks(slug) {
 }
 
 /**
- * Compares the latest updated track on local vs R4 and returns true if R4 is newer
+ * Compares the latest updated track on local vs R4
  * @param {string} channelId
  * @returns {Promise<boolean>}
  */
@@ -117,8 +94,14 @@ export async function shouldReloadTracks(channelId) {
 			.order('updated_at', {ascending: false})
 			.limit(1)
 			.single()
-
 		if (remoteError) throw remoteError
+
+		// const ids = [1,2,3]
+		// await sdk.supabase
+		// 	.from('channel_track')
+		// 	.select('track_id, updated_at')
+		// 	.in('channel_id', [ids])
+		// 	.order('updated_at', {ascending: false})
 
 		// Get latest track update from local DB
 		const {rows} =
@@ -137,4 +120,31 @@ export async function shouldReloadTracks(channelId) {
 		// On error, reload to be safe
 		return true
 	}
+}
+
+/** Pulls tracks for all channels (respecting "shouldReload") */
+export async function syncChannelTracks() {
+	const {rows: channels} = await pg.sql`select * from channels;`
+	console.time('syncChannelTracks')
+	// const promises = res.rows.map((c) => syncTracks(c.slug))
+	// const what = await Promise.allSettled(promises)
+	// await Promise.allSettled(channels.map(c => shouldReloadTracks(c.id)))
+	// await Promise.allSettled(channels.filter(c => c.tracks_outdated).map(c => syncTracks(c.slug)))
+	for (const channel of channels) {
+		try {
+			const needsUpdate = await shouldReloadTracks(channel.id)
+			if (needsUpdate) {
+				// await pg.sql`update channels set busy = ${true} where id = ${channel.id}`
+				console.log(channel.slug, {needsUpdate})
+				await syncTracks(channel.slug)
+				// await pg.sql`update channels set busy = ${false} where id = ${channel.id}`
+			} else {
+				await pg.sql`update channels set tracks_outdated = ${needsUpdate} where id = ${channel.id}`
+				// console.log(channel.slug, {needsUpdate})
+			}
+		} catch (err) {
+			console.err(err)
+		}
+	}
+	console.timeEnd('syncChannelTracks')
 }
