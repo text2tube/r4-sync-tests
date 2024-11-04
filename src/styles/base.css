@@ -16,6 +16,11 @@
 	font-weight: 100 900;
 }
 
+html,
+body {
+	min-height: 100%;
+}
+
 html {
 	line-height: 1.5;
 	font-size: var(--font-size-regular);
@@ -33,7 +38,45 @@ html {
 body {
 	margin: 0;
 	cursor: default;
-	/* WAIT LETS JUST TRY IT */
+	overflow: hidden;
+}
+
+.scroll {
+	overflow-y: auto;
+}
+
+/* WAIT LETS JUST TRY IT */
+a,
+blockquote,
+body,
+code,
+dd,
+div,
+dl,
+dt,
+embed,
+fieldset,
+footer,
+form,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+header,
+html,
+img,
+legend,
+li,
+ol,
+p,
+pre,
+section,
+table,
+td,
+th,
+ul {
 	user-select: none;
 }
 

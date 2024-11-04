@@ -14,7 +14,7 @@
 </script>
 
 {#if id}
-	<img src={createImage(id)} {alt} />
+	<img loading="lazy" src={createImage(id)} {alt} />
 {/if}
 
 <style>

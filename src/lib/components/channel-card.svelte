@@ -47,11 +47,7 @@
 			>{#if channel.busy}Pulling...{:else}Pull{/if}</button
 		>
 		{#if channel.tracks_outdated}{:else}{/if}
-		<button
-			data-loading={deleting}
-			title="Just for testing"
-			onclick={() => deleteTracks()}
-		>
+		<button data-loading={deleting} title="Just for testing" onclick={() => deleteTracks()}>
 			{#if deleting}Deleting...{:else}Delete tracks{/if}
 		</button>
 	</menu>

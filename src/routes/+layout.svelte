@@ -29,20 +29,6 @@
 		if (event.key === 'Escape' && playerLayoutCheckbox?.checked) playerLayoutCheckbox.click()
 	}
 
-	let previous = $state()
-	let start = $state()
-	let end = $state()
-
-	$effect(() => {
-		if ($navigating) {
-			start = Date.now()
-			end = null
-			previous = $navigating
-		} else {
-			end = Date.now()
-		}
-	})
-
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
 	// $effect(() => {
 	// 	window.addEventListener('beforeunload', async (event) => {
@@ -54,59 +40,64 @@
 
 <svelte:window onkeydown={handleKeyDown} />
 
-<header>
-	<a href="/">
+<div class="layout">
+	<header>
+		<a href="/">
+			{#if preloading}
+				R0
+			{:else}
+				<TestCounter />
+			{/if}
+		</a>
+		<a href="/v1">v1</a>
+		<a href="/settings">Settings</a>
+		<InternetIndicator />
+		<AddTrackModal />
+		<ThemeToggle />
+	</header>
+
+	<main>
 		{#if preloading}
-			R0
+			<center>
+				<p>Preloading...</p>
+			</center>
 		{:else}
-			<TestCounter />
+			{@render children()}
 		{/if}
-	</a>
-	<a href="/settings">Settings</a>
-	<InternetIndicator />
-	<AddTrackModal />
-	<ThemeToggle />
-</header>
+	</main>
 
-{#if previous && end}
-	<p>
-		navigated from {previous.from.url.pathname} to {previous.to.url.pathname} in
-		<strong>{end - start}ms</strong>
-	</p>
-{/if}
-
-<main>
-	{#if preloading}
-		<center>
-			<p>Preloading...</p>
-		</center>
-	{:else}
-		{@render children()}
-	{/if}
-</main>
-
-<footer>
-	<label>
-		<IconChevronUp size={24} strokeWidth={2} />
-		<IconChevronDown size={24} strokeWidth={2} />
-		<input type="checkbox" name="playerLayout" bind:this={playerLayoutCheckbox} />
-	</label>
-	<Player />
-</footer>
+	<footer>
+		<label>
+			<IconChevronUp size={24} strokeWidth={2} />
+			<IconChevronDown size={24} strokeWidth={2} />
+			<input type="checkbox" name="playerLayout" bind:this={playerLayoutCheckbox} />
+		</label>
+		<Player />
+	</footer>
+</div>
 
 <style>
+	.layout {
+		height: 100vh;
+	}
 	header {
 		/* padding: 1rem 1rem 0; */
-		padding: 0.5rem 1rem 0;
+		padding: 0.5rem 1rem 0.5rem;
+		background: var(--color-bg-secondary);
 		/* background: yellow; */
 		display: flex;
 		flex-flow: row wrap;
 		place-items: center;
 		gap: 0.5rem;
 		font-size: var(--font-size-small);
+		border-bottom: 1px solid var(--color-border-tertiary);
 		a:last-of-type {
 			margin-right: auto;
 		}
+	}
+	main {
+		overflow-y: auto;
+		height: 100%;
 	}
 	footer {
 		position: fixed;

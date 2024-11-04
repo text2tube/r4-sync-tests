@@ -15,7 +15,7 @@
 	})
 
 	pg.sql`select channels_display from app_state`.then((res) => {
-		display = res.rows[0].channels_display
+		display = res.rows[0].channels_display || display
 	})
 
 	$effect(() => {
@@ -45,6 +45,7 @@
 </script>
 
 <menu>
+	<p>Listing {channels?.length} channels.</p>
 	<button onclick={() => setDisplay('list')}><IconUnorderedList /> List</button>
 	<button onclick={() => setDisplay('grid')}><IconGrid /> Grid</button>
 </menu>
@@ -58,6 +59,14 @@
 </ul>
 
 <style>
+	menu {
+		padding: 0 1rem;
+		display: flex;
+		gap: 0.5rem;
+		> * {
+			margin: 0;
+		}
+	}
 	menu :global(svg) {
 		width: 1.5em;
 		margin-right: 0.3em;
@@ -68,10 +77,6 @@
 		/* gap: 1rem; */
 		list-style: none;
 		padding: 0;
-
-		> * {
-			/* border: 1px solid; */
-		}
 
 		:global(figure) {
 			width: 100%;
