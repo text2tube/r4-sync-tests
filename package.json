@@ -9,17 +9,13 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint .",
-		"db:push": "drizzle-kit push",
-		"db:migrate": "drizzle-kit migrate",
-		"db:studio": "drizzle-kit studio"
+		"lint": "prettier --check . && eslint ."
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.3.1",
 		"@sveltejs/kit": "^2.7.4",
 		"@sveltejs/vite-plugin-svelte": "^4.0.0",
 		"@types/eslint": "^9.6.1",
-		"drizzle-kit": "^0.27.1",
 		"eslint": "^9.14.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.46.0",
@@ -36,7 +32,6 @@
 		"@electric-sql/pglite": "^0.2.12",
 		"@radio4000/sdk": "^0.4.11",
 		"@sveltejs/adapter-static": "^3.0.6",
-		"drizzle-orm": "^0.36.0",
 		"obra-icons-svelte": "^1.21.0"
 	}
 }

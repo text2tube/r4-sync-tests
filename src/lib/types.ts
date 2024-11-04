@@ -9,6 +9,7 @@ export interface Channel {
 	// custom ones
 	tracks_outdated?: boolean
 	track_count?: number
+	busy: boolean
 }
 
 export type Track = {

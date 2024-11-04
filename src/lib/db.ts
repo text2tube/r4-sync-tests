@@ -1,36 +1,31 @@
 import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
 import {sdk} from '@radio4000/sdk'
-// import {PGliteWorker} from '@electric-sql/pglite/worker'
-
-// If we wanted to use Drizzle, we'd do this
-// import { drizzle } from 'drizzle-orm/pglite'
-// export {sql} from 'drizzle-orm'
-// export const db = drizzle({ client: pg })
-// export const db = drizzle(pg)
+import {PGliteWorker} from '@electric-sql/pglite/worker'
 
 const persist = true
 const dbUrl = persist ? 'idb://radio4000-debug' : 'memory://'
+const useWorker = false
 
-// export const pg = new PGliteWorker(
-// 	new Worker(new URL('./my-pglite-worker.js?worker', import.meta.url), {
-// 		type: 'module'
-// 	}),
-// 	{
-// 		extensions: {
-// 			live
-// 		}
-// 	}
-// )
-
-export const pg = await PGlite.create(dbUrl, {
-	extensions: {
-		live
-	}
-})
+export const pg = !useWorker
+	? await PGlite.create(dbUrl, {
+			extensions: {
+				live
+			}
+		})
+	: new PGliteWorker(
+			new Worker(new URL('./my-pglite-worker.js?worker', import.meta.url), {
+				type: 'module'
+			}),
+			{
+				extensions: {
+					live
+				}
+			}
+		)
 
 // @ts-expect-error just for debugging
-window.oskar = {pg, sdk}
+window.r5 = {pg, sdk}
 
 export async function dropAllTables() {
 	await pg.sql`drop table if exists app_state CASCADE;`
