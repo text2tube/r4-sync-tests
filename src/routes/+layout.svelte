@@ -7,6 +7,7 @@
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
 	import InternetIndicator from '$lib/components/internet-indicator.svelte'
 	import {IconChevronUp, IconChevronDown} from 'obra-icons-svelte'
+	import {navigating} from '$app/stores'
 
 	let {children} = $props()
 
@@ -25,6 +26,20 @@
 	function handleKeyDown(event) {
 		if (event.key === 'Escape' && playerLayoutCheckbox?.checked) playerLayoutCheckbox.click()
 	}
+
+	let previous = $state()
+	let start = $state()
+	let end = $state()
+
+	$effect(() => {
+		if ($navigating) {
+			start = Date.now()
+			end = null
+			previous = $navigating
+		} else {
+			end = Date.now()
+		}
+	})
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />
@@ -37,11 +52,18 @@
 			<TestCounter />
 		{/if}
 	</a>
+	<a href="/settings">Settings</a>
 	<InternetIndicator />
 	<AddTrackModal />
 	<ThemeToggle />
-	<a href="/settings">Settings</a>
 </header>
+
+{#if previous && end}
+	<p>
+		navigated from {previous.from.url.pathname} to {previous.to.url.pathname} in
+		<strong>{end - start}ms</strong>
+	</p>
+{/if}
 
 <main>
 	{#if preloading}
@@ -72,7 +94,7 @@
 		place-items: center;
 		gap: 0.5rem;
 		font-size: var(--font-size-small);
-		a:first-child {
+		a:last-of-type {
 			margin-right: auto;
 		}
 	}

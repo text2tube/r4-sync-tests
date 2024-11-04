@@ -2,6 +2,7 @@ import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
 import {sdk} from '@radio4000/sdk'
 import {PGliteWorker} from '@electric-sql/pglite/worker'
+import {browser} from '$app/environment'
 
 const persist = true
 const dbUrl = persist ? 'idb://radio4000-debug' : 'memory://'
@@ -9,6 +10,7 @@ const useWorker = false
 
 export const pg = !useWorker
 	? await PGlite.create(dbUrl, {
+			// debug: 1,
 			extensions: {
 				live
 			}
@@ -25,7 +27,7 @@ export const pg = !useWorker
 		)
 
 // @ts-expect-error just for debugging
-window.r5 = {pg, sdk}
+if (browser) window.r5 = {pg, sdk}
 
 export async function dropAllTables() {
 	await pg.sql`drop table if exists app_state CASCADE;`
@@ -50,6 +52,7 @@ export async function initDb(reset = false) {
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
+		CREATE INDEX IF NOT EXISTS idx_channels_slug ON channels(slug);
 
     CREATE TABLE IF NOT EXISTS tracks (
       id TEXT PRIMARY KEY,
@@ -61,6 +64,7 @@ export async function initDb(reset = false) {
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
+		CREATE INDEX IF NOT EXISTS idx_tracks_channel_id ON tracks(channel_id);
 
     CREATE TABLE IF NOT EXISTS app_state (
       id INTEGER PRIMARY KEY,

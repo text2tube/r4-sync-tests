@@ -1,3 +1,4 @@
+import * as child_process from 'node:child_process'
 import adapter from '@sveltejs/adapter-auto'
 // import adapter from '@sveltejs/adapter-static'
 import {vitePreprocess} from '@sveltejs/vite-plugin-svelte'
@@ -14,7 +15,11 @@ const config = {
 		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 		adapter: adapter({
 			// fallback: 'index.html'
-		})
+		}),
+
+		version: {
+			name: child_process.execSync('git rev-parse HEAD').toString().trim()
+		}
 	}
 }
 

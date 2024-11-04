@@ -6,8 +6,6 @@
 	const Icon = $derived(theme === 'light' ? IconMoon : IconSun)
 
 	// on load, set theme based on uer's preference
-	$effect(() => {})
-
 	$effect(() => {
 		const {matches: prefersLight} = window.matchMedia('(prefers-color-scheme: light)')
 		pg.sql`select theme from app_state`

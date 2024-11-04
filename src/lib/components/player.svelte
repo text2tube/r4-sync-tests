@@ -34,7 +34,10 @@
 
 	// When slug changes, query the channel and tracks.
 	$effect(() => {
-		const slug = appState?.playlist_slug || ''
+		const slug = appState?.playlist_slug
+		const isDiff = channel?.slug !== slug
+		if (!isDiff) return
+		console.log('here yo slug', slug, isDiff)
 		pg.query(`select * from channels where slug = $1`, [slug]).then((res) => {
 			channel = res.rows[0]
 			if (channel?.id) {

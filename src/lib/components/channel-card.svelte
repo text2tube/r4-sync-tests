@@ -38,7 +38,8 @@
 		<p>
 			{#if channel.track_count}
 				<small>({channel.track_count})</small>
-			{/if}
+			{:else}{/if}
+			&nbsp;
 		</p>
 	</div>
 	<menu hidden>

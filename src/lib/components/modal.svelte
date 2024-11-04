@@ -34,25 +34,23 @@
 		border: none;
 		width: 100%;
 		background: none;
+		padding: calc(0.2px + 13vh) 12px 13vh;
 		/* position: absolute;
 		top: 0;
 		left: 0;
 		height: 100vh;
-		padding: calc(0.2px + 13vh) 12px 13vh;
 		display: flex;
 		align-items: flex-start;
 		justify-content: center;
-		background: yellow;
 		z-index: 100; */
 	}
 	dialog::backdrop {
-		background: rgba(0, 0, 0, 0.25);
+		background: rgba(0, 0, 0, 0.4);
 	}
 	dialog > div {
 		margin: auto;
 		flex: 1;
-		/* min-height: 450px; */
-		background: var(--color-bg-primary);
+		background: var(--color-bg-secondary);
 		/* color: var(--color-text-primary); */
 		box-shadow:
 			lch(0 0 0 / 0.15) 0px 4px 40px,
@@ -93,8 +91,6 @@
 	}
 	header :global(h2) {
 		margin: 0;
-		font-size: var(--font-size-regular);
-		color: var(--color-text-tertiary);
 	}
 	button {
 		display: block;
