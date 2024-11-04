@@ -1,6 +1,6 @@
 <script>
 	import '../styles/style.css'
-	import {initDb} from '$lib/db'
+	import {initDb, pg} from '$lib/db'
 	import Player from '$lib/components/player.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
@@ -41,6 +41,14 @@
 		} else {
 			end = Date.now()
 		}
+	})
+
+	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
+	$effect(() => {
+		window.addEventListener('beforeunload', async (event) => {
+			event.preventDefault()
+			await pg.close()
+		})
 	})
 </script>
 
