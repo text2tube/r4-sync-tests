@@ -6,9 +6,16 @@
 	/** @type {import('$lib/types').Channel[]}*/
 	let channels = $state([])
 
+	/** @type {'list' | 'grid'}*/
+	let display = $state('list')
+
 	// hack to render asap
 	pg.sql`select * from channels order by name`.then((res) => {
 		channels = res.rows
+	})
+
+	pg.sql`select channels_display from app_state`.then((res) => {
+		display = res.rows[0].channels_display
 	})
 
 	$effect(() => {
@@ -31,12 +38,15 @@
 		)
 	})
 
-	let display = $state('list')
+	async function setDisplay(value) {
+		display = value
+		await pg.sql`update app_state set channels_display = ${value} where id = 1`
+	}
 </script>
 
 <menu>
-	<button onclick={() => (display = 'list')}><IconUnorderedList /> List</button>
-	<button onclick={() => (display = 'grid')}><IconGrid /> Grid</button>
+	<button onclick={() => setDisplay('list')}><IconUnorderedList /> List</button>
+	<button onclick={() => setDisplay('grid')}><IconGrid /> Grid</button>
 </menu>
 
 <ul class={display}>
