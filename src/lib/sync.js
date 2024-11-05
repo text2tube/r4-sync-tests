@@ -6,9 +6,11 @@ import {sdk} from '@radio4000/sdk'
  * @param {Object} options
  * @param {number} [options.limit=15] - Number of channels to pull
  */
-export async function pullChannels({limit = 150} = {}) {
+export async function pullChannels({limit = 2000} = {}) {
 	const {data: channels, error} = await sdk.channels.readChannels(limit)
 	if (error) throw error
+
+	// @todo validate channels?
 
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {

@@ -9,17 +9,17 @@
 	/** @type {'list' | 'grid'}*/
 	let display = $state('list')
 
-	// hack to render asap
-	pg.sql`select * from channels order by name`.then((res) => {
-		channels = res.rows
-	})
-
 	pg.sql`select channels_display from app_state`.then((res) => {
 		display = res.rows[0].channels_display || display
 	})
 
+	// Double query to render asap, before the "live" query below.
+	pg.sql`select * from channels order by name`.then((res) => {
+		channels = res.rows
+	})
+
 	$effect(() => {
-		console.log('RAN')
+		console.time('incrementalQuery')
 		pg.live.incrementalQuery(
 			`
 			SELECT
@@ -34,6 +34,7 @@
 			'id',
 			(res) => {
 				channels = res.rows
+				console.timeEnd('incrementalQuery')
 			}
 		)
 	})

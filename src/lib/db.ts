@@ -4,13 +4,17 @@ import {sdk} from '@radio4000/sdk'
 import {PGliteWorker} from '@electric-sql/pglite/worker'
 import {browser} from '$app/environment'
 
+const useWorker = false
 const persist = true
 const dbUrl = persist ? 'idb://radio4000-debug' : 'memory://'
-const useWorker = false
 
 export const pg = !useWorker
-	? await PGlite.create(dbUrl, {
+	? await PGlite.create({
 			// debug: 1,
+			dataDir: dbUrl,
+			// faster when using idb?
+			relaxedDurability: true, 
+
 			extensions: {
 				live
 			}
