@@ -49,7 +49,6 @@
 				<TestCounter />
 			{/if}
 		</a>
-		<!--<a href="/v1">v1</a>-->
 		<a href="/settings">Settings</a>
 		<InternetIndicator />
 		<AddTrackModal />
@@ -79,6 +78,7 @@
 <style>
 	.layout {
 		display: grid;
+		grid-template-rows: auto 1fr;
 		height: 100vh;
 	}
 	header {

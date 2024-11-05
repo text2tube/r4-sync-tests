@@ -1,6 +1,7 @@
 <script>
 	import {initDb, pg, exportDb} from '$lib/db'
 	import {pullChannels, needsUpdate, pullTracks} from '$lib/sync'
+	import {pullV1Channels} from '$lib/v1'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
 
 	/** @type {import('$lib/types').AppState}*/
@@ -43,16 +44,31 @@
 		}
 		busyTracks = false
 	}
+
+	let totalSyncing = $state(false)
+	async function totalSync() {
+		totalSyncing = true
+		await pullChannels()
+		maybePullAllTracks().then()
+		await pullV1Channels()
+		totalSyncing = false
+	}
 </script>
 
 <article>
 	<h2>Settings</h2>
 	<menu>
 		<button onclick={() => initDb(true).then(update)}>Reset local database</button>
-		<button onclick={() => pullChannels().then(update)}>Pull channels</button>
+		<!-- <button onclick={() => pullChannels().then(update)}>Pull channels</button> -->
+		<button data-loading={totalSyncing} disabled={totalSyncing} onclick={totalSync}
+			>{#if totalSyncing}Pulling{:else}Pull{/if} channels</button
+		>
+
 		<button data-loading={busyTracks} disabled={busyTracks} onclick={maybePullAllTracks}
 			>{#if busyTracks}Pulling{:else}Pull{/if} tracks</button
 		>
+
+		<!-- <button onclick={pullV1Channels}>Import from v1</button> -->
 		<button disabled>Import local database</button>
 		<button onclick={exportDb}>Export local database</button>
 	</menu>
@@ -60,15 +76,20 @@
 	<pre>{channels.length} channels</pre>
 	<pre>{tracks.length} tracks</pre>
 
-	<PgliteRepl />
-
 	<hr />
 
 	<h3>What's going on here?</h3>
 	<p>On boot, this website prepares a PostgreSQL database in your browser via WASM.</p>
-	<p>Channels are pulled in the start up. Tracks are loaded on demand.</p>
+	<p>You can pull channels from R4 (incl. v1). Tracks are loaded on demand.</p>
 	<p>Tracks are currently not refreshed once loaded. To be decided.</p>
 	<p>All application and most component state is stored and updated directly to the database.</p>
+
+	<h2>PGlite REPL</h2>
+	<p>
+		You have control over your data(base). Try querying one of the tables `channels`, `tracks` or
+		`app_state` using SQL.
+	</p>
+	<PgliteRepl />
 </article>
 
 <style>

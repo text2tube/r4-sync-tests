@@ -13,7 +13,7 @@ export const pg = !useWorker
 			// debug: 1,
 			dataDir: dbUrl,
 			// faster when using idb?
-			relaxedDurability: true, 
+			relaxedDurability: true,
 
 			extensions: {
 				live
@@ -46,7 +46,7 @@ export async function initDb(reset = false) {
 
 	await pg.exec(`
     CREATE TABLE IF NOT EXISTS channels (
-      id TEXT PRIMARY KEY,
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name TEXT NOT NULL,
       slug TEXT UNIQUE NOT NULL,
       description TEXT,
@@ -61,8 +61,8 @@ export async function initDb(reset = false) {
     CREATE INDEX IF NOT EXISTS idx_channels_slug ON channels(slug);
 
     CREATE TABLE IF NOT EXISTS tracks (
-      id TEXT PRIMARY KEY,
-      channel_id TEXT REFERENCES channels(id) ON DELETE CASCADE,
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      channel_id uuid REFERENCES channels(id) ON DELETE CASCADE,
       url TEXT NOT NULL,
       title TEXT NOT NULL,
       description TEXT,

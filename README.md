@@ -46,3 +46,9 @@ You can preview the production build with `npm run preview`.
 - https://github.com/hellogreg/firava
 - https://icons.obra.studio/
 - https://pglite.dev/docs/api
+
+## Tips
+
+```
+jq '[.[] | select(.track_count > 9) | . + {tracks: .tracks | to_entries | map(.key)} ]' static/radio4000-channels-export-modified.json > static/r4-v1-channels.json
+```

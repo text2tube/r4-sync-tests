@@ -19,7 +19,11 @@ export async function playChannel(channel) {
 	const {rows: tracks} = await pg.sql`select * from tracks where channel_id = ${id}`
 	console.log('Play channel', slug, tracks?.length)
 	if (!tracks.length) {
-		await pullTracks(slug)
+		if (channel.source === 'v1') {
+			console.log('cant fetch v1 tracks')
+		} else {
+			await pullTracks(slug)
+		}
 	}
 
 	// Update app_state to indicate we want to play the channel
