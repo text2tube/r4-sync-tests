@@ -5,8 +5,4 @@
 export const ssr = false
 
 export async function load() {
-	return {
-		// channels,
-		oskar: 42
-	}
 }
