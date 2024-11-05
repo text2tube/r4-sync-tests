@@ -49,7 +49,7 @@
 				<TestCounter />
 			{/if}
 		</a>
-		<a href="/v1">v1</a>
+		<!--<a href="/v1">v1</a>-->
 		<a href="/settings">Settings</a>
 		<InternetIndicator />
 		<AddTrackModal />
@@ -78,6 +78,7 @@
 
 <style>
 	.layout {
+		display: grid;
 		height: 100vh;
 	}
 	header {
@@ -97,7 +98,6 @@
 	}
 	main {
 		overflow-y: auto;
-		height: 100%;
 	}
 	footer {
 		position: fixed;
