@@ -113,7 +113,8 @@
 		position: absolute;
 		top: 0;
 		left: 0;
-		right: 0;
+		/* large enough to cover the avatar and some title */
+		width: calc(100% / 3);
 		bottom: 0;
 		z-index: 1;
 		border-top-left-radius: var(--border-radius);
@@ -139,6 +140,7 @@
 
 	/* Toggled state */
 	footer:has(input:checked) label {
+		width: 100%;
 		bottom: auto;
 	}
 	footer:has(input:checked) {

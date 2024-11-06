@@ -133,6 +133,9 @@
 		grid-template-columns: 1fr 1fr 1fr;
 		justify-items: center;
 
+		.playerToggle {
+		}
+
 		header {
 			grid-template-columns: 3rem auto;
 			gap: 1rem;
