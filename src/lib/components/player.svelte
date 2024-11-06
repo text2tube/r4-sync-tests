@@ -2,6 +2,7 @@
 	import {pg} from '$lib/db'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
+	import YoutubePlayer from '$lib/components/youtube-player.svelte'
 	import {
 		IconShuffle,
 		IconPreviousFill,
@@ -66,6 +67,7 @@
 			<h3>{track?.title}</h3>
 			<p>{description}</p>
 		</div>
+		<YoutubePlayer url={track?.url} />
 	</header>
 	<menu>
 		<button>
@@ -94,8 +96,9 @@
 		{/if}
 		<input type="range" min="0" max="100" name="volume" onchange={setVolume} />
 	</label>
+
 	<aside class="scroller">
-		<Tracklist ids={trackIds} />
+		<Tracklist ids={trackIds} currentId={track.id} />
 	</aside>
 </article>
 

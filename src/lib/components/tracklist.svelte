@@ -3,11 +3,12 @@
 	import {playTrack} from '$lib/api'
 	//import {formatDate} from '$lib/dates'
 
-	const {ids} = $props()
+	const {ids, currentId} = $props()
 
 	/** @type {import('$lib/types').Track[]}*/
 	let tracks = $state([])
 
+	// Turn the list of ids into real tracks.
 	$effect(() => {
 		pg.live.incrementalQuery(
 			`
@@ -26,7 +27,7 @@
 
 <ul class="list">
 	{#each tracks as item, index}
-		<li ondblclick={() => playTrack(item.id)}>
+		<li class={item.id === currentId ? 'current' : ''} ondblclick={() => playTrack(item.id)}>
 			<span>{index + 1}.</span>
 			<h3>{item.title}</h3>
 			<p><small>{item.description}</small></p>
@@ -55,5 +56,11 @@
 	p {
 		margin: 0;
 		grid-column: 2;
+	}
+	li.current {
+		h3 {
+			color: var(--color-primary);
+			font-weight: 600;
+		}
 	}
 </style>

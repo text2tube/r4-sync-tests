@@ -34,6 +34,8 @@
 		"@radio4000/components": "^0.2.7",
 		"@radio4000/sdk": "^0.4.11",
 		"@sveltejs/adapter-static": "^3.0.6",
-		"obra-icons-svelte": "^1.21.0"
+		"media-chrome": "^4.2.3",
+		"obra-icons-svelte": "^1.21.0",
+		"youtube-video-element": "^1.1.6"
 	}
 }
