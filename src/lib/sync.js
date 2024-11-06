@@ -1,12 +1,13 @@
-import {pg} from '$lib/db'
+import {pg, DEBUG_LIMIT} from '$lib/db'
 import {sdk} from '@radio4000/sdk'
+import {pullV1Tracks} from '$lib/v1'
 
 /**
  * Pull channel metadata from Radio4000 into local database
  * @param {Object} options
  * @param {number} [options.limit=15] - Number of channels to pull
  */
-export async function pullChannels({limit = 2000} = {}) {
+export async function pullChannels({limit = DEBUG_LIMIT} = {}) {
 	const {data: channels, error} = await sdk.channels.readChannels(limit)
 	if (error) throw error
 
@@ -42,13 +43,22 @@ export async function pullTracks(slug) {
 
 	try {
 		// Get channel ID for foreign key relationship
-		const {rows} = await pg.sql`select id from channels where slug = ${slug}`
-		const channelId = rows[0]?.id
+		const {rows} = await pg.sql`select id, source from channels where slug = ${slug}`
+		const {id: channelId, source} = rows[0]
 		if (!channelId) throw new Error(`Channel not found: ${slug}`)
+
+		// if v1 pull like this instead
+		if (source) {
+			console.log('pulling v1 tracks')
+			return await pullV1Tracks(channelId, source)
+			console.log('should not happen')
+		}
 
 		// Pull tracks
 		const {data, error} = await sdk.channels.readChannelTracks(slug)
 		if (error) throw error
+		console.log('pulling tracks', data)
+
 		await pg.transaction(async (tx) => {
 			/** @type {import('$lib/types').Track[]} */
 			const tracks = data
@@ -76,6 +86,7 @@ export async function pullTracks(slug) {
 	} finally {
 		// Always mark channel as not busy when done
 		await pg.sql`update channels set busy = false, tracks_outdated = false where slug = ${slug}`
+		console.log('pulledTracks')
 	}
 }
 
@@ -87,15 +98,22 @@ export async function pullTracks(slug) {
 export async function needsUpdate(slug) {
 	try {
 		// Get channel ID for remote query
-		const {rows} = await pg.sql`select id from channels where slug = ${slug}`
-		const channelId = rows[0]?.id
-		if (!channelId) throw new Error(`Channel not found: ${slug}`)
+		const {rows: [channel]} = await pg.sql`select * from channels where slug = ${slug}`
+
+		const {id, source} = channel
+
+		if (!id) throw new Error(`Channel not found: ${slug}`)
+
+		if (source) {
+			// v1 channels dont need updating
+			return false
+		}
 
 		// Get latest remote track update
 		const {data: remoteLatest, error: remoteError} = await sdk.supabase
 			.from('channel_track')
 			.select('updated_at')
-			.eq('channel_id', channelId)
+			.eq('channel_id', id)
 			.order('updated_at', {ascending: false})
 			.limit(1)
 			.single()
@@ -105,7 +123,7 @@ export async function needsUpdate(slug) {
 		const {rows: localRows} = await pg.sql`
       select updated_at 
       from tracks 
-      where channel_id = ${channelId}
+      where channel_id = ${id}
       order by updated_at desc 
       limit 1
     `

@@ -8,31 +8,45 @@
 	/** @typedef {import('$lib/types').AppState} AppState */
 
 	/** @type {AppState }*/
-	let appState = $state({
-		playlist_slug: ''
-	})
+	let appState = $state({})
 
-	/** @type {Channel|undefined} */
-	let channel = $state()
+	let title = $state('No playlist')
+	let image = $state('')
+	let description = $state('')
 
-	/** @type {Track[]}*/
-	let tracks = $state([])
-
-	// A test
-	// pg.live.changes('SELECT * FROM app_state where id = 1;', null, 'id', (changes) => {
-	// 	console.log('changes', changes)
-	// 	appState.playlist_slug = changes[0].playlist_slug
-	// })
+	/** @type {Track|undefined} */
+	let track = $state()
 
 	// A live query that copies the sqlite data into the component state.
 	$effect(() => {
-		pg.live.query(`select * from app_state where id = 1`, [], (res) => {
-			console.debug('app_state updated')
+		pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
 			appState = res.rows[0]
+
+			const {rows} = await pg.sql`
+				select * from tracks
+				where id = 
+					(
+					select playlist_tracks[${appState.playlist_index + 1}]
+					from app_state
+					where id = 1
+					)
+				order by created_at desc
+			`
+			if (!rows.length) throw new Error('Could not find track by index: ${')
+			track = rows[0]
+
+			const {rows: channels} = await pg.sql`
+				select * from channels where id = ${rows[0].channel_id}
+			`
+			title = channels[0].name
+			image = channels[0].image
+			description = channels[0].description
 		})
+		// @todo clear live query
 	})
 
 	// When slug changes, query the channel and tracks.
+	/*
 	$effect(() => {
 		const slug = appState?.playlist_slug
 		const isDiff = channel?.slug !== slug
@@ -46,29 +60,29 @@
 			}
 		})
 	})
+	 */
 </script>
 
 <article>
-	{#if appState?.playlist_slug}
+	{#if appState.playlist_tracks}
 		<header>
-			<figure>
-				<ChannelAvatar id={channel?.image} alt={channel?.name} />
-			</figure>
+			{#if image}
+				<figure>
+					<ChannelAvatar id={image} alt={title} />
+				</figure>
+			{/if}
 			<div>
-				<h2>{channel?.name}</h2>
+				<h2>{title}</h2>
+				<p>{description}</p>
 				<p>
 					<small>
-						@{appState.playlist_slug}
-						{#if tracks?.length}<span>{tracks.length} tracks</span>{/if}
+						<span>{appState.playlist_tracks?.length} tracks</span>
 					</small>
 				</p>
-				{#if channel?.description}
-					<p class="desc">{channel.description}</p>
-				{/if}
 			</div>
 		</header>
 		<aside class="scroller">
-			<Tracklist channelId={channel?.id} />
+			<Tracklist ids={appState.playlist_tracks} />
 		</aside>
 	{/if}
 </article>

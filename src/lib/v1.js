@@ -1,8 +1,8 @@
-import {pg} from '$lib/db'
+import {pg, DEBUG_LIMIT} from '$lib/db'
 
 export async function pullV1Channels() {
 	const res = await fetch('/r4-v1-channels.json')
-	const items = await res.json()
+	const items = (await res.json()).slice(0, DEBUG_LIMIT)
 	console.log('channels from local file', items)
 
 	// remove duplicates (e.g. channels already in the database, be it from v2 or whatever)
@@ -38,15 +38,16 @@ export async function pullV1Channels() {
 
 /**
  * Imports tracks from a v1 channel
- * @param {string} uuid
+ * @param {string} channelId
  * @param {string} channelFirebaseId
+ * @param {typeof pg} [pg]
  */
-async function pullV1Tracks(uuid, channelFirebaseId, pg) {
+export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 	const v1Tracks = await findV1TracksByChannel(channelFirebaseId)
-	console.log('v1 tracks', v1Tracks)
+	console.log('pullV1Tracks', v1Tracks)
 	const tracks = v1Tracks.map((track) => ({
 		id: track.id,
-		channel_id: uuid,
+		channel_id: channelId,
 		url: track.url,
 		title: track.title,
 		description: track.body || '',
@@ -57,7 +58,7 @@ async function pullV1Tracks(uuid, channelFirebaseId, pg) {
 	for (const item of tracks) {
 		await pg.sql`
 			insert into tracks (channel_id, created_at, updated_at, title, description, url, discogs_url)
-			values (${uuid}, ${item.created_at}, ${item.updated_at}, ${item.title}, ${item.description}, ${item.url}, ${item.discogs_url}) on conflict (id) do nothing;
+			values (${channelId}, ${item.created_at}, ${item.updated_at}, ${item.title}, ${item.description}, ${item.url}, ${item.discogs_url}) on conflict (id) do nothing;
 		`
 	}
 	console.log('Inserted tracks v1', tracks)

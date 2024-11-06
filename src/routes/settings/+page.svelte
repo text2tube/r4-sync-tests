@@ -33,24 +33,27 @@
 		})
 	})
 
-	let busyTracks = $state(false)
 	async function maybePullAllTracks() {
-		busyTracks = true
 		for (const channel of channels) {
 			if (await needsUpdate(channel.slug)) {
-				await pullTracks(channel.slug)
+				if (channel.source === 'v1') {
+					await pullV1Tracks(channel.firebase_id)
+				} else {
+					await pullTracks(channel.slug)
+				}
+				console.log('updated', slug)
 				update()
+			} else {
+				console.log('no update needed', slug)
 			}
 		}
-		busyTracks = false
 	}
 
 	let totalSyncing = $state(false)
 	async function totalSync() {
 		totalSyncing = true
 		await pullChannels()
-		maybePullAllTracks().then()
-		await pullV1Channels()
+		await Promise.allSettled([pullV1Channels(), maybePullAllTracks()])
 		totalSyncing = false
 	}
 </script>
@@ -59,16 +62,9 @@
 	<h2>Settings</h2>
 	<menu>
 		<button onclick={() => initDb(true).then(update)}>Reset local database</button>
-		<!-- <button onclick={() => pullChannels().then(update)}>Pull channels</button> -->
-		<button data-loading={totalSyncing} disabled={totalSyncing} onclick={totalSync}
-			>{#if totalSyncing}Pulling{:else}Pull{/if} channels</button
-		>
-
-		<button data-loading={busyTracks} disabled={busyTracks} onclick={maybePullAllTracks}
-			>{#if busyTracks}Pulling{:else}Pull{/if} tracks</button
-		>
-
-		<!-- <button onclick={pullV1Channels}>Import from v1</button> -->
+		<button onclick={totalSync} data-loading={totalSyncing} disabled={totalSyncing}>
+			{#if totalSyncing}Pulling{:else}Pull{/if} channels
+		</button>
 		<button disabled>Import local database</button>
 		<button onclick={exportDb}>Export local database</button>
 	</menu>

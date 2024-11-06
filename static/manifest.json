@@ -3,17 +3,17 @@
 	"short_name": "R5",
 	"icons": [
 		{
-			"src": "assets/app-icons/music-icon_128.png",
+			"src": "favicon.png",
 			"sizes": "128x128",
 			"type": "image/png"
 		},
 		{
-			"src": "assets/app-icons/music-icon_270.png",
+			"src": "favicon.png",
 			"sizes": "270x270",
 			"type": "image/png"
 		},
 		{
-			"src": "assets/app-icons/music-icon_558.png",
+			"src": "favicon.png",
 			"sizes": "558x558",
 			"type": "image/png"
 		}

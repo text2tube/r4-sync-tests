@@ -19,7 +19,6 @@
 	})
 
 	$effect(() => {
-		console.time('incrementalQuery')
 		pg.live.incrementalQuery(
 			`
 			SELECT
@@ -34,7 +33,6 @@
 			'id',
 			(res) => {
 				channels = res.rows
-				console.timeEnd('incrementalQuery')
 			}
 		)
 	})

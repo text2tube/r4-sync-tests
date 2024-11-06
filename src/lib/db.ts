@@ -4,6 +4,8 @@ import {sdk} from '@radio4000/sdk'
 import {PGliteWorker} from '@electric-sql/pglite/worker'
 import {browser} from '$app/environment'
 
+export const DEBUG_LIMIT = 5
+
 const useWorker = false
 const persist = true
 const dbUrl = persist ? 'idb://radio4000-debug' : 'memory://'
@@ -75,13 +77,15 @@ export async function initDb(reset = false) {
 
     CREATE TABLE IF NOT EXISTS app_state (
       id INTEGER PRIMARY KEY,
-      playlist_slug TEXT,
-      playlist_tracks JSONB,
-      is_playing BOOLEAN DEFAULT false,
-      volume INTEGER DEFAULT 70,
       theme TEXT,
       counter INTEGER DEFAULT 0,
-      channels_display TEXT
+      channels_display TEXT,
+
+      is_playing BOOLEAN DEFAULT false,
+      volume INTEGER DEFAULT 70,
+
+			playlist_tracks UUID[] DEFAULT ARRAY[]::UUID[],
+			playlist_index INTEGER default 1
     );
 
     INSERT INTO app_state (id) values (1) on conflict do nothing;
@@ -99,7 +103,7 @@ export async function exportDb() {
 		a.href = url
 		a.download = file.name
 		console.log(url, file, a)
-		// a.click()
+		a.click()
 	}
 
 	const pg2 = new PGlite({

@@ -1,24 +1,23 @@
 <script>
 	import {pg} from '$lib/db'
+	import {playTrack} from '$lib/api'
+	import {formatDate} from '$lib/dates'
 
-	const {channelId} = $props()
+	const {ids} = $props()
 
 	/** @type {import('$lib/types').Track[]}*/
 	let tracks = $state([])
 
 	$effect(() => {
-		if (!channelId) return
 		pg.live.incrementalQuery(
 			`
-		SELECT *
-		FROM tracks
-		where channel_id = $1
+		SELECT * FROM tracks
+		WHERE id IN (select unnest($1::uuid[]))
 		ORDER BY created_at desc
 	`,
-			[channelId],
+			[ids],
 			'id',
 			(res) => {
-				console.log('Tracks query update', res)
 				tracks = res.rows
 			}
 		)
@@ -27,10 +26,11 @@
 
 <ul class="list">
 	{#each tracks as item, index}
-		<li>
+		<li ondblclick={() => playTrack(index)}>
 			<span>{index + 1}.</span>
 			<h3>{item.title}</h3>
 			<p><small>{item.description}</small></p>
+			<!--<p>{formatDate(item.created_at)}</p>-->
 		</li>
 	{/each}
 </ul>
@@ -38,12 +38,13 @@
 <style>
 	li {
 		display: grid;
-		grid-template-columns: 2rem auto;
-		padding: 0.5rem 0 0.3rem 0.5rem;
+		grid-template-columns: 3rem auto;
+		padding: 0.5rem 0 0.3rem 0;
 		line-height: 1.2;
 	}
 	li > span:first-child {
 		grid-row: span 2;
+		color: var(--color-text-tertiary);
 	}
 	h3 {
 		font-size: var(--font-size-regular);

@@ -4,5 +4,4 @@
 
 export const ssr = false
 
-export async function load() {
-}
+export async function load() {}
