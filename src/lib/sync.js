@@ -3,7 +3,7 @@ import {sdk} from '@radio4000/sdk'
 import {pullV1Tracks} from '$lib/v1'
 
 /**
- * Pull channel metadata from Radio4000 into local database
+ * Pull channel metadata from Radio4000 into local database. Does not touch tracks.
  * @param {Object} options
  * @param {number} [options.limit=15] - Number of channels to pull
  */
@@ -31,6 +31,8 @@ export async function pullChannels({limit = DEBUG_LIMIT} = {}) {
       `
 		}
 	})
+
+	console.log('Successfully pulled channels')
 }
 
 /**
@@ -43,21 +45,19 @@ export async function pullTracks(slug) {
 
 	try {
 		// Get channel ID for foreign key relationship
-		const {rows} = await pg.sql`select id, source from channels where slug = ${slug}`
-		const {id: channelId, source} = rows[0]
+		const {rows} = await pg.sql`select id, firebase_id from channels where slug = ${slug}`
+		const {id: channelId, firebase_id} = rows[0]
 		if (!channelId) throw new Error(`Channel not found: ${slug}`)
 
 		// if v1 pull like this instead
-		if (source) {
-			console.log('pulling v1 tracks')
-			return await pullV1Tracks(channelId, source)
-			console.log('should not happen')
+		if (firebase_id) {
+			return await pullV1Tracks(channelId, firebase_id)
 		}
 
 		// Pull tracks
 		const {data, error} = await sdk.channels.readChannelTracks(slug)
 		if (error) throw error
-		console.log('pulling tracks', data)
+		console.log('Pulling tracks', data)
 
 		await pg.transaction(async (tx) => {
 			/** @type {import('$lib/types').Track[]} */
@@ -86,7 +86,7 @@ export async function pullTracks(slug) {
 	} finally {
 		// Always mark channel as not busy when done
 		await pg.sql`update channels set busy = false, tracks_outdated = false where slug = ${slug}`
-		console.log('pulledTracks')
+		console.log('Successfully pulled tracks')
 	}
 }
 
@@ -98,13 +98,15 @@ export async function pullTracks(slug) {
 export async function needsUpdate(slug) {
 	try {
 		// Get channel ID for remote query
-		const {rows: [channel]} = await pg.sql`select * from channels where slug = ${slug}`
+		const {
+			rows: [channel]
+		} = await pg.sql`select * from channels where slug = ${slug}`
 
-		const {id, source} = channel
+		const {id, firebase_id} = channel
 
 		if (!id) throw new Error(`Channel not found: ${slug}`)
 
-		if (source) {
+		if (firebase_id) {
 			// v1 channels dont need updating
 			return false
 		}

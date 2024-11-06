@@ -10,6 +10,7 @@ export interface Channel {
 	tracks_outdated?: boolean
 	track_count?: number
 	busy: boolean
+	firebase_id?: string
 }
 
 export type Track = {

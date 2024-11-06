@@ -1,12 +1,12 @@
-import { PGlite } from '@electric-sql/pglite'
-import { live } from '@electric-sql/pglite/live'
-import { sdk } from '@radio4000/sdk'
-import { PGliteWorker } from '@electric-sql/pglite/worker'
-import { browser } from '$app/environment'
+import {PGlite} from '@electric-sql/pglite'
+import {live} from '@electric-sql/pglite/live'
+import {sdk} from '@radio4000/sdk'
+// import {PGliteWorker} from '@electric-sql/pglite/worker'
+import {browser} from '$app/environment'
 
 export const DEBUG_LIMIT = 5
 
-const useWorker = false
+// const useWorker = false
 const persist = true
 const dbUrl = persist ? 'idb://radio4000-debug' : 'memory://'
 const options = {
@@ -19,17 +19,18 @@ const options = {
 	}
 }
 
-export const pg = !useWorker
+export const pg = await PGlite.create(options)
+/* export const pg = !useWorker
 	? await PGlite.create(options)
 	: new PGliteWorker(
-		new Worker(new URL('./my-pglite-worker.js?worker', import.meta.url), {
-			type: 'module'
-		}),
-		options
-	)
+			new Worker(new URL('./my-pglite-worker.js?worker', import.meta.url), {
+				type: 'module'
+			}),
+			options
+	 )*/
 
 // @ts-expect-error just for debugging
-if (browser) window.r5 = { pg, sdk }
+if (browser) window.r5 = {pg, sdk}
 
 export async function dropAllTables() {
 	await pg.sql`drop table if exists app_state CASCADE;`
@@ -53,7 +54,7 @@ export async function initDb(reset = false) {
       busy BOOLEAN,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-      source TEXT
+      firebase_id TEXT
     );
 
     CREATE INDEX IF NOT EXISTS idx_channels_slug ON channels(slug);
@@ -94,20 +95,12 @@ export async function initDb(reset = false) {
 
 export async function exportDb() {
 	const file = await pg.dumpDataDir()
-
-	if (typeof window !== 'undefined') {
-		// Download the dump
-		const url = URL.createObjectURL(file)
-		const a = document.createElement('a')
-		a.href = url
-		a.download = file.name
-		console.log(url, file, a)
-		a.click()
-	}
-
-	const pg2 = new PGlite({
-		loadDataDir: file
-	})
-	const rows = await pg2.query('SELECT name FROM channels;')
-	console.log('test query using the exported file as db', rows)
+	// Download the dump
+	const url = URL.createObjectURL(file)
+	const a = document.createElement('a')
+	a.href = url
+	a.download = file.name
+	a.click()
+	// could even query the new db
+	//const pg2 = new PGlite({ loadDataDir: file })
 }

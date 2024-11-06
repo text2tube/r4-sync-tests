@@ -24,7 +24,7 @@
 
 	function submit(event) {
 		const track = event.detail.data
-		console.log('added remote track', track)
+		console.log('Created remote track', track)
 		// @todo pull tracks or insert directly
 	}
 </script>
@@ -34,9 +34,9 @@
 <button onclick={() => (showModal = true)}>Add track</button>
 
 <Modal bind:showModal>
-		{#snippet header()}
-			<h2>Add Track ›</h2>
-		{/snippet}
+	{#snippet header()}
+		<h2>Add Track ›</h2>
+	{/snippet}
 	{#if channelId}
 		<r4-track-create channel_id={channelId} onsubmit={submit}></r4-track-create>
 	{:else}
@@ -61,4 +61,3 @@
 	</form>
 	-->
 </Modal>
-

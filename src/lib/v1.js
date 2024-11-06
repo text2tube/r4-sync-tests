@@ -1,27 +1,22 @@
 import {pg, DEBUG_LIMIT} from '$lib/db'
 
+/** Imports a local export of v1 channels, imports them, and fetches + imports tracks as well */
 export async function pullV1Channels() {
 	const res = await fetch('/r4-v1-channels.json')
 	const items = (await res.json()).slice(0, DEBUG_LIMIT)
-	console.log('Importing channels from local JSON file', items)
+	console.log('Pulling v1 channels and tracks', items)
 
 	// remove duplicates (e.g. channels already in the database, be it from v2 or whatever)
 	const {rows} = await pg.sql`select slug from channels`
 	const notDuplicates = items.filter((item) => !rows.some((row) => row.slug === item.slug))
-	// console.log('Skipping duplicates', items.length - notDuplicates.length)
-
+	// we only want channels with images and at least _some_ tracks
 	const channels = notDuplicates.filter((item) => item.image && item.track_count > 0)
-	// console.log(
-	// 	'Skipping channels without image or tracks',
-	// 	notDuplicates.length - channels.length,
-	// 	channels
-	// )
 
 	try {
 		await pg.transaction(async (tx) => {
 			for (const item of channels) {
 				await tx.sql`
-					insert into channels (created_at, updated_at, slug, name, description, image, source)
+					insert into channels (created_at, updated_at, slug, name, description, image, firebase_id)
 					values (${item.created_at}, ${item.updated_at}, ${item.slug}, ${item.name}, ${item.description}, ${item.image}, ${item.firebase_id}) on conflict (id) do nothing
 					`
 				const {rows} = await tx.sql`select id from channels where slug = ${item.slug}`
@@ -33,7 +28,7 @@ export async function pullV1Channels() {
 		console.warn('Failed to insert v1 channels', err)
 	}
 
-	console.log('okay we are done')
+	console.log('Successfully imported v1 channels and tracks')
 }
 
 /**
@@ -44,7 +39,7 @@ export async function pullV1Channels() {
  */
 export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 	const v1Tracks = await findV1TracksByChannel(channelFirebaseId)
-	console.log('pullV1Tracks', v1Tracks)
+	console.log('Pulling tracks from v1', v1Tracks)
 	const tracks = v1Tracks.map((track) => ({
 		id: track.id,
 		channel_id: channelId,

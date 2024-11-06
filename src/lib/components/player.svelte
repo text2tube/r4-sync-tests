@@ -27,22 +27,17 @@
 	/** @type {Track|undefined} */
 	let track = $state()
 
-	let appState = $state()
-
 	pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
+		const tid = res.rows[0].playlist_track
 		trackIds = res.rows[0].playlist_tracks
 
-		const tid = res.rows[0].playlist_track
-		console.log(track, tid)
-		if (track && track.id === tid) {
-			console.log('Track is already loaded')
-			return
-		}
+		// Stop if track is loaded.
+		if (track && track.id === tid) return
 
 		const {rows} = await pg.sql`select * from tracks where id = ${tid} order by created_at desc`
 		const t = rows[0]
 		if (!t) {
-			console.log('app state changed without track?', res.rows)
+			console.log('app_state updated, but no track?', res.rows)
 			return
 		}
 		track = t

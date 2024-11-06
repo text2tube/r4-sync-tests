@@ -18,7 +18,7 @@ export async function checkUser() {
 	}
 	const {data: channels} = await sdk.channels.readUserChannels()
 	if (channels) {
-		await pg.sql`update app_state set channels = ${channels.map(c=>c.id)}`
+		await pg.sql`update app_state set channels = ${channels.map((c) => c.id)}`
 	}
 	return data
 }
@@ -39,13 +39,16 @@ export async function playTrack(id) {
  */
 export async function playChannel({id, slug}) {
 	const index = 0
-	let tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
+	let tracks = (
+		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
+	).rows
 
 	// get tracks if needed
 	if (!tracks?.length) {
 		await pullTracks(slug)
 	}
-	tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
+	tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`)
+		.rows
 
 	// Pull in background to be sure
 	needsUpdate(slug).then((needs) => {
