@@ -1,32 +1,17 @@
-## Todo
+## THIS IS JUST A TEST
+
+A web app with a local PostgreSQL database that can more or less sync with R4 and Matrix remotes.
+
+## Ideas
 
 - use a worker when using the db https://pglite.dev/examples/opfs
-
-# sv
-
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
+- maintain a local log of changes in a format that we can later apply to R4 supabase and/or Matrix
 
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
 ```bash
+npm install
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
 ## Building
@@ -35,17 +20,15 @@ To create a production version of your app:
 
 ```bash
 npm run build
+npm run preview
 ```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
 
 ## Credits
 
+- https://pglite.dev/docs/api
 - https://github.com/hellogreg/firava
 - https://icons.obra.studio/
-- https://pglite.dev/docs/api
+- [`sv`](https://github.com/sveltejs/cli) svelte cli
 
 ## Tips
 
