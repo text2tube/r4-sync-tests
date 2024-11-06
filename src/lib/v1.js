@@ -3,19 +3,19 @@ import {pg, DEBUG_LIMIT} from '$lib/db'
 export async function pullV1Channels() {
 	const res = await fetch('/r4-v1-channels.json')
 	const items = (await res.json()).slice(0, DEBUG_LIMIT)
-	console.log('channels from local file', items)
+	console.log('Importing channels from local JSON file', items)
 
 	// remove duplicates (e.g. channels already in the database, be it from v2 or whatever)
 	const {rows} = await pg.sql`select slug from channels`
 	const notDuplicates = items.filter((item) => !rows.some((row) => row.slug === item.slug))
-	console.log('Skipping duplicates', items.length - notDuplicates.length)
+	// console.log('Skipping duplicates', items.length - notDuplicates.length)
 
 	const channels = notDuplicates.filter((item) => item.image && item.track_count > 0)
-	console.log(
-		'Skipping channels without image or tracks',
-		notDuplicates.length - channels.length,
-		channels
-	)
+	// console.log(
+	// 	'Skipping channels without image or tracks',
+	// 	notDuplicates.length - channels.length,
+	// 	channels
+	// )
 
 	try {
 		await pg.transaction(async (tx) => {

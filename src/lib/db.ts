@@ -1,39 +1,35 @@
-import {PGlite} from '@electric-sql/pglite'
-import {live} from '@electric-sql/pglite/live'
-import {sdk} from '@radio4000/sdk'
-import {PGliteWorker} from '@electric-sql/pglite/worker'
-import {browser} from '$app/environment'
+import { PGlite } from '@electric-sql/pglite'
+import { live } from '@electric-sql/pglite/live'
+import { sdk } from '@radio4000/sdk'
+import { PGliteWorker } from '@electric-sql/pglite/worker'
+import { browser } from '$app/environment'
 
 export const DEBUG_LIMIT = 5
 
 const useWorker = false
 const persist = true
 const dbUrl = persist ? 'idb://radio4000-debug' : 'memory://'
+const options = {
+	// debug: 1,
+	dataDir: dbUrl,
+	// faster when using idb?
+	relaxedDurability: true,
+	extensions: {
+		live
+	}
+}
 
 export const pg = !useWorker
-	? await PGlite.create({
-			// debug: 1,
-			dataDir: dbUrl,
-			// faster when using idb?
-			relaxedDurability: true,
-
-			extensions: {
-				live
-			}
-		})
+	? await PGlite.create(options)
 	: new PGliteWorker(
-			new Worker(new URL('./my-pglite-worker.js?worker', import.meta.url), {
-				type: 'module'
-			}),
-			{
-				extensions: {
-					live
-				}
-			}
-		)
+		new Worker(new URL('./my-pglite-worker.js?worker', import.meta.url), {
+			type: 'module'
+		}),
+		options
+	)
 
 // @ts-expect-error just for debugging
-if (browser) window.r5 = {pg, sdk}
+if (browser) window.r5 = { pg, sdk }
 
 export async function dropAllTables() {
 	await pg.sql`drop table if exists app_state CASCADE;`
@@ -85,7 +81,10 @@ export async function initDb(reset = false) {
       volume INTEGER DEFAULT 70,
 
 			playlist_tracks UUID[] DEFAULT ARRAY[]::UUID[],
-			playlist_index INTEGER default 1
+			playlist_index INTEGER default 1,
+			playlist_track UUID references tracks(id),
+
+			channels UUID[] DEFAULT ARRAY[]::UUID[]
     );
 
     INSERT INTO app_state (id) values (1) on conflict do nothing;

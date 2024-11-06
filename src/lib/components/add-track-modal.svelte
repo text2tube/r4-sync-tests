@@ -1,12 +1,31 @@
 <script>
+	import {pg} from '$lib/db'
 	import Modal from '$lib/components/modal.svelte'
 
 	let showModal = $state(false)
+	let channelId = $state()
 
 	/** @param {KeyboardEvent} event */
 	function handleKeyDown(event) {
-		if (event.target?.tagName === 'PGLITE-REPL') return
+		if (event.target?.tagName === 'PGLITE-REPL' || event.target?.tagName === 'INPUT') return
 		if (event.key === 'c') showModal = true
+	}
+
+	$effect(() => {
+		// Listen to app state updates and update UI.
+		pg.live.query(`select * from app_state where id = 1`, [], (res) => {
+			if (res.rows[0].channels) {
+				channelId = res.rows[0].channels[0]
+			} else {
+				channelId = undefined
+			}
+		})
+	})
+
+	function submit(event) {
+		const track = event.detail.data
+		console.log('added remote track', track)
+		// @todo pull tracks or insert directly
 	}
 </script>
 
@@ -15,10 +34,17 @@
 <button onclick={() => (showModal = true)}>Add track</button>
 
 <Modal bind:showModal>
-	{#snippet header()}
-		<h2>@TODO TEST › Add Track</h2>
-	{/snippet}
-	<form>
+		{#snippet header()}
+			<h2>Add Track ›</h2>
+		{/snippet}
+	{#if channelId}
+		<r4-track-create channel_id={channelId} onsubmit={submit}></r4-track-create>
+	{:else}
+		<p><a href="/settings">Log in</a> first, please.</p>
+	{/if}
+
+	<!--
+	<form hidden>
 		<label for="url">URL</label>
 		<input type="url" required name="url" id="url" placeholder="Paste in a YouTube URL..." />
 
@@ -33,38 +59,6 @@
 		<hr />
 		<button type="submit">Create track</button>
 	</form>
+	-->
 </Modal>
 
-<style>
-	form {
-		display: flex;
-		flex-flow: column;
-		/* gap: 0.2rem; */
-	}
-	input[type='text'],
-	input[type='url'] {
-		min-height: 2rem;
-		padding: 0 0.3rem;
-		background: var(--color-bg-primary);
-		border: 1px solid var(--color-border-tertiary);
-		border-radius: var(--border-radius);
-
-		border: 0;
-	}
-	label {
-		color: var(--color-text-tertiary);
-		/* display: none; */
-	}
-	input + label {
-		margin-top: 1rem;
-		margin-bottom: 0.2rem;
-	}
-	button[type='submit'] {
-		margin-left: auto;
-		/* bit bigger? */
-		padding-left: 1rem;
-		padding-right: 1rem;
-		min-height: 2rem;
-		letter-spacing: 0.01em;
-	}
-</style>

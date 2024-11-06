@@ -7,7 +7,7 @@
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
 	import InternetIndicator from '$lib/components/internet-indicator.svelte'
 	import {IconChevronUp, IconChevronDown} from 'obra-icons-svelte'
-	import {navigating} from '$app/stores'
+	import '@radio4000/components'
 
 	let {children} = $props()
 

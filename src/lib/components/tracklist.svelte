@@ -26,7 +26,7 @@
 
 <ul class="list">
 	{#each tracks as item, index}
-		<li ondblclick={() => playTrack(index)}>
+		<li ondblclick={() => playTrack(item.id)}>
 			<span>{index + 1}.</span>
 			<h3>{item.title}</h3>
 			<p><small>{item.description}</small></p>

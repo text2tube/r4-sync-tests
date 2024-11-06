@@ -3,6 +3,7 @@
 	import {pullChannels, needsUpdate, pullTracks} from '$lib/sync'
 	import {pullV1Channels} from '$lib/v1'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
+	import Login from '$lib/components/login.svelte'
 
 	/** @type {import('$lib/types').AppState}*/
 	let appState = $state({})
@@ -59,7 +60,6 @@
 </script>
 
 <article>
-	<h2>Settings</h2>
 	<menu>
 		<button onclick={() => initDb(true).then(update)}>Reset local database</button>
 		<button onclick={totalSync} data-loading={totalSyncing} disabled={totalSyncing}>
@@ -68,24 +68,27 @@
 		<button disabled>Import local database</button>
 		<button onclick={exportDb}>Export local database</button>
 	</menu>
-	<pre>{JSON.stringify(appState, null, 2)}</pre>
-	<pre>{channels.length} channels</pre>
-	<pre>{tracks.length} tracks</pre>
 
-	<hr />
+	<h3>Settings</h3>
+	<p>{channels.length} channels and {tracks.length} tracks.</p>
 
-	<h3>What's going on here?</h3>
 	<p>On boot, this website prepares a PostgreSQL database in your browser via WASM.</p>
 	<p>You can pull channels from R4 (incl. v1). Tracks are loaded on demand.</p>
-	<p>Tracks are currently not refreshed once loaded. To be decided.</p>
-	<p>All application and most component state is stored and updated directly to the database.</p>
+	<p>All application and most component state is stored and updated directly to the local database.</p>
+
+	<h2>Account</h2>
+	<Login />
 
 	<h2>PGlite REPL</h2>
 	<p>
-		You have control over your data(base). Try querying one of the tables `channels`, `tracks` or
-		`app_state` using SQL.
+		You have control over your local data(base). Try querying one of the tables `channels`, `tracks` or
+		`app_state` using SQL. 
 	</p>
 	<PgliteRepl />
+
+
+	<hr />
+
 </article>
 
 <style>

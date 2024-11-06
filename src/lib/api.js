@@ -1,13 +1,36 @@
 import {pg} from '$lib/db'
 import {needsUpdate, pullTracks} from '$lib/sync'
+import {sdk} from '@radio4000/sdk'
+
+/** @typedef {object} User
+ * @prop {string} id
+ * @prop {string} email
+ *
+
+/**
+ * Returns a user
+ */
+export async function checkUser() {
+	const {data, error} = await sdk.users.readUser()
+	console.log('checkUser', data, error)
+	if (!data) {
+		await pg.sql`update app_state set channels = null`
+	}
+	const {data: channels} = await sdk.channels.readUserChannels()
+	if (channels) {
+		await pg.sql`update app_state set channels = ${channels.map(c=>c.id)}`
+	}
+	return data
+}
 
 /**
  * Just play the channel already. Wait, what does playing a channel even mean? Who am i?
- * @param {number} index
+ * @param {string} id
  */
-export async function playTrack(index) {
-	console.log('playTrack', index + 1)
-	return await pg.sql` UPDATE app_state SET playlist_index = ${index + 1}`
+export async function playTrack(id) {
+	// @todo check if we need to switch playlist_tracks (different channel)
+	console.log('playTrack', id)
+	return await pg.sql` UPDATE app_state SET playlist_track = ${id}`
 }
 
 /**
@@ -16,13 +39,13 @@ export async function playTrack(index) {
  */
 export async function playChannel({id, slug}) {
 	const index = 0
-	let tracks = (await pg.sql`select * from tracks where channel_id = ${id}`).rows
+	let tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
 
 	// get tracks if needed
 	if (!tracks?.length) {
 		await pullTracks(slug)
 	}
-	tracks = (await pg.sql`select * from tracks where channel_id = ${id}`).rows
+	tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
 
 	// Pull in background to be sure
 	needsUpdate(slug).then((needs) => {
@@ -30,6 +53,7 @@ export async function playChannel({id, slug}) {
 	})
 
 	const ids = tracks.map((t) => t.id)
+
 	return loadPlaylist(ids, index)
 }
 
@@ -46,7 +70,7 @@ async function loadPlaylist(ids, index) {
 	await pg.sql`
     UPDATE app_state SET
 			playlist_tracks = ${ids},
-			playlist_index = ${index}
+			playlist_track = ${ids[0]}
   `
 }
 

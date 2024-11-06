@@ -31,6 +31,7 @@
 	"dependencies": {
 		"@electric-sql/pglite": "^0.2.12",
 		"@electric-sql/pglite-repl": "^0.2.12",
+		"@radio4000/components": "^0.2.7",
 		"@radio4000/sdk": "^0.4.11",
 		"@sveltejs/adapter-static": "^3.0.6",
 		"obra-icons-svelte": "^1.21.0"

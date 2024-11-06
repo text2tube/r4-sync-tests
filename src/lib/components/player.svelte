@@ -21,49 +21,28 @@
 	$effect(() => {
 		pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
 			appState = res.rows[0]
+			await whatever()
+		})
+	})
 
-			const {rows} = await pg.sql`
+	async function whatever() {
+		console.log(appState)
+		const {rows} = await pg.sql`
 				select * from tracks
-				where id = 
-					(
-					select playlist_tracks[${appState.playlist_index + 1}]
-					from app_state
-					where id = 1
-					)
+				where id = ${appState.playlist_track}
 				order by created_at desc
 			`
-			if (!rows.length) throw new Error('Could not find track by index: ${')
-			track = rows[0]
-
-			const {rows: channels} = await pg.sql`
-				select * from channels where id = ${rows[0].channel_id}
-			`
-			title = channels[0].name
-			image = channels[0].image
-			description = channels[0].description
-		})
-		// @todo clear live query
-	})
-
-	// When slug changes, query the channel and tracks.
-	/*
-	$effect(() => {
-		const slug = appState?.playlist_slug
-		const isDiff = channel?.slug !== slug
-		if (!isDiff) return
-		pg.query(`select * from channels where slug = $1`, [slug]).then((res) => {
-			channel = res.rows[0]
-			if (channel?.id) {
-				pg.query(`select * from tracks where channel_id = $1`, [channel.id]).then((res) => {
-					tracks = res.rows
-				})
-			}
-		})
-	})
-	 */
+		if (!rows.length) throw new Error('Could not find tracks')
+		track = rows[0]
+		const {rows: channels} = await pg.sql` select * from channels where id = ${track.channel_id} `
+		title = channels[0].name
+		image = channels[0].image
+		description = channels[0].description
+	}
 </script>
 
 <article>
+
 	{#if appState.playlist_tracks}
 		<header>
 			{#if image}
@@ -72,8 +51,11 @@
 				</figure>
 			{/if}
 			<div>
+				{#if track}
+					<h3>{track.title}</h3>
+				{/if}
 				<h2>{title}</h2>
-				<p>{description}</p>
+				<!--<p>{description}</p>-->
 				<p>
 					<small>
 						<span>{appState.playlist_tracks?.length} tracks</span>
@@ -105,8 +87,10 @@
 	:global(footer:has(input:checked) > article) {
 		display: flex;
 		height: 100%;
+		gap: 1rem;
 
 		header {
+			width: 240px;
 			margin-top: 3rem;
 			grid-template-columns: auto;
 			place-items: center;
