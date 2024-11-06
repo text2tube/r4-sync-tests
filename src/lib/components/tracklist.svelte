@@ -1,7 +1,7 @@
 <script>
 	import {pg} from '$lib/db'
 	import {playTrack} from '$lib/api'
-	import {formatDate} from '$lib/dates'
+	//import {formatDate} from '$lib/dates'
 
 	const {ids} = $props()
 
@@ -50,6 +50,7 @@
 		font-size: var(--font-size-regular);
 		font-weight: initial;
 		margin: 0;
+		color: var(--color-text-secondary);
 	}
 	p {
 		margin: 0;

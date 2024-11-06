@@ -2,129 +2,217 @@
 	import {pg} from '$lib/db'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
+	import {
+		IconShuffle,
+		IconPreviousFill,
+		IconNextFill,
+		IconPause,
+		IconPlayFill,
+		IconVolume1Fill,
+		IconVolume2Fill,
+		IconVolumeOffFill
+	} from 'obra-icons-svelte'
 
 	/** @typedef {import('$lib/types').Channel} Channel */
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').AppState} AppState */
 
-	/** @type {AppState }*/
-	let appState = $state({})
-
 	let title = $state('No playlist')
 	let image = $state('')
 	let description = $state('')
 
+	/** @type {string[]} */
+	let trackIds = $state([])
+
 	/** @type {Track|undefined} */
 	let track = $state()
 
-	// A live query that copies the sqlite data into the component state.
-	$effect(() => {
-		pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
-			appState = res.rows[0]
-			await whatever()
-		})
+	let appState = $state()
+
+	pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
+		trackIds = res.rows[0].playlist_tracks
+
+		const tid = res.rows[0].playlist_track
+		console.log(track, tid)
+		if (track && track.id === tid) {
+			console.log('Track is already loaded')
+			return
+		}
+
+		const {rows} = await pg.sql`select * from tracks where id = ${tid} order by created_at desc`
+		const t = rows[0]
+		if (!t) {
+			console.log('app state changed without track?', res.rows)
+			return
+		}
+		console.log(t)
+		track = t
+
+		const {rows: channels} = await pg.sql`select * from channels where id = ${t.channel_id}`
+		const c = channels[0]
+		console.log(c)
+		title = c.name
+		image = c.image
+		description = c.description
 	})
 
-	async function whatever() {
-		console.log(appState)
-		const {rows} = await pg.sql`
-				select * from tracks
-				where id = ${appState.playlist_track}
-				order by created_at desc
-			`
-		if (!rows.length) throw new Error('Could not find tracks')
-		track = rows[0]
-		const {rows: channels} = await pg.sql` select * from channels where id = ${track.channel_id} `
-		title = channels[0].name
-		image = channels[0].image
-		description = channels[0].description
+	let volume = $state(50)
+
+	async function setVolume(event) {
+		const val = event.currentTarget.value
+		await pg.sql`update app_state set volume = ${val}`
+		volume = val
+		console.log(val)
 	}
 </script>
 
 <article>
-
-	{#if appState.playlist_tracks}
-		<header>
-			{#if image}
-				<figure>
-					<ChannelAvatar id={image} alt={title} />
-				</figure>
-			{/if}
-			<div>
-				{#if track}
-					<h3>{track.title}</h3>
-				{/if}
-				<h2>{title}</h2>
-				<!--<p>{description}</p>-->
-				<p>
-					<small>
-						<span>{appState.playlist_tracks?.length} tracks</span>
-					</small>
-				</p>
-			</div>
-		</header>
-		<aside class="scroller">
-			<Tracklist ids={appState.playlist_tracks} />
-		</aside>
-	{/if}
+	<header>
+		<figure>
+			<ChannelAvatar id={image} alt={title} />
+		</figure>
+		<div>
+			<h2>{title}</h2>
+			<h3>{track?.title}</h3>
+			<p>{description}</p>
+		</div>
+	</header>
+	<menu>
+		<button>
+			<IconShuffle />
+		</button>
+		<button>
+			<IconPreviousFill />
+		</button>
+		<button>
+			<IconPlayFill />
+		</button>
+		<button>
+			<IconPause />
+		</button>
+		<button>
+			<IconNextFill />
+		</button>
+	</menu>
+	<label class="volume">
+		{#if volume < 1}
+			<IconVolumeOffFill />
+		{:else if volume < 50}
+			<IconVolume1Fill />
+		{:else}
+			<IconVolume2Fill />
+		{/if}
+		<input type="range" min="0" max="100" name="volume" onchange={setVolume} />
+	</label>
+	<aside class="scroller">
+		<Tracklist ids={trackIds} />
+	</aside>
 </article>
 
 <style>
 	header {
 		display: grid;
-		grid-template-columns: 3rem auto;
-		gap: 0.5rem;
-		align-items: center;
-		padding: 0.5rem 0.25rem;
+		line-height: 1.2;
 	}
-
-	aside.scroller {
-		overflow: auto;
-		width: 100%;
-		display: none;
-	}
-
-	:global(footer:has(input:checked) > article) {
+	menu {
 		display: flex;
-		height: 100%;
-		gap: 1rem;
-
-		header {
-			width: 240px;
-			margin-top: 3rem;
-			grid-template-columns: auto;
-			place-items: center;
-			text-align: center;
-			margin-bottom: auto;
-		}
-		figure {
-			margin-bottom: 1rem;
-		}
-		h2 {
-			font-size: var(--font-size-title2);
-		}
-		.desc {
-			display: block;
-			max-width: 80ch;
-		}
-		aside.scroller {
-			display: initial;
-		}
+		padding: 0;
+	}
+	aside {
 	}
 
 	h2,
+	h3,
 	p,
 	figure {
 		margin: 0;
 	}
+
+	h2,
+	h3 {
+		font-size: var(--font-size-title2);
+	}
+
 	h2 {
-		font-size: var(--font-size-medium);
+		color: var(--color-text-tertiary);
+		font-weight: 500;
 	}
-	.desc {
-		margin-top: 1rem;
-		display: none;
+	h3 {
+		color: var(--color-text-secondary);
+		font-weight: 400;
 	}
-	small {
-		font-size: 1rem;
+
+	/* Fixed bottom */
+	:global(footer:not(:has(input:checked)) > article) {
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr;
+		justify-items: center;
+
+		header {
+			grid-template-columns: 3rem auto;
+			gap: 1rem;
+			align-items: center;
+			padding: 0.25rem 0.25rem;
+
+			div {
+				display: flex;
+				gap: 0.5rem;
+			}
+		}
+		menu {
+			gap: 0rem;
+		}
+		header p:last-of-type,
+		aside {
+			display: none;
+		}
+	}
+
+	/* Full overlay */
+	:global(footer:has(input:checked) > article) {
+		height: 100%;
+
+		@media (min-width: 500px) {
+			display: grid;
+			grid-template-columns: minmax(240px, 30vw) 1fr;
+		}
+
+		header {
+			padding-top: 3rem;
+			margin: auto 1rem;
+			grid-template-columns: auto;
+			place-items: center;
+			text-align: center;
+		}
+		figure {
+			margin-bottom: 2vh;
+		}
+		header p:last-of-type {
+			margin-top: 1rem;
+			max-width: 80ch;
+		}
+		menu {
+			padding: 0;
+			grid-column: 1;
+			margin-bottom: auto;
+		}
+		aside {
+			grid-column: 2;
+			grid-row: 1/3;
+			display: initial;
+			margin-top: 1rem;
+			overflow: auto;
+			:global(li) {
+				padding-left: 0.5rem;
+				padding-right: 0.25rem;
+			}
+		}
+	}
+
+	.volume {
+		display: flex;
+		flex-flow: row nowrap;
+		place-items: center;
+		place-content: center;
 	}
 </style>

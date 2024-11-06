@@ -66,7 +66,7 @@
 	</main>
 
 	<footer>
-		<label>
+		<label class="playerToggle">
 			<IconChevronUp size={24} strokeWidth={2} />
 			<IconChevronDown size={24} strokeWidth={2} />
 			<input type="checkbox" name="playerLayout" bind:this={playerLayoutCheckbox} />
@@ -146,10 +146,10 @@
 		right: 0;
 		height: 100%;
 
-		& :global(svg:first-of-type) {
+		& :global(.playerToggle svg:first-of-type) {
 			display: none;
 		}
-		& :global(svg:last-of-type) {
+		& :global(.playerToggle svg:last-of-type) {
 			display: block;
 			margin-top: 0.5rem;
 			margin-left: 0.5rem;
