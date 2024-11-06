@@ -45,24 +45,19 @@
 			console.log('app state changed without track?', res.rows)
 			return
 		}
-		console.log(t)
 		track = t
 
 		const {rows: channels} = await pg.sql`select * from channels where id = ${t.channel_id}`
 		const c = channels[0]
-		console.log(c)
 		title = c.name
 		image = c.image
 		description = c.description
 	})
 
 	let volume = $state(50)
-
 	async function setVolume(event) {
-		const val = event.currentTarget.value
-		await pg.sql`update app_state set volume = ${val}`
-		volume = val
-		console.log(val)
+		volume = Number(event.currentTarget.value)
+		await pg.sql`update app_state set volume = ${volume}`
 	}
 </script>
 
@@ -117,29 +112,24 @@
 	menu {
 		display: flex;
 		padding: 0;
+		place-content: center;
 	}
-	aside {
-	}
-
 	h2,
 	h3,
 	p,
 	figure {
 		margin: 0;
 	}
-
 	h2,
 	h3 {
 		font-size: var(--font-size-title2);
+		font-weight: 400;
 	}
-
 	h2 {
 		color: var(--color-text-tertiary);
-		font-weight: 500;
 	}
 	h3 {
 		color: var(--color-text-secondary);
-		font-weight: 400;
 	}
 
 	/* Fixed bottom */
@@ -195,6 +185,9 @@
 			padding: 0;
 			grid-column: 1;
 			margin-bottom: auto;
+		}
+		.volume {
+			margin: auto 0 1rem;
 		}
 		aside {
 			grid-column: 2;
