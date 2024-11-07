@@ -151,6 +151,7 @@ figure {
 	background: var(--color-bg-quaternary);
 }
 
+r4-sign-in,
 r4-track-create {
 	form,
 	fieldset {
@@ -171,6 +172,7 @@ r4-track-create {
 		border-radius: var(--border-radius);
 		border: 0;
 	}
+	legend,
 	label {
 		color: var(--color-text-tertiary);
 	}
@@ -193,4 +195,15 @@ button[type='submit'] {
 	letter-spacing: 0.01em;
 	background: var(--color-lavender);
 	color: var(--color-bg-primary);
+}
+
+article:has(media-controller[mediapaused]) .play {
+	display: block;
+}
+article:has(media-controller[mediapaused]) .pause {
+	display: none;
+}
+
+article:not(:has(media-controller[mediapaused])) .play {
+	display: none;
 }

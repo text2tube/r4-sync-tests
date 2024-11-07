@@ -98,6 +98,8 @@
 	}
 	main {
 		overflow-y: auto;
+		/* space for fixed, bottom player */
+		padding-bottom: 10rem;
 	}
 	footer {
 		position: fixed;

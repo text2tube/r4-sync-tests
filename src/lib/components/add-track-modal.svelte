@@ -40,7 +40,7 @@
 	{#if channelId}
 		<r4-track-create channel_id={channelId} onsubmit={submit}></r4-track-create>
 	{:else}
-		<p><a href="/settings">Log in</a> first, please.</p>
+		<p><a href="/login">Sign in</a> first, please.</p>
 	{/if}
 
 	<!--

@@ -35,5 +35,17 @@
 <style>
 	:global(fieldset) {
 		border: 0;
+		padding: 0;
+		margin-bottom: 0.75rem;
+	}
+	:global input[name="token"] {
+		display: none;
+	}
+	:global legend {
+		/* padding: 0; */
+		/* color: var(--color-text-tertiary); */
+	}
+	:global input {
+		/* width: 100%; */
 	}
 </style>

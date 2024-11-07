@@ -1,39 +1,16 @@
 <script>
 	import {initDb, pg, exportDb} from '$lib/db'
 	import {pullChannels, needsUpdate, pullTracks} from '$lib/sync'
-	import {pullV1Channels, pullV1Tracks} from '$lib/v1'
+	import {pullV1Channels} from '$lib/v1'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
-	import Login from '$lib/components/login.svelte'
 
 	/** @type {import('$lib/types').AppState}*/
 	let appState = $state({})
-	/** @type {import('$lib/types').Channel[]}*/
-	let channels = $state([])
-	/** @type {import('$lib/types').Track[]}*/
-	let tracks = $state([])
 
 	// Listen to app state updates and update UI.
 	pg.live.query(`select * from app_state where id = 1`, [], (res) => {
 		appState = res.rows[0]
 	})
-
-	$effect(() => {
-		update()
-	})
-
-	// Pulls all data into this component.
-	function update() {
-		pg.query(`select * from app_state where id = 1`).then((res) => {
-			appState = res.rows[0]
-		})
-		pg.query(`select * from channels`).then((res) => {
-			channels = res.rows
-		})
-		pg.query(`select * from tracks`).then((res) => {
-			tracks = res.rows
-		})
-	}
-
 	// A wrapper around the other sync methods.
 	// v2 channels -> v1 channels incl. tracks -> v2 tracks
 	let totalSyncing = $state(false)
@@ -57,8 +34,6 @@
 		totalSyncing = false
 		console.timeEnd('totalSync')
 	}
-
-	let showForm = $state(false)
 </script>
 
 <article>
@@ -77,10 +52,6 @@
 		channels from R4 (including version 1), use the buttons above &uarr; All application and most
 		component state is stored and updated directly to the local database.
 	</p>
-
-	{#if showForm}<Login />{:else}
-		<button onclick={() => (showForm = true)}>Sign in</button>
-	{/if}
 
 	<h2>PGlite REPL</h2>
 	<p>

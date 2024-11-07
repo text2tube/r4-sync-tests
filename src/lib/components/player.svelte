@@ -13,6 +13,7 @@
 		IconVolume2Fill,
 		IconVolumeOffFill
 	} from 'obra-icons-svelte'
+	import {playTrack} from '$lib/api'
 
 	/** @typedef {import('$lib/types').Channel} Channel */
 	/** @typedef {import('$lib/types').Track} Track */
@@ -27,6 +28,8 @@
 
 	/** @type {Track|undefined} */
 	let track = $state()
+
+	let yt = $state()
 
 	pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
 		const tid = res.rows[0].playlist_track
@@ -55,6 +58,17 @@
 		volume = Number(event.currentTarget.value)
 		await pg.sql`update app_state set volume = ${volume}`
 	}
+
+	function previous() {
+		const idx = trackIds.indexOf(track.id)
+		const prev = trackIds[idx - 1]
+		if (prev) playTrack(prev)
+	}
+	function next() {
+		const idx = trackIds.indexOf(track.id)
+		const next = trackIds[idx + 1]
+		if (next) playTrack(next)
+	}
 </script>
 
 <article>
@@ -67,26 +81,31 @@
 			<h3>{track?.title}</h3>
 			<p>{description}</p>
 		</div>
-		<YoutubePlayer url={track?.url} />
 	</header>
+	<YoutubePlayer url={track?.url} bind:yt />
 	<menu>
 		<button>
 			<IconShuffle />
 		</button>
-		<button>
+		<button onclick={previous}>
 			<IconPreviousFill />
 		</button>
-		<button>
+		<button class="play" onclick={() => yt.play()}>
 			<IconPlayFill />
 		</button>
-		<button>
+		<button class="pause" onclick={() => yt.pause()}>
 			<IconPause />
 		</button>
-		<button>
+		<button onclick={next}>
 			<IconNextFill />
 		</button>
+		<div class="volume">
+			<media-mute-button mediacontroller="r5"></media-mute-button>
+			<media-volume-range mediacontroller="r5"></media-volume-range>
+		</div>
 	</menu>
-	<label class="volume">
+
+	<!-- <label class="volume">
 		{#if volume < 1}
 			<IconVolumeOffFill />
 		{:else if volume < 50}
@@ -96,9 +115,10 @@
 		{/if}
 		<input type="range" min="0" max="100" name="volume" onchange={setVolume} />
 	</label>
+ -->
 
 	<aside class="scroller">
-		<Tracklist ids={trackIds} currentId={track.id} />
+		<Tracklist ids={trackIds} currentId={track?.id} />
 	</aside>
 </article>
 
@@ -109,6 +129,7 @@
 	}
 	menu {
 		display: flex;
+		margin: auto;
 		padding: 0;
 		place-content: center;
 	}
@@ -136,14 +157,11 @@
 		grid-template-columns: 1fr 1fr 1fr;
 		justify-items: center;
 
-		.playerToggle {
-		}
-
 		header {
 			grid-template-columns: 3rem auto;
 			gap: 1rem;
 			align-items: center;
-			padding: 0.25rem 0.25rem;
+			padding-left: 0.25rem;
 
 			div {
 				display: flex;
@@ -165,12 +183,11 @@
 
 		@media (min-width: 500px) {
 			display: grid;
-			grid-template-columns: minmax(240px, 30vw) 1fr;
+			grid-template-columns: minmax(320px, 30vw) 1fr;
 		}
 
 		header {
-			padding-top: 3rem;
-			margin: auto 1rem;
+			margin: 3rem auto auto;
 			grid-template-columns: auto;
 			place-items: center;
 			text-align: center;
@@ -185,10 +202,10 @@
 		menu {
 			padding: 0;
 			grid-column: 1;
-			margin-bottom: auto;
+			/* margin-bottom: auto; */
 		}
 		.volume {
-			margin: auto 0 1rem;
+			/* margin: auto 0 auto; */
 		}
 		aside {
 			grid-column: 2;
@@ -206,7 +223,5 @@
 	.volume {
 		display: flex;
 		flex-flow: row nowrap;
-		place-items: center;
-		place-content: center;
 	}
 </style>
