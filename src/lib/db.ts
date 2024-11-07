@@ -4,7 +4,7 @@ import {sdk} from '@radio4000/sdk'
 // import {PGliteWorker} from '@electric-sql/pglite/worker'
 import {browser} from '$app/environment'
 
-export const DEBUG_LIMIT = 30
+export const DEBUG_LIMIT = 100
 
 // const useWorker = false
 const persist = true
