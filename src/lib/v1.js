@@ -1,34 +1,42 @@
 import {pg, DEBUG_LIMIT} from '$lib/db'
 
-/** Imports a local export of v1 channels, imports them, and fetches + imports tracks as well */
+/**
+	Imports a local export of v1 channels, imports them, and fetches + imports tracks as well
+	It will not overwrite existing channels when slug exists.
+*/
 export async function pullV1Channels() {
-	const res = await fetch('/r4-v1-channels.json')
+	const res = await fetch('/r5-channels.json')
 	const items = (await res.json()).slice(0, DEBUG_LIMIT)
-	console.log('Pulling v1 channels and tracks', items)
 
 	// remove duplicates (e.g. channels already in the database, be it from v2 or whatever)
 	const {rows} = await pg.sql`select slug from channels`
-	const notDuplicates = items.filter((item) => !rows.some((row) => row.slug === item.slug))
 	// we only want channels with images and at least _some_ tracks
-	const channels = notDuplicates.filter((item) => item.image && item.track_count > 0)
+	const channels = items.filter(
+		(item) => !rows.some((r) => r.slug === item.slug) && item.image && item.track_count > 9
+	)
+
+	// console.log('Pulling v1 channels and tracks', channels)
 
 	try {
 		await pg.transaction(async (tx) => {
 			for (const item of channels) {
-				await tx.sql`
+				try {
+					await tx.sql`
 					insert into channels (created_at, updated_at, slug, name, description, image, firebase_id)
-					values (${item.created_at}, ${item.updated_at}, ${item.slug}, ${item.name}, ${item.description}, ${item.image}, ${item.firebase_id}) on conflict (id) do nothing
+					values (${item.created_at}, ${item.updated_at || item.created_at}, ${item.slug}, ${item.name}, ${item.description}, ${item.image}, ${item.firebase_id}) on conflict (slug) do nothing
 					`
+				} catch (err) {
+					console.warn('Failed to insert v1 channel', item.slug, err)
+				}
 				const {rows} = await tx.sql`select id from channels where slug = ${item.slug}`
-				console.log('Pulled channel', item.slug, rows[0].id, item.firebase_id)
+				// console.log('Pulled channel. Now tracks...', item.slug, rows[0].id, item.firebase_id)
 				await pullV1Tracks(rows[0].id, item.firebase_id, tx)
 			}
 		})
 	} catch (err) {
 		console.warn('Failed to insert v1 channels', err)
 	}
-
-	console.log('Successfully imported v1 channels and tracks')
+	console.log('Pulled v1 channels and tracks', channels?.length)
 }
 
 /**
@@ -38,10 +46,11 @@ export async function pullV1Channels() {
  * @param {typeof pg} [pg]
  */
 export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
+	const {rows: existingTracks} =
+		await pg.sql`select firebase_id from tracks where channel_id = ${channelId}`
 	const v1Tracks = await findV1TracksByChannel(channelFirebaseId)
-	console.log('Pulling tracks from v1', v1Tracks)
 	const tracks = v1Tracks.map((track) => ({
-		id: track.id,
+		firebase_id: track.id,
 		channel_id: channelId,
 		url: track.url,
 		title: track.title,
@@ -50,13 +59,14 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 		created_at: new Date(track.created).toISOString(),
 		updated_at: new Date(track.updated || track.created).toISOString()
 	}))
-	for (const item of tracks) {
+	const x = tracks.filter((t) => !existingTracks.some((x) => x.firebase_id === t.firebase_id))
+	for (const item of x) {
 		await pg.sql`
-			insert into tracks (channel_id, created_at, updated_at, title, description, url, discogs_url)
-			values (${channelId}, ${item.created_at}, ${item.updated_at}, ${item.title}, ${item.description}, ${item.url}, ${item.discogs_url}) on conflict (id) do nothing;
+			insert into tracks (firebase_id, channel_id, created_at, updated_at, title, description, url, discogs_url)
+			values (${item.firebase_id}, ${channelId}, ${item.created_at}, ${item.updated_at}, ${item.title}, ${item.description}, ${item.url}, ${item.discogs_url}) on conflict (firebase_id) do nothing;
 		`
 	}
-	console.log('Inserted tracks v1', tracks)
+	console.log(`Pulled v1 tracks (${existingTracks.length} existing skipped)`, x.length)
 }
 
 /**

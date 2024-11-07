@@ -34,20 +34,31 @@
 		})
 	}
 
+	// A wrapper around the other sync methods.
+	// v2 channels -> v1 channels incl. tracks -> v2 tracks
 	let totalSyncing = $state(false)
 	async function totalSync() {
+		console.time('totalSync')
 		totalSyncing = true
+
 		await pullChannels()
-		await pullV1Channels()
+
 		const {rows} = await pg.query(`select * from channels where firebase_id is null`)
-		for (const channel of rows) {
-			if (await needsUpdate(channel.slug)) {
-				await pullTracks(channel.slug)
-				update()
-			}
-		}
+
+		await Promise.allSettled([
+			pullV1Channels(),
+			rows.map(async ({slug}) => {
+				if (await needsUpdate(slug)) {
+					pullTracks(slug)
+				}
+			})
+		])
+
 		totalSyncing = false
+		console.timeEnd('totalSync')
 	}
+
+	let showForm = $state(false)
 </script>
 
 <article>
@@ -60,17 +71,16 @@
 		<button onclick={exportDb}>Export local database</button>
 	</menu>
 
-	<h3>Settings</h3>
-	<p>{channels.length} channels and {tracks.length} tracks.</p>
-
-	<p>On boot, this website prepares a PostgreSQL database in your browser via WASM.</p>
-	<p>You can pull channels from R4 (incl. v1). Tracks are loaded on demand.</p>
+	<h1>Settings</h1>
 	<p>
-		All application and most component state is stored and updated directly to the local database.
+		On boot, this website prepares a PostgreSQL database in your browser via WASM. You can pull
+		channels from R4 (including version 1), use the buttons above &uarr; All application and most
+		component state is stored and updated directly to the local database.
 	</p>
 
-	<h2>Account</h2>
-	<Login />
+	{#if showForm}<Login />{:else}
+		<button onclick={() => (showForm = true)}>Sign in</button>
+	{/if}
 
 	<h2>PGlite REPL</h2>
 	<p>

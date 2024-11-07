@@ -10,15 +10,12 @@ import {pullV1Tracks} from '$lib/v1'
 export async function pullChannels({limit = DEBUG_LIMIT} = {}) {
 	const {data: channels, error} = await sdk.channels.readChannels(limit)
 	if (error) throw error
-
-	// @todo validate channels?
-
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {
 			await tx.sql`
         INSERT INTO channels (id, name, slug, description, image, created_at, updated_at)
         VALUES (
-          ${channel.id}, ${channel.name}, ${channel.slug}, 
+          ${channel.id}, ${channel.name}, ${channel.slug},
           ${channel.description}, ${channel.image},
           ${channel.created_at}, ${channel.updated_at}
         )
@@ -31,8 +28,7 @@ export async function pullChannels({limit = DEBUG_LIMIT} = {}) {
       `
 		}
 	})
-
-	console.log('Successfully pulled channels')
+	console.log('Pulled v2 channels', channels?.length)
 }
 
 /**
@@ -42,34 +38,32 @@ export async function pullChannels({limit = DEBUG_LIMIT} = {}) {
 export async function pullTracks(slug) {
 	// Mark channel as busy while pulling
 	await pg.sql`update channels set busy = true where slug = ${slug}`
-
 	try {
 		// Get channel ID for foreign key relationship
 		const {rows} = await pg.sql`select id, firebase_id from channels where slug = ${slug}`
-		const {id: channelId, firebase_id} = rows[0]
-		if (!channelId) throw new Error(`Channel not found: ${slug}`)
+		const channel = rows[0]
+		if (!channel.id) throw new Error(`Channel not found: ${slug}`)
 
 		// if v1 pull like this instead
-		if (firebase_id) {
-			return await pullV1Tracks(channelId, firebase_id)
+		if (channel.firebase_id) {
+			return await pullV1Tracks(channel.id, channel.firebase_id)
 		}
 
 		// Pull tracks
 		const {data, error} = await sdk.channels.readChannelTracks(slug)
 		if (error) throw error
-		console.log('Pulling tracks', data)
+		/** @type {import('$lib/types').Track[]} */
+		const tracks = data
 
 		await pg.transaction(async (tx) => {
-			/** @type {import('$lib/types').Track[]} */
-			const tracks = data
 			const inserts = tracks.map(
 				(track) => tx.sql`
         INSERT INTO tracks (
-          id, channel_id, url, title, description, 
+          id, channel_id, url, title, description,
           discogs_url, created_at, updated_at
         )
         VALUES (
-          ${track.id}, ${channelId}, ${track.url}, 
+          ${track.id}, ${channel.id}, ${track.url},
           ${track.title}, ${track.description},
           ${track.discogs_url}, ${track.created_at}, ${track.updated_at}
         )
@@ -82,11 +76,11 @@ export async function pullTracks(slug) {
       `
 			)
 			await Promise.all(inserts)
+			console.log('Pulled v2 tracks', tracks?.length)
 		})
 	} finally {
 		// Always mark channel as not busy when done
 		await pg.sql`update channels set busy = false, tracks_outdated = false where slug = ${slug}`
-		console.log('Successfully pulled tracks')
 	}
 }
 
@@ -123,10 +117,10 @@ export async function needsUpdate(slug) {
 
 		// Get latest local track update
 		const {rows: localRows} = await pg.sql`
-      select updated_at 
-      from tracks 
+      select updated_at
+      from tracks
       where channel_id = ${id}
-      order by updated_at desc 
+      order by updated_at desc
       limit 1
     `
 		const localLatest = localRows[0]

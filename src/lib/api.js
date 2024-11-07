@@ -11,16 +11,22 @@ import {sdk} from '@radio4000/sdk'
  * Returns a user
  */
 export async function checkUser() {
-	const {data, error} = await sdk.users.readUser()
-	console.log('checkUser', data, error)
-	if (!data) {
-		await pg.sql`update app_state set channels = null`
+	try {
+		const {data: user, error} = await sdk.users.readUser()
+		console.log('checkUser', user, error)
+		if (!user) {
+			await pg.sql`update app_state set channels = null`
+		} else {
+			const {data: channels} = await sdk.channels.readUserChannels()
+			console.log('checkUser channels', channels)
+			if (channels) {
+				await pg.sql`update app_state set channels = ${channels.map((c) => c.id)}`
+			}
+			return user
+		}
+	} catch (err) {
+		console.log('hmm')
 	}
-	const {data: channels} = await sdk.channels.readUserChannels()
-	if (channels) {
-		await pg.sql`update app_state set channels = ${channels.map((c) => c.id)}`
-	}
-	return data
 }
 
 /**

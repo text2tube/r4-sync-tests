@@ -4,7 +4,7 @@ import {sdk} from '@radio4000/sdk'
 // import {PGliteWorker} from '@electric-sql/pglite/worker'
 import {browser} from '$app/environment'
 
-export const DEBUG_LIMIT = 5
+export const DEBUG_LIMIT = 30
 
 // const useWorker = false
 const persist = true
@@ -46,28 +46,29 @@ export async function initDb(reset = false) {
 	await pg.exec(`
     CREATE TABLE IF NOT EXISTS channels (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       name TEXT NOT NULL,
       slug TEXT UNIQUE NOT NULL,
       description TEXT,
       image TEXT,
       tracks_outdated BOOLEAN,
       busy BOOLEAN,
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-      firebase_id TEXT
+      firebase_id TEXT unique
     );
 
     CREATE INDEX IF NOT EXISTS idx_channels_slug ON channels(slug);
 
     CREATE TABLE IF NOT EXISTS tracks (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       channel_id uuid REFERENCES channels(id) ON DELETE CASCADE,
       url TEXT NOT NULL,
       title TEXT NOT NULL,
       description TEXT,
       discogs_url TEXT,
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      firebase_id TEXT unique
     );
 
     CREATE INDEX IF NOT EXISTS idx_tracks_channel_id ON tracks(channel_id);
