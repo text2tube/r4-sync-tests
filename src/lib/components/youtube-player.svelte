@@ -5,7 +5,7 @@
 	// https://www.media-chrome.org/docs/en/get-started
 	// https://www.media-chrome.org/docs/en/media-elements/youtube-video
 
-	let {url, yt = $bindable()} = $props()
+	let {url, yt = $bindable(), onended} = $props()
 </script>
 
 <media-controller id="r5">
@@ -16,9 +16,10 @@
 		slot="media"
 		crossorigin
 		muted
+		autoplay
 		onplay={() => console.log('play')}
 		onpause={() => console.log('pause')}
-		onended={() => console.log('ended')}
+		onended={onended}
 		onerror={(a) => console.log('error', a)}
 	></youtube-video>
 	<media-loading-indicator slot="centered-chrome" noautohide></media-loading-indicator>

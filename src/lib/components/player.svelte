@@ -82,7 +82,7 @@
 			<p>{description}</p>
 		</div>
 	</header>
-	<YoutubePlayer url={track?.url} bind:yt />
+	<YoutubePlayer url={track?.url} bind:yt onended={next} />
 	<menu>
 		<button>
 			<IconShuffle />
