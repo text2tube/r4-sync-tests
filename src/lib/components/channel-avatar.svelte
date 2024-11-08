@@ -1,4 +1,5 @@
 <script>
+	/* keep 250 please, since it is what cloudinary has already generated */
 	let {id = '', alt = '', size = 250} = $props()
 
 	/**

@@ -88,12 +88,15 @@ ul {
 
 h1 {
 	font-size: var(--font-size-title1);
+	margin: 0;
 }
 h2 {
 	font-size: var(--font-size-title2);
+	margin: 0;
 }
 h3 {
 	font-size: var(--font-size-title3);
+	margin: 0;
 }
 
 img {
@@ -152,11 +155,29 @@ figure {
 }
 
 r4-sign-in,
+r4-sign-out,
 r4-track-create {
 	form,
 	fieldset {
 		display: flex;
 		flex-flow: column;
+	}
+	form {
+		gap: 0.5rem;
+	}
+	fieldset {
+		margin: 0;
+		border: 0;
+		padding: 0;
+		gap: 0.2rem;
+
+		&[hidden] {
+			display: none;
+		}
+	}
+	legend,
+	label {
+		color: var(--color-text-tertiary);
 	}
 	textarea,
 	input[type='email'],
@@ -172,29 +193,6 @@ r4-track-create {
 		border-radius: var(--border-radius);
 		border: 0;
 	}
-	legend,
-	label {
-		color: var(--color-text-tertiary);
-	}
-	fieldset {
-		gap: 0.2rem;
-
-		&[hidden] {
-			display: none;
-		}
-	}
-}
-
-button[type='submit'] {
-	font-size: var(--font-size-regular);
-	margin-left: auto;
-	/* bit bigger? */
-	padding-left: 1rem;
-	padding-right: 1rem;
-	min-height: 2rem;
-	letter-spacing: 0.01em;
-	background: var(--color-lavender);
-	color: var(--color-bg-primary);
 }
 
 article:has(media-controller[mediapaused]) .play {

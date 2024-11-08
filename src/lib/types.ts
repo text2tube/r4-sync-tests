@@ -35,4 +35,5 @@ export interface AppState {
 	volume?: number
 	counter?: number
 	channels_display?: string
+	channels: string[]
 }

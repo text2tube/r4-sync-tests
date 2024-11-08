@@ -44,7 +44,6 @@
 </script>
 
 <menu>
-	<p>Listing {channels?.length} channels.</p>
 	<button onclick={() => setDisplay('list')}><IconUnorderedList /> List</button>
 	<button onclick={() => setDisplay('grid')}><IconGrid /> Grid</button>
 </menu>

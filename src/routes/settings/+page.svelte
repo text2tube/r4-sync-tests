@@ -11,6 +11,9 @@
 	pg.live.query(`select * from app_state where id = 1`, [], (res) => {
 		appState = res.rows[0]
 	})
+
+	$inspect(appState)
+
 	// A wrapper around the other sync methods.
 	// v2 channels -> v1 channels incl. tracks -> v2 tracks
 	let totalSyncing = $state(false)
@@ -53,14 +56,7 @@
 		component state is stored and updated directly to the local database.
 	</p>
 
-	<h2>PGlite REPL</h2>
-	<p>
-		You have control over your local data(base). Try querying one of the tables `channels`, `tracks`
-		or `app_state` using SQL.
-	</p>
 	<PgliteRepl />
-
-	<hr />
 </article>
 
 <style>

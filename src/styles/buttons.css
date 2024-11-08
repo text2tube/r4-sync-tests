@@ -15,7 +15,7 @@ button,
 	font-size: var(--font-size-small);
 	/* questionable styles */
 	min-width: 1.75rem;
-	min-height: 1.75rem;
+	min-height: 2rem;
 	padding: 0 0.5rem;
 	border: 1px solid var(--color-border-tertiary);
 	border-radius: var(--border-radius);
@@ -26,7 +26,9 @@ button,
 		lch(0 0 0 / 0.12) 0px 1px 1px 0px;
 }
 
+button:focus,
 button:hover,
+.btn:focus,
 .btn:hover {
 	background: var(--color-bg-tertiary);
 	color: var(--color-text-primary);
@@ -45,4 +47,15 @@ button:disabled,
 
 button[data-loading='true'] {
 	cursor: wait;
+}
+
+/* bit bigger */
+button[type='submit'] {
+	font-size: var(--font-size-regular);
+	padding-left: 1rem;
+	padding-right: 1rem;
+}
+
+a.btn {
+	text-decoration: none;
 }

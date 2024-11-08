@@ -11,15 +11,13 @@
 		if (event.key === 'c') showModal = true
 	}
 
-	$effect(() => {
-		// Listen to app state updates and update UI.
-		pg.live.query(`select * from app_state where id = 1`, [], (res) => {
-			if (res.rows[0].channels) {
-				channelId = res.rows[0].channels[0]
-			} else {
-				channelId = undefined
-			}
-		})
+	// Listen to app state updates and update UI.
+	pg.live.query(`select * from app_state where id = 1`, [], (res) => {
+		if (res.rows[0].channels) {
+			channelId = res.rows[0].channels[0]
+		} else {
+			channelId = undefined
+		}
 	})
 
 	function submit(event) {
@@ -31,7 +29,11 @@
 
 <svelte:window onkeydown={handleKeyDown} />
 
-<button onclick={() => (showModal = true)}>Add track</button>
+{#if channelId}
+	<button onclick={() => (showModal = true)}>Add track</button>
+{:else}
+	<a class="btn" href="/login">Add track</a>
+{/if}
 
 <Modal bind:showModal>
 	{#snippet header()}

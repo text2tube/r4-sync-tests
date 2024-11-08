@@ -7,15 +7,22 @@
 	import {pg} from '$lib/db'
 
 	let el = $state()
+	let enabled = $state(false)
 
-	$effect(() => {
+	function enable() {
+		enabled = true
 		import('@electric-sql/pglite-repl/webcomponent').then(() => {
 			el.pg = pg
 		})
-	})
+	}
 </script>
 
-<pglite-repl bind:this={el}></pglite-repl>
+{#if enabled}
+	<p>Try querying channels, tracks or app_state using SQL.</p>
+	<pglite-repl bind:this={el}></pglite-repl>
+{:else}
+	<button onclick={enable}>Enable PGlite REPL</button>
+{/if}
 
 <style>
 	pglite-repl {

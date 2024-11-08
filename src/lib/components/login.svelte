@@ -38,7 +38,7 @@
 		padding: 0;
 		margin-bottom: 0.75rem;
 	}
-	:global input[name="token"] {
+	:global input[name='token'] {
 		display: none;
 	}
 	:global legend {

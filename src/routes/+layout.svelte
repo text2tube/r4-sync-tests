@@ -52,6 +52,7 @@
 		<a href="/settings">Settings</a>
 		<InternetIndicator />
 		<AddTrackModal />
+		<hr />
 		<ThemeToggle />
 	</header>
 
@@ -82,18 +83,21 @@
 		height: 100vh;
 	}
 	header {
-		/* padding: 1rem 1rem 0; */
 		padding: 0.5rem 1rem 0.5rem;
-		background: var(--color-bg-secondary);
-		/* background: yellow; */
 		display: flex;
 		flex-flow: row wrap;
 		place-items: center;
-		gap: 0.5rem;
-		font-size: var(--font-size-small);
+		gap: 1rem;
+		background: var(--color-bg-secondary);
 		border-bottom: 1px solid var(--color-border-tertiary);
-		a:last-of-type {
-			margin-right: auto;
+
+		> a {
+			font-size: var(--font-size-small);
+			line-height: 2rem;
+			text-decoration: none;
+		}
+		> hr {
+			margin-left: auto;
 		}
 	}
 	main {

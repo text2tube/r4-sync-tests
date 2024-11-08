@@ -35,6 +35,10 @@
 
 <style>
 	media-controller {
-		border: 1px solid;
+		width: 100%;
+		border: 1px solid var(--color-border-primary);
+	}
+	youtube-video {
+		min-width: 100px;
 	}
 </style>

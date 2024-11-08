@@ -3,15 +3,38 @@
 </script>
 
 <div class="wrap">
-	<h2>Sign in to Radio4000</h2>
+	<!--<img src="https://assets.radio4000.com/icon-r4.svg" alt="Radio4000">-->
+	<svg width="300" height="260" viewBox="0 0 300 260" xmlns="http://www.w3.org/2000/svg">
+		<title>icon-r4</title>
+		<g fill="#000" fill-rule="evenodd">
+			<path
+				d="M125 217.53h108.86V260h40.19l-.005-42.47H300v-39.887h-25.955V38.147h-64.868L125 177.597v39.934zm34.215-40.066l87.847-70.16v70.16h-87.847z"
+			/>
+			<path
+				d="M0 184.71h32.246v-75.302h42.91l50.088 75.302h24.554l-51.726-78.633c33.72-3.96 58.928-20.32 58.928-52.51C157 16.36 127.863 0 81.376 0H0v184.71zm15.156-91.56V50.796h53.627c27.23 0 47.792 5.052 47.792 21.25S94.068 93.15 69.34 93.15H15.155z"
+			/>
+		</g>
+	</svg>
+	<h2>Login to Radio4000</h2>
 	<Login />
 </div>
 
 <style>
+	svg {
+		display: block;
+		width: 4rem;
+		height: auto;
+		margin: 5vh auto 3vh;
+	}
+	svg g {
+		fill: light-dark(red, blue);
+		fill: var(--color-text-primary);
+	}
+	h2 {
+		text-align: center;
+		margin: 3vh auto;
+	}
 	.wrap {
-		/* display: flex; */
-		/* flex-flow: column nowrap; */
-		/* align-items: center; */
 		max-width: 306px;
 		margin: 0 auto;
 	}

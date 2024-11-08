@@ -165,7 +165,8 @@
 
 			div {
 				display: flex;
-				gap: 0.5rem;
+				flex-flow: row wrap;
+				gap: 0.25rem;
 			}
 		}
 		menu {
@@ -174,6 +175,10 @@
 		header p:last-of-type,
 		aside {
 			display: none;
+		}
+		h2,
+		h3 {
+			font-size: 1rem;
 		}
 	}
 
