@@ -59,7 +59,7 @@
 	<main>
 		{#if preloading}
 			<center>
-				<p>Preloading...</p>
+				<p>Preparing R4&hellip;</p>
 			</center>
 		{:else}
 			{@render children()}
@@ -131,15 +131,12 @@
 		position: absolute;
 		left: -999px;
 	}
-
 	footer label:not(:hover) :global(svg) {
 		opacity: 0.8;
 	}
-
 	footer label :global(svg) {
 		display: none;
 	}
-
 	footer label :global(svg path) {
 		stroke: var(--color-text-primary);
 	}
@@ -153,6 +150,10 @@
 		left: 0;
 		right: 0;
 		height: 100%;
+
+		@media (min-width: 800px) {
+			left: 30%;
+		}
 
 		& :global(.playerToggle svg:first-of-type) {
 			display: none;

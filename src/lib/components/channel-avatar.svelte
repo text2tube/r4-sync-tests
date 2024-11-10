@@ -21,6 +21,7 @@
 <style>
 	img {
 		display: block;
+		width: 100%;
 		border-radius: var(--border-radius);
 	}
 </style>

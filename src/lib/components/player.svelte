@@ -19,55 +19,126 @@
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').AppState} AppState */
 
-	let title = $state('No playlist')
+	let autoplay = $state(false)
+
+	let title = $state('')
 	let image = $state('')
 	let description = $state('')
 
+	/** @type {AppState} */
+	let appState = $state({})
+
 	/** @type {string[]} */
-	let trackIds = $state([])
+	let trackIds = $derived(appState.playlist_tracks || [])
 
 	/** @type {Track|undefined} */
 	let track = $state()
+	/*
+	let track = $derived.by(async () => {
+		const id = appState.playlist_track
+		const x = await first(pg.sql`select * from tracks where id = ${id}`)
+		console.log(id, x)
+		return x
+	})
+	*/
 
 	let yt = $state()
 
 	pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
-		const tid = res.rows[0].playlist_track
-		trackIds = res.rows[0].playlist_tracks
-
-		// Stop if track is loaded.
-		if (track && track.id === tid) return
-
-		const {rows} = await pg.sql`select * from tracks where id = ${tid} order by created_at desc`
-		const t = rows[0]
-		if (!t) {
-			console.log('app_state updated, but no track?', res.rows)
-			return
-		}
-		track = t
-
-		const {rows: channels} = await pg.sql`select * from channels where id = ${t.channel_id}`
-		const c = channels[0]
-		title = c.name
-		image = c.image
-		description = c.description
+		console.log('appstate.track changed')
+		appState = res.rows[0]
 	})
 
-	let volume = $state(50)
-	async function setVolume(event) {
-		volume = Number(event.currentTarget.value)
-		await pg.sql`update app_state set volume = ${volume}`
+	pg.live.query(`select playlist_track from app_state where id = 1`, [], async (res) => {
+		const tid = res.rows[0].playlist_track
+		console.log('appstate changed', tid)
+		setChannelFromTrack(tid)
+	})
+
+	/**
+	 * @template T
+	 * @param {Promise<{rows: T[]}>} query
+	 * @returns {Promise<T|undefined>}
+	 */
+	async function first(query) {
+		try {
+			const x = await query
+			if (x.rows) return x.rows[0]
+			return undefined
+		} catch (err) {
+			console.log('here', err)
+		}
+	}
+
+	/** @param {string} tid} */
+	async function setChannelFromTrack(tid) {
+		if (!tid || tid === track?.id) return
+		const t = await first(pg.sql`select * from tracks where id = ${tid} order by created_at desc`)
+		const c = await first(pg.sql`select * from channels where id = ${t.channel_id}`)
+		console.log(c.slug, t.title)
+		if (t && c) {
+			if (!autoplay) autoplay = true
+			track = t
+			title = c.name
+			image = c.image
+			description = c.description
+		}
+	}
+
+	/** @param {string} tid} */
+	async function setChannelFromTrack2(tid) {
+		if (!tid || tid === track?.id) return
+
+		const t = await first(pg.sql`select * from tracks where id = ${tid} order by created_at desc`)
+		if (!t) {
+			console.warn('player.track.id changed, but did not find a track', tid)
+			return
+		}
+
+		const c = await first(pg.sql`select * from channels where id = ${t.channel_id}`)
+		if (!c) {
+			console.warn('player.track.id changed, but did not find a channel', tid, t)
+		} else {
+			title = c.name
+			image = c.image
+			description = c.description
+		}
+	}
+
+	function toggleShuffle() {
+		pg.sql`update app_state set shuffle = ${!appState.shuffle} where id = 1`.then(() => {
+			pg.sql`select shuffle from app_state where id = 1`.then(({rows}) => {
+				console.log(rows[0])
+			})
+		})
 	}
 
 	function previous() {
+		if (!track?.id) return
 		const idx = trackIds.indexOf(track.id)
 		const prev = trackIds[idx - 1]
 		if (prev) playTrack(prev)
 	}
+
 	function next() {
+		if (!track?.id) return
 		const idx = trackIds.indexOf(track.id)
 		const next = trackIds[idx + 1]
 		if (next) playTrack(next)
+	}
+
+	function play() {
+		if (!track) {
+			console.log('Play called without track')
+			return
+		}
+		yt.play()
+		autoplay = true
+	}
+
+	function handleEndTrack() {
+		console.log('ended')
+		next()
 	}
 </script>
 
@@ -82,15 +153,15 @@
 			<p>{description}</p>
 		</div>
 	</header>
-	<YoutubePlayer url={track?.url} bind:yt onended={next} />
+
 	<menu>
-		<button>
+		<button onclick={toggleShuffle} aria-pressed={appState.shuffle}>
 			<IconShuffle />
 		</button>
 		<button onclick={previous}>
 			<IconPreviousFill />
 		</button>
-		<button class="play" onclick={() => yt.play()}>
+		<button class="play" onclick={play}>
 			<IconPlayFill />
 		</button>
 		<button class="pause" onclick={() => yt.pause()}>
@@ -99,11 +170,15 @@
 		<button onclick={next}>
 			<IconNextFill />
 		</button>
+		<!--
 		<div class="volume">
 			<media-mute-button mediacontroller="r5"></media-mute-button>
 			<media-volume-range mediacontroller="r5"></media-volume-range>
 		</div>
+	-->
 	</menu>
+
+	<YoutubePlayer url={track?.url} bind:yt {autoplay} onended={handleEndTrack} />
 
 	<!-- <label class="volume">
 		{#if volume < 1}
@@ -139,16 +214,13 @@
 	figure {
 		margin: 0;
 	}
-	h2,
-	h3 {
-		font-size: var(--font-size-title2);
-		font-weight: 400;
-	}
 	h2 {
 		color: var(--color-text-tertiary);
+		font-weight: 400;
 	}
 	h3 {
 		color: var(--color-text-secondary);
+		font-weight: 400;
 	}
 
 	/* Fixed bottom */
@@ -159,7 +231,7 @@
 
 		header {
 			grid-template-columns: 3rem auto;
-			gap: 1rem;
+			gap: 0.5rem;
 			align-items: center;
 			padding-left: 0.25rem;
 
@@ -178,19 +250,17 @@
 		}
 		h2,
 		h3 {
-			font-size: 1rem;
+			font-size: var(--font-size-regular);
 		}
 	}
 
 	/* Full overlay */
 	:global(footer:has(input:checked) > article) {
 		height: 100%;
-
 		@media (min-width: 500px) {
 			display: grid;
 			grid-template-columns: minmax(320px, 30vw) 1fr;
 		}
-
 		header {
 			margin: 3rem auto auto;
 			grid-template-columns: auto;
@@ -206,15 +276,17 @@
 		}
 		menu {
 			padding: 0;
+			margin-top: 1rem;
 			grid-column: 1;
-			/* margin-bottom: auto; */
 		}
-		.volume {
-			/* margin: auto 0 auto; */
+		:global(media-controller) {
+		}
+		:global(youtube-video) {
+			min-height: 300px;
 		}
 		aside {
 			grid-column: 2;
-			grid-row: 1/3;
+			grid-row: 1/4;
 			display: initial;
 			margin-top: 1rem;
 			overflow: auto;
@@ -228,5 +300,9 @@
 	.volume {
 		display: flex;
 		flex-flow: row nowrap;
+	}
+
+	[aria-pressed='false'] :global(svg) {
+		opacity: 0.2;
 	}
 </style>

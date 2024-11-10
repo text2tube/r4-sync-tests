@@ -29,7 +29,9 @@
 	{#each tracks as item, index}
 		<li class={item.id === currentId ? 'current' : ''} ondblclick={() => playTrack(item.id)}>
 			<span>{index + 1}.</span>
-			<h3>{item.title}</h3>
+			<h3 onclick={() => playTrack(item.id)}>
+				{item.title}
+			</h3>
 			<p><small>{item.description}</small></p>
 			<!--<p>{formatDate(item.created_at)}</p>-->
 		</li>

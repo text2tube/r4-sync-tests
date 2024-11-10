@@ -25,7 +25,7 @@ export async function checkUser() {
 			return user
 		}
 	} catch (err) {
-		console.log('hmm')
+		console.log('hmm', err)
 	}
 }
 
@@ -44,7 +44,6 @@ export async function playTrack(id) {
  * @param {import('$lib/types').Channel} channel
  */
 export async function playChannel({id, slug}) {
-	const index = 0
 	let tracks = (
 		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
 	).rows
@@ -63,23 +62,21 @@ export async function playChannel({id, slug}) {
 
 	const ids = tracks.map((t) => t.id)
 
-	return loadPlaylist(ids, index)
+	return loadPlaylist(ids)
 }
 
 /**
+ * Updates app state with channel and track to indicate we want to play
  * @param {string[]} ids,
  * @param {number} index
  */
-async function loadPlaylist(ids, index) {
-	if (!ids) throw new Error('uhoh')
-
-	console.log('loadPlaylist', ids?.length, index)
-
-	// Update app_state to play the channel
+async function loadPlaylist(ids, index = 0) {
+	console.log('loadPlaylist', ids?.length, ids[index])
+	if (!ids || !ids[index]) throw new Error('uhoh loadplaylist missing stuff')
 	await pg.sql`
     UPDATE app_state SET
 			playlist_tracks = ${ids},
-			playlist_track = ${ids[0]}
+			playlist_track = ${ids[index]}
   `
 }
 

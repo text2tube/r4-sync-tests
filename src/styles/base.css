@@ -139,6 +139,7 @@ small {
 	color: var(--color-text-tertiary);
 }
 
+ul,
 figure {
 	margin: 0;
 }

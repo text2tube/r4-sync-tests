@@ -58,21 +58,24 @@
 
 <style>
 	menu {
-		padding: 0 1rem;
+		top: 0;
+		z-index: 1;
+		padding: 0 0.5rem;
 		display: flex;
 		gap: 0.5rem;
+		margin: 1rem 0 0.6rem;
 		> * {
 			margin: 0;
 		}
 	}
 	menu :global(svg) {
-		width: 1.5em;
-		margin-right: 0.3em;
+		width: 1.25em;
+		margin-right: 0.2em;
 	}
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-		/* gap: 1rem; */
+		gap: 1rem 0;
 		list-style: none;
 		padding: 0;
 

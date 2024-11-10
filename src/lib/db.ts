@@ -4,7 +4,7 @@ import {sdk} from '@radio4000/sdk'
 // import {PGliteWorker} from '@electric-sql/pglite/worker'
 import {browser} from '$app/environment'
 
-export const DEBUG_LIMIT = 100
+export const DEBUG_LIMIT = 10
 
 // const useWorker = false
 const persist = true
@@ -80,10 +80,11 @@ export async function initDb(reset = false) {
       channels_display TEXT,
 
       is_playing BOOLEAN DEFAULT false,
-      volume INTEGER DEFAULT 70,
+      volume NUMERIC DEFAULT 0.5,
+      muted BOOLEAN DEFAULT false,
+      shuffle BOOLEAN DEFAULT false,
 
 			playlist_tracks UUID[] DEFAULT ARRAY[]::UUID[],
-			playlist_index INTEGER default 1,
 			playlist_track UUID references tracks(id),
 
 			channels UUID[] DEFAULT ARRAY[]::UUID[]

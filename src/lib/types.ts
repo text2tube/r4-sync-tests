@@ -29,11 +29,12 @@ export type Track = {
 export interface AppState {
 	id?: number
 	playlist_tracks?: string[]
-	playlist_index?: number
+	playlist_track?: string
 	is_playing?: boolean
 	theme?: string
 	volume?: number
 	counter?: number
 	channels_display?: string
-	channels: string[]
+	channels?: string[]
+	shuffle?: boolean
 }
