@@ -16,6 +16,9 @@
 	$effect(() => {
 		initDb().then(() => {
 			preloading = false
+			// pg.live.query(`select * from app_state`, [], (res) => {
+				// console.log('root app_state', res.rows[0])
+			// })
 		})
 	})
 
@@ -95,9 +98,6 @@
 			font-size: var(--font-size-small);
 			line-height: 2rem;
 			text-decoration: none;
-		}
-		> hr {
-			margin-left: auto;
 		}
 	}
 	main {

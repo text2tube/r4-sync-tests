@@ -9,9 +9,9 @@
 		IconNextFill,
 		IconPause,
 		IconPlayFill,
-		IconVolume1Fill,
-		IconVolume2Fill,
-		IconVolumeOffFill
+		// IconVolume1Fill,
+		// IconVolume2Fill,
+		// IconVolumeOffFill
 	} from 'obra-icons-svelte'
 	import {playTrack} from '$lib/api'
 
@@ -85,26 +85,6 @@
 		}
 	}
 
-	/** @param {string} tid} */
-	async function setChannelFromTrack2(tid) {
-		if (!tid || tid === track?.id) return
-
-		const t = await first(pg.sql`select * from tracks where id = ${tid} order by created_at desc`)
-		if (!t) {
-			console.warn('player.track.id changed, but did not find a track', tid)
-			return
-		}
-
-		const c = await first(pg.sql`select * from channels where id = ${t.channel_id}`)
-		if (!c) {
-			console.warn('player.track.id changed, but did not find a channel', tid, t)
-		} else {
-			title = c.name
-			image = c.image
-			description = c.description
-		}
-	}
-
 	function toggleShuffle() {
 		pg.sql`update app_state set shuffle = ${!appState.shuffle} where id = 1`.then(() => {
 			pg.sql`select shuffle from app_state where id = 1`.then(({rows}) => {
@@ -155,10 +135,10 @@
 	</header>
 
 	<menu>
-		<button onclick={toggleShuffle} aria-pressed={appState.shuffle}>
+		<button onclick={toggleShuffle} aria-pressed={appState.shuffle} title="Toggle shuffle">
 			<IconShuffle />
 		</button>
-		<button onclick={previous}>
+		<button onclick={previous} title="Go previous track">
 			<IconPreviousFill />
 		</button>
 		<button class="play" onclick={play}>
@@ -167,7 +147,7 @@
 		<button class="pause" onclick={() => yt.pause()}>
 			<IconPause />
 		</button>
-		<button onclick={next}>
+		<button onclick={next} title="Go next track">
 			<IconNextFill />
 		</button>
 		<!--
@@ -227,7 +207,7 @@
 	:global(footer:not(:has(input:checked)) > article) {
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
-		justify-items: center;
+		/* justify-items: center; */
 
 		header {
 			grid-template-columns: 3rem auto;
