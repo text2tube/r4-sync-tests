@@ -17,7 +17,7 @@
 		initDb().then(() => {
 			preloading = false
 			// pg.live.query(`select * from app_state`, [], (res) => {
-				// console.log('root app_state', res.rows[0])
+			// console.log('root app_state', res.rows[0])
 			// })
 		})
 	})

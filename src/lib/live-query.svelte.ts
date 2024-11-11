@@ -8,12 +8,10 @@ export function liveQuery(query: string, params: unknown[] = []) {
 		state.value = data.rows[0]
 	})
 
-	// return result
 	return {
-		state
-		// get value() {
-			// return state
-		// }
+		get value() {
+			return state
+		}
 	}
 }
 

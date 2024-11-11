@@ -8,7 +8,7 @@
 		IconPreviousFill,
 		IconNextFill,
 		IconPause,
-		IconPlayFill,
+		IconPlayFill
 		// IconVolume1Fill,
 		// IconVolume2Fill,
 		// IconVolumeOffFill
@@ -47,9 +47,6 @@
 	pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
 		console.log('appstate.track changed')
 		appState = res.rows[0]
-	})
-
-	pg.live.query(`select playlist_track from app_state where id = 1`, [], async (res) => {
 		const tid = res.rows[0].playlist_track
 		console.log('appstate changed', tid)
 		setChannelFromTrack(tid)

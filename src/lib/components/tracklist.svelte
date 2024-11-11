@@ -7,22 +7,22 @@
 
 	/** @type {import('$lib/types').Track[]}*/
 	let tracks = $state([])
-	
-	// pg.sql`select playlist_tracks playlist_track`
 
-	// Turn the list of ids into real tracks.
-	pg.live.incrementalQuery(
-		`
+	$effect(() => {
+		// Turn the list of ids into real tracks.
+		pg.live.incrementalQuery(
+			`
 		SELECT * FROM tracks
 		WHERE id IN (select unnest($1::uuid[]))
 		ORDER BY created_at desc
 	`,
-		[ids],
-		'id',
-		(res) => {
-			tracks = res.rows
-		}
-	)
+			[ids],
+			'id',
+			(res) => {
+				tracks = res.rows
+			}
+		)
+	})
 </script>
 
 <ul class="list">
@@ -32,7 +32,7 @@
 			<h3 onclick={() => playTrack(item.id)}>
 				{item.title}
 			</h3>
-			<p><small>{item.description}</small></p>
+			<p onclick={() => playTrack(item.id)}><small>{item.description}</small></p>
 			<!--<p>{formatDate(item.created_at)}</p>-->
 		</li>
 	{/each}
