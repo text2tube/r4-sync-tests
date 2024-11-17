@@ -1,0 +1,62 @@
+:root {
+	--gap: 10px;
+	--border-color: var(--color-border-secondary);
+	--offline-opacity: 0.5;
+	--client-border-color: var(--border-color);
+	--backend-border-color: var(--border-color);
+}
+
+sync-backend {
+	display: block;
+	border: 1px solid var(--backend-border-color);
+	padding: var(--gap);
+	margin-bottom: calc(var(--gap) * 2);
+}
+
+.devices {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--gap);
+	margin: var(--gap) 0;
+}
+
+.device {
+	border: 2px solid var(--border-color);
+	padding: var(--gap);
+	flex: 1;
+	min-width: 300px;
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--gap) / 2);
+}
+
+.device.offline {
+	border-style: dotted;
+	border-color: red;
+}
+
+.client {
+	border: 1px solid var(--client-border-color);
+	padding: calc(var(--gap) / 2);
+}
+
+menu {
+	padding: 0;
+	display: flex;
+	flex-flow: row wrap;
+}
+
+ol {
+	padding-left: 1.5em;
+	font-size: smaller;
+	line-height: 1.5;
+}
+
+.eventName {
+	font-style: italic;
+}
+
+article {
+	margin-top: 10vh;
+	color: #666;
+}
