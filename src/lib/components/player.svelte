@@ -74,7 +74,7 @@
 		const c = await first(pg.sql`select * from channels where id = ${t.channel_id}`)
 		console.log(c.slug, t.title)
 		if (t && c) {
-			if (!autoplay) autoplay = true
+			// if (!autoplay) autoplay = true
 			track = t
 			title = c.name
 			image = c.image
