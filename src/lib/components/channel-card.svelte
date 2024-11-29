@@ -72,6 +72,7 @@
 		width: 2.5rem;
 		border: 0;
 		box-shadow: none;
+		transition: 0;
 	}
 	:global(li:not(:hover) .IconBtn) {
 		opacity: 0;
