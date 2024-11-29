@@ -29,10 +29,10 @@
 	{#each tracks as item, index}
 		<li class={item.id === currentId ? 'current' : ''} ondblclick={() => playTrack(item.id)}>
 			<span>{index + 1}.</span>
-			<button class="nobtn" onclick={() => playTrack(item.id)}>
+			<button class="nobtn title" onclick={() => playTrack(item.id)}>
 				{item.title}
 			</button>
-			<button class="nobtn" onclick={() => playTrack(item.id)}><small>{item.description}</small></button>
+			<button class="nobtn description" onclick={() => playTrack(item.id)}><small>{item.description}</small></button>
 			<!--<p>{formatDate(item.created_at)}</p>-->
 		</li>
 	{/each}
@@ -52,18 +52,16 @@
 		grid-row: span 2;
 		color: var(--color-text-tertiary);
 	}
-	h3 {
+	.title {
 		font-size: var(--font-size-regular);
 		font-weight: initial;
-		margin: 0;
 		color: var(--color-text-secondary);
 	}
-	p {
-		margin: 0;
+	.description {
 		grid-column: 2;
 	}
 	li.current {
-		h3 {
+		.title {
 			color: var(--color-primary);
 			font-weight: 600;
 		}
