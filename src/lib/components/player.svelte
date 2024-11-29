@@ -112,8 +112,18 @@
 		//autoplay = true
 	}
 
+	function handleError(event) {
+		const code = event.detail.data
+		console.error('Player error', code)
+		if (code === 150) {
+			next()
+		} else {
+			console.warn('Unhandled player error', code) 
+		}
+	}
+
 	function handleEndTrack() {
-		console.log('ended')
+		console.log('Player ended')
 		next()
 	}
 </script>
@@ -154,7 +164,7 @@
 	-->
 	</menu>
 
-	<YoutubePlayer url={track?.url} bind:yt {autoplay} onended={handleEndTrack} />
+	<YoutubePlayer url={track?.url} bind:yt {autoplay} onerror={handleError} onended={handleEndTrack} />
 
 	<!-- <label class="volume">
 		{#if volume < 1}

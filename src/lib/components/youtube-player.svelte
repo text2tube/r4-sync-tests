@@ -1,12 +1,13 @@
 <script>
 	import 'media-chrome'
-	import 'youtube-video-element'
+	//import 'youtube-video-element'
+	import '$lib/youtube-video-element-custom.js'
 	import {pg} from '$lib/db'
 
 	// https://www.media-chrome.org/docs/en/get-started
 	// https://www.media-chrome.org/docs/en/media-elements/youtube-video
 
-	let {autoplay = false, url, yt = $bindable(), onended} = $props()
+	let {autoplay = false, url, yt = $bindable(), onerror, onended} = $props()
 
 	function check(e) {
 		const {volume, muted} = e.target
@@ -29,8 +30,7 @@
 		onplay={() => console.log('play')}
 		onpause={() => console.log('pause')}
 		{onended}
-		onerror={(err) => console.log('change this error', err)}
-		error={(err) => console.log('change this error', err)}
+		{onerror}
 		onvolumechange={check}
 	></youtube-video>
 	<media-loading-indicator slot="centered-chrome" noautohide></media-loading-indicator>
