@@ -3,8 +3,11 @@ import {live} from '@electric-sql/pglite/live'
 import {sdk} from '@radio4000/sdk'
 // import {PGliteWorker} from '@electric-sql/pglite/worker'
 import {browser} from '$app/environment'
+import migrationsql from './migrations/01-create_tables.sql?raw'
 
 export const DEBUG_LIMIT = 10
+
+const migrations = [{name: '01-create_tables', sql: migrationsql}]
 
 // const useWorker = false
 const persist = true
@@ -42,56 +45,7 @@ export async function dropAllTables() {
 export async function initDb(reset = false) {
 	console.time('Initializing database')
 	if (reset) await dropAllTables()
-
-	await pg.exec(`
-    CREATE TABLE IF NOT EXISTS channels (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-      name TEXT NOT NULL,
-      slug TEXT UNIQUE NOT NULL,
-      description TEXT,
-      image TEXT,
-      tracks_outdated BOOLEAN,
-      busy BOOLEAN,
-      firebase_id TEXT unique
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_channels_slug ON channels(slug);
-
-    CREATE TABLE IF NOT EXISTS tracks (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-      channel_id uuid REFERENCES channels(id) ON DELETE CASCADE,
-      url TEXT NOT NULL,
-      title TEXT NOT NULL,
-      description TEXT,
-      discogs_url TEXT,
-      firebase_id TEXT unique
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_tracks_channel_id ON tracks(channel_id);
-
-    CREATE TABLE IF NOT EXISTS app_state (
-      id INTEGER PRIMARY KEY,
-      theme TEXT,
-      counter INTEGER DEFAULT 0,
-      channels_display TEXT,
-
-      is_playing BOOLEAN DEFAULT false,
-      volume NUMERIC DEFAULT 0.5,
-      muted BOOLEAN DEFAULT false,
-      shuffle BOOLEAN DEFAULT false,
-
-			playlist_tracks UUID[] DEFAULT ARRAY[]::UUID[],
-			playlist_track UUID references tracks(id),
-
-			channels UUID[] DEFAULT ARRAY[]::UUID[]
-    );
-
-    INSERT INTO app_state (id) values (1) on conflict do nothing;
-  `)
+	migrate(pg)
 	console.timeEnd('Initializing database')
 }
 
@@ -105,4 +59,34 @@ export async function exportDb() {
 	a.click()
 	// could even query the new db
 	//const pg2 = new PGlite({ loadDataDir: file })
+}
+
+/** Runs a list of SQL migrations on the database */
+export async function migrate(pg: PGlite) {
+	console.log('migrating pg')
+	// Create migrations table if it doesn't exist
+	await pg.exec(`
+		create table if not exists migrations (
+			id serial primary key,
+			name text not null unique,
+			applied_at timestamp default current_timestamp
+		);
+	`)
+
+	const [result] = await pg.exec(`select name from migrations`)
+	const appliedMigrationNames = result.rows.map((x) => x.name)
+
+	// Apply new migrations
+	for (const migration of migrations) {
+		if (!appliedMigrationNames.includes(migration.name)) {
+			console.log('are we here?', migration)
+			try {
+				console.log(`trying migration: ${migration.name}`)
+				await pg.exec(migration.sql)
+				await pg.query('insert into migrations (name) values ($1);', [migration.name])
+			} catch (err) {
+				console.error('failed migration', err, migration, appliedMigrationNames)
+			}
+		}
+	}
 }
