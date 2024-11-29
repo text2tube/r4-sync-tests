@@ -206,3 +206,7 @@ article:has(media-controller[mediapaused]) .pause {
 article:not(:has(media-controller[mediapaused])) .play {
 	display: none;
 }
+
+menu {
+	padding: 0;
+}
