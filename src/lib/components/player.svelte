@@ -273,11 +273,6 @@
 		}
 	}
 
-	.volume {
-		display: flex;
-		flex-flow: row nowrap;
-	}
-
 	[aria-pressed='false'] :global(svg) {
 		opacity: 0.2;
 	}
