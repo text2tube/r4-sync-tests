@@ -72,5 +72,7 @@
 		margin-top: 5vh;
 		color: #666;
 	}
-	article p { margin: 0;}
+	article p {
+		margin: 0;
+	}
 </style>

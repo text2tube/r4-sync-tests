@@ -45,10 +45,9 @@
 	let yt = $state()
 
 	pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
-		console.log('appstate.track changed')
 		appState = res.rows[0]
+		console.log('app_state livequery', $state.snapshot(appState))
 		const tid = res.rows[0].playlist_track
-		console.log('appstate changed', tid)
 		setChannelFromTrack(tid)
 	})
 
@@ -74,7 +73,7 @@
 		const c = await first(pg.sql`select * from channels where id = ${t.channel_id}`)
 		console.log(c.slug, t.title)
 		if (t && c) {
-			// if (!autoplay) autoplay = true
+			//if (!autoplay) autoplay = true
 			track = t
 			title = c.name
 			image = c.image
@@ -110,7 +109,7 @@
 			return
 		}
 		yt.play()
-		autoplay = true
+		//autoplay = true
 	}
 
 	function handleEndTrack() {
