@@ -13,10 +13,10 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.3.1",
-		"@sveltejs/kit": "^2.8.0",
-		"@sveltejs/vite-plugin-svelte": "^4.0.0",
+		"@sveltejs/kit": "^2.8.1",
+		"@sveltejs/vite-plugin-svelte": "^4.0.1",
 		"@types/eslint": "^9.6.1",
-		"eslint": "^9.14.0",
+		"eslint": "^9.15.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.46.0",
 		"globals": "^15.12.0",
@@ -34,6 +34,8 @@
 		"@radio4000/components": "^0.2.11",
 		"@radio4000/sdk": "^0.4.11",
 		"@sveltejs/adapter-static": "^3.0.6",
+		"effect": "^3.10.15",
+		"gsap": "^3.12.5",
 		"media-chrome": "^4.2.3",
 		"obra-icons-svelte": "^1.21.0",
 		"youtube-video-element": "^1.1.6"
