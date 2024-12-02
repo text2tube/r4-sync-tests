@@ -38,3 +38,29 @@ export interface AppState {
 	channels?: string[]
 	shuffle?: boolean
 }
+
+
+export interface Ok<T> {
+	ok: true
+	value: T
+}
+
+export interface Error<E> {
+	ok: false
+	error: E
+}
+
+export function ok<T>(value: T): Ok<T> {
+	return {
+		ok: true,
+		value
+	}
+}
+
+export function err<T>(error: T): Error<T> {
+	return {
+		ok: false,
+		error
+	}
+}
+
