@@ -101,7 +101,7 @@ export async function needsUpdate(slug) {
 		if (!id) throw new Error(`Channel not found: ${slug}`)
 
 		if (firebase_id) {
-			// v1 channels dont need updating
+			// v1 channels dont need updating because it is in read-only state since before this project
 			return false
 		}
 
@@ -130,7 +130,8 @@ export async function needsUpdate(slug) {
 		const remoteMsRemoved = new Date(remoteLatest.updated_at).setMilliseconds(0)
 		const localMsRemoved = new Date(localLatest.updated_at).setMilliseconds(0)
 		const toleranceMs = 20 * 1000
-		return remoteMsRemoved - localMsRemoved > toleranceMs
+		const x = remoteMsRemoved - localMsRemoved > toleranceMs
+		return x
 	} catch (error) {
 		console.error('Error checking for updates', error)
 		return true // On error, suggest update to be safe

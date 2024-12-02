@@ -57,6 +57,7 @@ export async function playChannel({id, slug}) {
 
 	// Pull in background to be sure
 	needsUpdate(slug).then((needs) => {
+		console.log('needsUpdate', slug, needs)
 		if (needs) return pullTracks(slug)
 	})
 
