@@ -120,6 +120,7 @@
 		} else {
 			console.warn('Unhandled player error', code) 
 		}
+		//autoplay = true
 	}
 
 	function handleEndTrack() {
@@ -281,11 +282,6 @@
 				padding-right: 0.25rem;
 			}
 		}
-	}
-
-	.volume {
-		display: flex;
-		flex-flow: row nowrap;
 	}
 
 	[aria-pressed='false'] :global(svg) {
