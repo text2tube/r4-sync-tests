@@ -1,6 +1,8 @@
 ## THIS IS JUST A TEST
 
-A web app with a local PostgreSQL database that can more or less sync with R4 and Matrix remotes.
+A (sveltekit) web app with a local PostgreSQL database that can more or less sync with R4 and Matrix remotes.
+
+It also contains a sync experiment on /syncthing.
 
 ## Ideas
 

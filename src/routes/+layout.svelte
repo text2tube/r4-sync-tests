@@ -9,17 +9,23 @@
 	import {IconChevronUp, IconChevronDown} from 'obra-icons-svelte'
 	import '@radio4000/components'
 
-	let {children} = $props()
+	const {children} = $props()
 
 	let preloading = $state(true)
 
 	$effect(() => {
-		initDb().then(() => {
-			preloading = false
-			// pg.live.query(`select * from app_state`, [], (res) => {
-			// console.log('root app_state', res.rows[0])
-			// })
-		})
+		initDb()
+			.then(() => {
+				console.log('✅ Database initialized successfully')
+				preloading = false
+				pg.live.query('select * from app_state', [], (res) => {
+					console.log('root app_state', res.rows[0])
+				})
+			})
+			.catch((err) => {
+				console.error('❌ Failed to initialize database:', err)
+				preloading = false // Still show the UI even if DB fails
+			})
 	})
 
 	/** @type {HTMLInputElement|undefined} */

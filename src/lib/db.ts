@@ -45,7 +45,7 @@ export async function dropAllTables() {
 export async function initDb(reset = false) {
 	console.time('Initializing database')
 	if (reset) await dropAllTables()
-	migrate(pg)
+	await migrate(pg)
 	console.timeEnd('Initializing database')
 }
 
@@ -63,7 +63,7 @@ export async function exportDb() {
 
 /** Runs a list of SQL migrations on the database */
 export async function migrate(pg: PGlite) {
-	console.log('migrating pg')
+	console.log('migrating pg', migrations)
 	// Create migrations table if it doesn't exist
 	await pg.exec(`
 		create table if not exists migrations (
@@ -73,20 +73,32 @@ export async function migrate(pg: PGlite) {
 		);
 	`)
 
-	const [result] = await pg.exec(`select name from migrations`)
+	const [result] = await pg.exec('select name from migrations')
 	const appliedMigrationNames = result.rows.map((x) => x.name)
+
+	// Debug: Check what tables actually exist
+	// const [tablesResult] = await pg.exec(`
+	// 	SELECT table_name
+	// 	FROM information_schema.tables
+	// 	WHERE table_schema = 'public'
+	// 	AND table_type = 'BASE TABLE'
+	// `)
+	// console.log('🔍 Existing tables:', tablesResult.rows.map(r => r.table_name))
+	// console.log('📝 Applied migrations:', appliedMigrationNames)
 
 	// Apply new migrations
 	for (const migration of migrations) {
 		if (!appliedMigrationNames.includes(migration.name)) {
-			console.log('are we here?', migration)
 			try {
-				console.log(`trying migration: ${migration.name}`)
 				await pg.exec(migration.sql)
 				await pg.query('insert into migrations (name) values ($1);', [migration.name])
+				console.log(`✅ Successfully applied migration: ${migration.name}`)
 			} catch (err) {
-				console.error('failed migration', err, migration, appliedMigrationNames)
+				console.error('❌ Failed migration', err, migration, appliedMigrationNames)
+				throw err // Re-throw to stop the process
 			}
+		} else {
+			console.log(`⏭️ Skipping already applied migration: ${migration.name}`)
 		}
 	}
 }
