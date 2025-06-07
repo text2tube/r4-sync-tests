@@ -59,6 +59,7 @@
 			{/if}
 		</a>
 		<a href="/settings">Settings</a>
+		<a href="/syncthing">Syncthing</a>
 		<InternetIndicator />
 		<AddTrackModal />
 		<hr />
