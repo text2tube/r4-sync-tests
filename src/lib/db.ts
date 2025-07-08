@@ -55,10 +55,9 @@ export async function exportDb() {
 	const url = URL.createObjectURL(file)
 	const a = document.createElement('a')
 	a.href = url
-	a.download = file.name
+	const timestamp = new Date().toISOString().replace(/:/g, '-')
+	a.download = `r5-test-${timestamp}.tar.gz`
 	a.click()
-	// could even query the new db
-	//const pg2 = new PGlite({ loadDataDir: file })
 }
 
 /** Runs a list of SQL migrations on the database */
