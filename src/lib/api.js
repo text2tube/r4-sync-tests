@@ -7,9 +7,7 @@ import {sdk} from '@radio4000/sdk'
  * @prop {string} email
  *
 
-/**
- * Returns a user
- */
+/** Returns a user */
 export async function checkUser() {
 	try {
 		const {data: user, error} = await sdk.users.readUser()
@@ -30,7 +28,6 @@ export async function checkUser() {
 }
 
 /**
- * Just play the channel already. Wait, what does playing a channel even mean? Who am i?
  * @param {string} id
  */
 export async function playTrack(id) {
@@ -80,28 +77,3 @@ async function loadPlaylist(ids, index = 0) {
 			playlist_track = ${ids[index]}
   `
 }
-
-/**
- * @type {object} Change
- * @prop {string} model
- *
- */
-
-/*
-const changes = new Set()
-
-const mutations = {
-	addTrack: () => {
-		// insert into local db
-		const change = await sql`...`
-		changes.add(change)
-	}
-}
-
-
-function applyChanges() {
-	for (const c of changes) {
-		radio4000.sdk.channels.update(c)
-	}
-}
-*/

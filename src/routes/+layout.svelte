@@ -13,6 +13,9 @@
 
 	let preloading = $state(true)
 
+	/** @type {HTMLInputElement|undefined} */
+	let playerLayoutCheckbox = $state()
+
 	$effect(() => {
 		initDb()
 			.then(() => {
@@ -22,13 +25,10 @@
 				// })
 			})
 			.catch((err) => {
-				console.error('❌ Failed to initialize database:', err)
-				preloading = false // Still show the UI even if DB fails
+				console.error('Failed to initialize database:', err)
+				preloading = false
 			})
 	})
-
-	/** @type {HTMLInputElement|undefined} */
-	let playerLayoutCheckbox = $state()
 
 	/**
 	 * Close the player overlay, if open, on escape key press.
