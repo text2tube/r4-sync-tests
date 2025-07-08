@@ -50,7 +50,7 @@
 <svelte:window onkeydown={handleKeyDown} />
 
 <div class="layout">
-	<header>
+	<header class="row">
 		<a href="/">
 			{#if preloading}
 				R0
@@ -58,15 +58,16 @@
 				<TestCounter />
 			{/if}
 		</a>
-		<a href="/settings">Settings</a>
-		<a href="/playground/syncthing">Syncthing</a>
-		<InternetIndicator />
 
-		{#if !preloading}
-			<AddTrackModal />
-			<hr />
-			<ThemeToggle />
-		{/if}
+		<div class="row right">
+			<a href="/settings">Settings</a>
+			<!-- <a href="/playground/syncthing">Syncthing</a> -->
+			<InternetIndicator />
+			{#if !preloading}
+				<AddTrackModal />
+				<ThemeToggle />
+			{/if}
+		</div>
 	</header>
 
 	<main>
@@ -97,36 +98,48 @@
 		grid-template-rows: auto 1fr;
 		height: 100vh;
 	}
-	header {
-		padding: 0.5rem 1rem 0.5rem;
+
+	header,
+	footer {
+		background: light-dark(var(--gray-2), var(--gray-3));
+	}
+
+	.row {
 		display: flex;
 		flex-flow: row wrap;
 		place-items: center;
-		gap: 1rem;
-		background: var(--color-bg-secondary);
-		border-bottom: 1px solid var(--color-border-tertiary);
+		gap: 0.5rem;
+	}
 
-		> a {
+	header {
+		padding: 0.5rem;
+		border-bottom: 1px solid var(--gray-5);
+
+		.right {
+			margin-left: auto;
+		}
+
+		a {
 			font-size: var(--font-size-small);
 			line-height: 2rem;
 			text-decoration: none;
 		}
 	}
+
 	main {
 		overflow-y: auto;
 		/* space for fixed, bottom player */
 		padding-bottom: 10rem;
 	}
+
 	footer {
 		position: fixed;
 		left: 1rem;
 		right: 1rem;
 		bottom: 1rem;
-		background: var(--color-bg-secondary);
-		/* background: gray; */
-		border: 1px solid var(--color-border-tertiary);
+
+		border: 1px solid var(--gray-5);
 		border-radius: var(--border-radius);
-		color: var(--color-text-primary);
 	}
 	footer .playerToggle {
 		position: absolute;
@@ -151,7 +164,7 @@
 		display: none;
 	}
 	footer label :global(svg path) {
-		stroke: var(--color-text-primary);
+		stroke: var(--gray-12);
 	}
 
 	/* Toggled state */

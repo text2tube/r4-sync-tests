@@ -26,7 +26,7 @@
 </script>
 
 <ul class="list">
-	{#each tracks as item, index}
+	{#each tracks as item, index (item.id)}
 		<li class={item.id === currentId ? 'current' : ''} ondblclick={() => playTrack(item.id)}>
 			<span>{index + 1}.</span>
 			<button class="nobtn title" onclick={() => playTrack(item.id)}>
@@ -52,19 +52,21 @@
 	}
 	li > span:first-child {
 		grid-row: span 2;
-		color: var(--color-text-tertiary);
+		color: var(--gray-6);
 	}
 	.title {
 		font-size: var(--font-size-regular);
 		font-weight: initial;
-		color: var(--color-text-secondary);
 	}
 	.description {
 		grid-column: 2;
+		&.nobtn {
+			color: var(--gray-8);
+		}
 	}
 	li.current {
 		.title {
-			color: var(--color-primary);
+			color: var(--color-accent);
 			font-weight: 600;
 		}
 	}

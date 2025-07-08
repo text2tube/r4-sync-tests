@@ -29,10 +29,11 @@ html {
 	text-rendering: optimizeLegibility;
 	text-size-adjust: 100%; /* ios? */
 	font-family: firava, system-ui, sans-serif;
-	color-scheme: light dark;
-	background: var(--color-bg-primary);
-	color: var(--color-text-primary);
 	scroll-behavior: smooth;
+	color-scheme: light dark;
+
+	background: var(--gray-1);
+	color: var(--gray-12);
 }
 
 body {
@@ -112,10 +113,10 @@ a {
 }
 a:link,
 a:visited {
-	color: var(--color-text-primary);
+	color: var(--gray-12);
 }
 a:hover {
-	color: var(--color-text-secondary);
+	color: var(--color-accent-light1);
 }
 a:active,
 a:focus {
@@ -132,11 +133,11 @@ hr {
 	display: block;
 	border: 0;
 	height: 1px;
-	background: var(--color-border-tertiary);
+	background: var(--gray-3);
 }
 
 small {
-	color: var(--color-text-tertiary);
+	color: var(--gray-5);
 }
 
 ul,
@@ -149,10 +150,10 @@ figure {
 	list-style: none;
 }
 .list > li {
-	border-bottom: 1px solid var(--color-border-secondary);
+	border-bottom: 1px solid var(--gray-4);
 }
 .list > li:hover {
-	background: var(--color-bg-quaternary);
+	background: var(--gray-5);
 }
 
 r4-sign-in,
@@ -178,7 +179,7 @@ r4-track-create {
 	}
 	legend,
 	label {
-		color: var(--color-text-tertiary);
+		color: var(--gray-5);
 	}
 	textarea,
 	input[type='email'],
@@ -189,8 +190,8 @@ r4-track-create {
 		flex: 1;
 		min-height: 2.5rem;
 		padding: 0.4rem 0.5rem 0.2rem;
-		background: var(--color-bg-primary);
-		border: 1px solid var(--color-border-tertiary);
+		background: var(--gray-1);
+		border: 1px solid var(--gray-3);
 		border-radius: var(--border-radius);
 	}
 }

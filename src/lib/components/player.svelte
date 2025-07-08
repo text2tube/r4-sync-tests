@@ -207,11 +207,9 @@
 		margin: 0;
 	}
 	h2 {
-		color: var(--color-text-tertiary);
 		font-weight: 400;
 	}
 	h3 {
-		/* color: var(--color-text-secondary); */
 		font-weight: 400;
 	}
 

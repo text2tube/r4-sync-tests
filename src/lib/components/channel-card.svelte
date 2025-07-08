@@ -68,7 +68,7 @@
 	article :global(figure + button) {
 		position: absolute;
 		left: 0.75rem;
-		background: var(--color-bg-secondary);
+		background: var(--gray-2);
 		width: 2.5rem;
 		border: 0;
 		box-shadow: none;

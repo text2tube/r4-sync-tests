@@ -28,7 +28,7 @@
 	}
 	svg g {
 		fill: light-dark(red, blue);
-		fill: var(--color-text-primary);
+		fill: var(--gray-12);
 	}
 	h2 {
 		text-align: center;

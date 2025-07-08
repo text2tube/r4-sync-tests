@@ -41,10 +41,6 @@
 	:global input[name='token'] {
 		display: none;
 	}
-	:global legend {
-		/* padding: 0; */
-		/* color: var(--color-text-tertiary); */
-	}
 	:global input {
 		/* width: 100%; */
 	}

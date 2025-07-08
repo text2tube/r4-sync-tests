@@ -54,11 +54,11 @@
 		--media-button-padding: 0 0.5rem;
 		--media-control-padding: 0.5rem;
 		--media-control-background: none;
-		--media-primary-color: var(--color-text-primary);
-		--media-text-color: var(--color-text-primary);
-		--media-icon-color: var(--color-text-primary);
+		--media-primary-color: var(--gray-12);
+		--media-text-color: var(--gray-12);
+		--media-icon-color: var(--gray-12);
 		--media-range-track-background: hsla(0, 0%, 0%, 0.2);
-		--media-range-track-background: var(--color-text-secondary);
+		--media-range-track-background: var(--gray-11);
 		/* --media-loading-indicator-icon-height: 2rem; */
 	}
 

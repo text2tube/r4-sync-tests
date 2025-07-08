@@ -49,7 +49,7 @@
 </menu>
 
 <ul class={display}>
-	{#each channels as channel}
+	{#each channels as channel (channel.id)}
 		<li>
 			<ChannelCard {channel} />
 		</li>
@@ -82,7 +82,7 @@
 		:global(figure) {
 			width: 100%;
 			aspect-ratio: 1 / 1;
-			background: var(--color-bg-secondary);
+			background: var(--gray-2);
 			border-radius: var(--border-radius);
 		}
 	}
