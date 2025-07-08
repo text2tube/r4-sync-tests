@@ -1,7 +1,7 @@
 <script>
 	import 'media-chrome'
-	//import 'youtube-video-element'
-	import '$lib/youtube-video-element-custom.js'
+	import 'youtube-video-element'
+	// import '$lib/youtube-video-element-custom.js'
 	import {pg} from '$lib/db'
 
 	// https://www.media-chrome.org/docs/en/get-started
