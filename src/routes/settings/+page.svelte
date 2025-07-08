@@ -4,9 +4,10 @@
 	import {pullV1Channels} from '$lib/v1'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
 
-	/** @type {import('$lib/types').AppState}*/
-	let appState = $state({})
 	let totalSyncing = $state(false)
+
+	// /** @type {import('$lib/types').AppState}*/
+	// let appState = $state({})
 
 	// Listen to app state updates and update UI.
 	// pg.live.query(`select * from app_state where id = 1`, [], (res) => {
@@ -43,12 +44,11 @@
 		<button onclick={exportDb}>Export local database</button>
 	</menu>
 
-	<h1>Settings</h1>
 	<p>
 		On boot, this website prepares a PostgreSQL database in your browser via WASM. You can pull
-		channels from R4 (including version 1), use the buttons above &uarr; All application and most
-		component state is stored and updated directly to the local database.
+		channels from R4 (including version 1), use the buttons above &uarr;
 	</p>
+	<p>All application state interact directly with the local database.</p>
 
 	<PgliteRepl />
 </article>

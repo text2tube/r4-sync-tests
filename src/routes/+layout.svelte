@@ -1,6 +1,6 @@
 <script>
 	import '../styles/style.css'
-	import {initDb, pg} from '$lib/db'
+	import {initDb} from '$lib/db'
 	import Player from '$lib/components/player.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'

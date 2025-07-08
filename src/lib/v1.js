@@ -1,4 +1,4 @@
-import {pg, DEBUG_LIMIT} from '$lib/db'
+import {pg, debugLimit} from '$lib/db'
 
 /**
 	Imports a local export of v1 channels, imports them, and fetches + imports tracks as well
@@ -6,7 +6,7 @@ import {pg, DEBUG_LIMIT} from '$lib/db'
 */
 export async function pullV1Channels() {
 	const res = await fetch('/r5-channels.json')
-	const items = (await res.json()).slice(0, DEBUG_LIMIT)
+	const items = (await res.json()).slice(0, debugLimit)
 
 	// remove duplicates (e.g. channels already in the database, be it from v2 or whatever)
 	const {rows} = await pg.sql`select slug from channels`

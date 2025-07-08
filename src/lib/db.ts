@@ -1,11 +1,11 @@
 import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
 import {sdk} from '@radio4000/sdk'
-// import {PGliteWorker} from '@electric-sql/pglite/worker'
 import {browser} from '$app/environment'
 import migrationsql from './migrations/01-create_tables.sql?raw'
 
-export const DEBUG_LIMIT = 10
+// This will limit the amount of channels pulled.
+export const debugLimit = 10
 
 const migrations = [{name: '01-create_tables', sql: migrationsql}]
 
@@ -33,10 +33,10 @@ export async function dropAllTables() {
 }
 
 export async function initDb(reset = false) {
-	console.time('Initializing database')
+	console.time('Initialized database')
 	if (reset) await dropAllTables()
 	await migrate(pg)
-	console.timeEnd('Initializing database')
+	console.timeEnd('Initialized database')
 }
 
 export async function exportDb() {
@@ -52,7 +52,6 @@ export async function exportDb() {
 
 /** Runs a list of SQL migrations on the database */
 export async function migrate(pg: PGlite) {
-	console.log('migrating pg', migrations)
 	// Create migrations table if it doesn't exist
 	await pg.exec(`
 		create table if not exists migrations (
@@ -77,17 +76,17 @@ export async function migrate(pg: PGlite) {
 
 	// Apply new migrations
 	for (const migration of migrations) {
-		if (!appliedMigrationNames.includes(migration.name)) {
+		if (appliedMigrationNames.includes(migration.name)) {
+			console.log(`Skipping already applied migration: ${migration.name}`)
+		} else {
 			try {
 				await pg.exec(migration.sql)
 				await pg.query('insert into migrations (name) values ($1);', [migration.name])
-				console.log(`✅ Successfully applied migration: ${migration.name}`)
+				console.log(`Applied migration: ${migration.name}`)
 			} catch (err) {
-				console.error('❌ Failed migration', err, migration, appliedMigrationNames)
+				console.error('Failed migration', err, migration, appliedMigrationNames)
 				throw err // Re-throw to stop the process
 			}
-		} else {
-			// console.log(`Skipping already applied migration: ${migration.name}`)
 		}
 	}
 }

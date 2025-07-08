@@ -1,4 +1,4 @@
-import {pg, DEBUG_LIMIT} from '$lib/db'
+import {pg, debugLimit} from '$lib/db'
 import {sdk} from '@radio4000/sdk'
 import {pullV1Tracks} from '$lib/v1'
 
@@ -7,7 +7,7 @@ import {pullV1Tracks} from '$lib/v1'
  * @param {Object} options
  * @param {number} [options.limit=15] - Number of channels to pull
  */
-export async function pullChannels({limit = DEBUG_LIMIT} = {}) {
+export async function pullChannels({limit = debugLimit} = {}) {
 	const {data: channels, error} = await sdk.channels.readChannels(limit)
 	if (error) throw error
 	await pg.transaction(async (tx) => {
