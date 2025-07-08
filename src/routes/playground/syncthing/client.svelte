@@ -24,12 +24,6 @@
 		}
 	})
 
-	// this.store.mutations = {addTrack}
-	// store.mutate(addTrack({id: uuid(), title: 'test track'}))
-
-	// By default LiveStore will only pull new events from the last known head locally available.
-	// There is also an option to pull all events from the beginning which can be useful in cases where the history has been rewritten.
-
 	function createTrack() {
 		console.log('create track', store.events)
 		const now = new Date()

@@ -59,7 +59,7 @@
 			{/if}
 		</a>
 		<a href="/settings">Settings</a>
-		<a href="/syncthing">Syncthing</a>
+		<a href="/playground/syncthing">Syncthing</a>
 		<InternetIndicator />
 
 		{#if !preloading}
