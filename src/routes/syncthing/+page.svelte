@@ -18,7 +18,8 @@
 
 <main class="syncthing">
 	<p>
-		This demos a local-first sync engine scenario. Monitor your browser console, click the buttons. It has nothing to do do with the rest of the app.
+		This demos a local-first sync engine scenario. Monitor your browser console, click the buttons.
+		It has nothing to do do with the rest of the app.
 	</p>
 
 	<menu>

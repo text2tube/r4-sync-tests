@@ -165,7 +165,13 @@
 	-->
 	</menu>
 
-	<YoutubePlayer url={track?.url} bind:yt {autoplay} onerror={handleError} onended={handleEndTrack} />
+	<YoutubePlayer
+		url={track?.url}
+		bind:yt
+		{autoplay}
+		onerror={handleError}
+		onended={handleEndTrack}
+	/>
 
 	<!-- <label class="volume">
 		{#if volume < 1}

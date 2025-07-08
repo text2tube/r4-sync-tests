@@ -32,7 +32,9 @@
 			<button class="nobtn title" onclick={() => playTrack(item.id)}>
 				{item.title}
 			</button>
-			<button class="nobtn description" onclick={() => playTrack(item.id)}><small>{item.description}</small></button>
+			<button class="nobtn description" onclick={() => playTrack(item.id)}
+				><small>{item.description}</small></button
+			>
 			<!--<p>{formatDate(item.created_at)}</p>-->
 		</li>
 	{/each}

@@ -39,7 +39,6 @@ export interface AppState {
 	shuffle?: boolean
 }
 
-
 export interface Ok<T> {
 	ok: true
 	value: T
@@ -63,4 +62,3 @@ export function err<T>(error: T): Error<T> {
 		error
 	}
 }
-

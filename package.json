@@ -8,11 +8,12 @@
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"format": "prettier --write .",
+		"prettier": "prettier --write .",
 		"lint": "prettier --check . && eslint ."
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^6.0.1",
+		"@sveltejs/adapter-cloudflare": "^7.0.4",
 		"@sveltejs/kit": "^2.22.2",
 		"@sveltejs/vite-plugin-svelte": "^5.1.0",
 		"@types/eslint": "^9.6.1",

@@ -2,8 +2,7 @@
 	import {pg} from '$lib/db'
 
 	let count = $state()
-
-	let double = $derived(count * 2)
+	const double = $derived(count * 2)
 
 	$effect(async () => {
 		const data = await pg.live.query(`select counter from app_state where id = 1`, [], (stuff) => {
@@ -16,4 +15,4 @@
 	}
 </script>
 
-<h1 onclick={add}>hey {count}</h1>
+<button onclick={add}>increment {count}</button>

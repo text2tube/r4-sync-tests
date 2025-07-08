@@ -6,7 +6,7 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"include": ["src/**/*"],
+		"include": ["src/**/*"]
 		// "ignore": [".wrangler"]
 	},
 	"formatter": {
