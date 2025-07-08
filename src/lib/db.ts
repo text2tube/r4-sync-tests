@@ -9,28 +9,18 @@ export const DEBUG_LIMIT = 10
 
 const migrations = [{name: '01-create_tables', sql: migrationsql}]
 
-// const useWorker = false
 const persist = true
-const dbUrl = persist ? 'idb://radio4000-debug' : 'memory://'
-const options = {
+const dbUrl = persist ? 'idb://radio4000test2' : 'memory://'
+const pgLiteOptions = {
 	// debug: 1,
 	dataDir: dbUrl,
-	// faster when using idb?
 	relaxedDurability: true,
 	extensions: {
 		live
 	}
 }
 
-export const pg = await PGlite.create(options)
-/* export const pg = !useWorker
-	? await PGlite.create(options)
-	: new PGliteWorker(
-			new Worker(new URL('./my-pglite-worker.js?worker', import.meta.url), {
-				type: 'module'
-			}),
-			options
-	 )*/
+export const pg = await PGlite.create(pgLiteOptions)
 
 // @ts-expect-error just for debugging
 if (browser) window.r5 = {pg, sdk}
@@ -97,7 +87,7 @@ export async function migrate(pg: PGlite) {
 				throw err // Re-throw to stop the process
 			}
 		} else {
-			console.log(`⏭️ Skipping already applied migration: ${migration.name}`)
+			// console.log(`Skipping already applied migration: ${migration.name}`)
 		}
 	}
 }

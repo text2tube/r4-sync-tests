@@ -16,11 +16,10 @@
 	$effect(() => {
 		initDb()
 			.then(() => {
-				console.log('✅ Database initialized successfully')
 				preloading = false
-				pg.live.query('select * from app_state', [], (res) => {
-					console.log('root app_state', res.rows[0])
-				})
+				// pg.live.query('select * from app_state', [], (res) => {
+				// 	console.log('layout queried app_state', res.rows[0])
+				// })
 			})
 			.catch((err) => {
 				console.error('❌ Failed to initialize database:', err)
@@ -41,6 +40,7 @@
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
 	// $effect(() => {
 	// 	window.addEventListener('beforeunload', async (event) => {
+	// 		console.log('maybe close pglite?')
 	// 		event.preventDefault()
 	// 		await pg.close()
 	// 	})
@@ -61,9 +61,12 @@
 		<a href="/settings">Settings</a>
 		<a href="/syncthing">Syncthing</a>
 		<InternetIndicator />
-		<AddTrackModal />
-		<hr />
-		<ThemeToggle />
+
+		{#if !preloading}
+			<AddTrackModal />
+			<hr />
+			<ThemeToggle />
+		{/if}
 	</header>
 
 	<main>
@@ -82,7 +85,9 @@
 			<IconChevronDown size={24} strokeWidth={2} />
 			<input type="checkbox" name="playerLayout" bind:this={playerLayoutCheckbox} />
 		</label>
-		<Player />
+		{#if !preloading}
+			<Player />
+		{/if}
 	</footer>
 </div>
 

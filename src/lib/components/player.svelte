@@ -46,7 +46,7 @@
 
 	pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
 		appState = res.rows[0]
-		console.log('app_state livequery', $state.snapshot(appState))
+		// console.log('app_state livequery', $state.snapshot(appState))
 		const tid = res.rows[0].playlist_track
 		setChannelFromTrack(tid)
 	})
@@ -118,7 +118,7 @@
 		if (code === 150) {
 			next()
 		} else {
-			console.warn('Unhandled player error', code) 
+			console.warn('Unhandled player error', code)
 		}
 		//autoplay = true
 	}

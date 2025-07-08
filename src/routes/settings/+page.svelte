@@ -9,9 +9,9 @@
 	let totalSyncing = $state(false)
 
 	// Listen to app state updates and update UI.
-	pg.live.query(`select * from app_state where id = 1`, [], (res) => {
-		appState = res.rows[0]
-	})
+	// pg.live.query(`select * from app_state where id = 1`, [], (res) => {
+	// 	appState = res.rows[0]
+	// })
 
 	// A wrapper around the other sync methods.
 	// v2 channels -> v1 channels incl. tracks -> v2 tracks
