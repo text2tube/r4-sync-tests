@@ -192,12 +192,11 @@ r4-track-create {
 		background: var(--color-bg-primary);
 		border: 1px solid var(--color-border-tertiary);
 		border-radius: var(--border-radius);
-		border: 0;
 	}
 }
 
 article:has(media-controller[mediapaused]) .play {
-	display: block;
+	display: inline-flex;
 }
 article:has(media-controller[mediapaused]) .pause {
 	display: none;

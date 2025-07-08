@@ -39,7 +39,6 @@
 	--color-bg-secondary: lch(94% 2 282.863 / 1);
 	--color-bg-tertiary: lch(92% 2 282.863 / 1);
 	--color-bg-quaternary: lch(97.5% 0 282.863 / 1);
-	--color-bg-quinary: 0;
 	--color-text-primary: lch(10% 0 282.863 / 1);
 	--color-text-secondary: lch(20% 1 282.863 / 1);
 	--color-text-tertiary: lch(40% 1 282.863 / 1);
@@ -55,7 +54,6 @@
 		--color-bg-secondary: lch(94.2% 2 282.863 / 1);
 		--color-bg-tertiary: lch(92.2% 2 282.863 / 1);
 		--color-bg-quaternary: lch(97.45% 0 282.863 / 1);
-		--color-bg-quinary: 0;
 		--color-text-primary: lch(9.87% 0 282.863 / 1);
 		--color-text-secondary: lch(19.74% 1 282.863 / 1);
 		--color-text-tertiary: lch(39.48% 1 282.863 / 1);
@@ -81,7 +79,6 @@
 	--color-bg-secondary: lch(10% 3.033 272 / 1);
 	--color-bg-tertiary: lch(14% 4.2 272 / 1);
 	--color-bg-quaternary: lch(7% 1.867 272 / 1);
-	--color-bg-quinary: 0;
 	--color-text-primary: lch(95% 0 272 / 1);
 	--color-text-secondary: lch(90% 1.35 272 / 1);
 	--color-text-tertiary: lch(62% 1.35 272 / 1);
@@ -105,7 +102,6 @@
 		--color-bg-secondary: lch(10.633% 3.033 272 / 1);
 		--color-bg-tertiary: lch(14.133% 4.2 272 / 1);
 		--color-bg-quaternary: lch(7.133% 1.867 272 / 1);
-		--color-bg-quinary: 0;
 		--color-text-primary: lch(100% 0 272 / 1);
 		--color-text-secondary: lch(90.65% 1.35 272 / 1);
 		--color-text-tertiary: lch(62.6% 1.35 272 / 1);

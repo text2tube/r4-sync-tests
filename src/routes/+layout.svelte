@@ -121,13 +121,14 @@
 		position: fixed;
 		left: 1rem;
 		right: 1rem;
-		bottom: 0;
+		bottom: 1rem;
 		background: var(--color-bg-secondary);
+		/* background: gray; */
 		border: 1px solid var(--color-border-tertiary);
-		border-top-left-radius: var(--border-radius);
-		border-top-right-radius: var(--border-radius);
+		border-radius: var(--border-radius);
+		color: var(--color-text-primary);
 	}
-	footer label {
+	footer .playerToggle {
 		position: absolute;
 		top: 0;
 		left: 0;

@@ -193,7 +193,6 @@
 <style>
 	header {
 		display: grid;
-		line-height: 1.2;
 	}
 	menu {
 		display: flex;
@@ -212,11 +211,15 @@
 		font-weight: 400;
 	}
 	h3 {
-		color: var(--color-text-secondary);
+		/* color: var(--color-text-secondary); */
 		font-weight: 400;
 	}
 
 	/* Fixed bottom */
+
+	:global(footer:not(:has(input:checked))) {
+		padding-right: 0.5rem;
+	}
 	:global(footer:not(:has(input:checked)) > article) {
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
@@ -226,12 +229,12 @@
 			grid-template-columns: 3rem auto;
 			gap: 0.5rem;
 			align-items: center;
-			padding-left: 0.25rem;
 
 			div {
 				display: flex;
 				flex-flow: row wrap;
 				gap: 0.25rem;
+				line-height: 1;
 			}
 		}
 		menu {
@@ -271,8 +274,6 @@
 			padding: 0;
 			margin-top: 1rem;
 			grid-column: 1;
-		}
-		:global(media-controller) {
 		}
 		:global(youtube-video) {
 			min-height: 300px;

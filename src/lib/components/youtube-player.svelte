@@ -18,7 +18,7 @@
 	}
 </script>
 
-<media-controller id="r5">
+<media-controller id="r5" noautohide>
 	<youtube-video
 		src={url}
 		bind:this={yt}
@@ -52,14 +52,19 @@
 		--media-background-color: none;
 		--media-button-icon-width: 1.5rem;
 		--media-button-padding: 0 0.5rem;
+		--media-control-padding: 0.5rem;
+		--media-control-background: none;
+		--media-primary-color: var(--color-text-primary);
+		--media-text-color: var(--color-text-primary);
+		--media-icon-color: var(--color-text-primary);
+		--media-range-track-background: hsla(0, 0%, 0%, 0.2);
+		--media-range-track-background: var(--color-text-secondary);
 		/* --media-loading-indicator-icon-height: 2rem; */
 	}
-	media-mute-button {
-		border: 1px solid var(--color-border-tertiary);
-		border-radius: var(--border-radius);
-	}
+
 	youtube-video {
-		min-width: 100px;
+		display: none;
+		/* min-width: 100px; */
 		min-height: 0;
 	}
 </style>
