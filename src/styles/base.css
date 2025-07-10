@@ -83,7 +83,7 @@ table,
 td,
 th,
 ul {
-	user-select: none;
+	/* user-select: none; */
 }
 
 @media (prefers-reduced-motion: reduce) {
