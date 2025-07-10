@@ -1,6 +1,7 @@
 import {pg} from '$lib/db'
 import {needsUpdate, pullTracks} from '$lib/sync'
 import {sdk} from '@radio4000/sdk'
+import {updateBroadcast, isBroadcasting} from '$lib/services/broadcast'
 
 /** @typedef {object} User
  * @prop {string} id
@@ -33,7 +34,18 @@ export async function checkUser() {
 export async function playTrack(id) {
 	// @todo check if we need to switch playlist_tracks (different channel)
 	console.log('playTrack', id)
-	return await pg.sql` UPDATE app_state SET playlist_track = ${id}`
+	
+	// Update the app state
+	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
+	
+	// Update broadcast if currently broadcasting
+	if (isBroadcasting()) {
+		try {
+			await updateBroadcast(id)
+		} catch (error) {
+			console.error('Failed to update broadcast:', error)
+		}
+	}
 }
 
 /**

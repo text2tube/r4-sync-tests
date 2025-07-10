@@ -41,7 +41,10 @@ CREATE TABLE IF NOT EXISTS app_state (
 	playlist_tracks UUID[] DEFAULT ARRAY[]::UUID[],
 	playlist_track UUID references tracks(id),
 
-	channels UUID[] DEFAULT ARRAY[]::UUID[]
+	channels UUID[] DEFAULT ARRAY[]::UUID[],
+	
+	broadcasting_channel_id UUID,
+	listening_to_channel_id UUID
 );
 
 INSERT INTO app_state (id) values (1) on conflict do nothing;

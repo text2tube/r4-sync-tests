@@ -1,0 +1,78 @@
+Radio4000 Channel Broadcast Feature Implementation Notes
+======================================================
+
+Overview:
+Users can broadcast their current track to allow synchronized listening with other users.
+
+Database Schema (Supabase):
+- Table: broadcast
+- Fields: channel_id, track_id, track_played_at, created_at, updated_at
+- Primary key: channel_id (one broadcast per channel)
+- Realtime enabled for live updates
+
+Client-Side Implementation:
+
+1. BROADCASTING (Host User):
+   - Add "Start Broadcast" button to player UI
+   - When clicked, insert/update broadcast row with:
+     * channel_id: current user's channel
+     * track_id: currently playing track
+     * track_played_at: current timestamp when track playback started
+   - Update broadcast on track changes
+   - Add "Stop Broadcast" to remove row
+
+2. LISTENING (Peer Users):
+   - Subscribe to broadcast changes via Supabase realtime
+   - When broadcast update received:
+     * Calculate playback position: current_time - track_played_at
+     * Load the track if not already loaded
+     * Seek to calculated position
+     * Start playback
+   - Handle edge cases:
+     * If calculated position > track duration, wait for next track
+     * If position < 0, start from beginning
+     * Network delay compensation
+
+3. SYNC LOGIC:
+   ```javascript
+   function syncToTrack(broadcast) {
+     const now = new Date()
+     const trackStartTime = new Date(broadcast.track_played_at)
+     const playbackPosition = (now - trackStartTime) / 1000 // seconds
+     
+     if (playbackPosition > 0 && playbackPosition < trackDuration) {
+       player.seekTo(playbackPosition)
+       player.play()
+     }
+   }
+   ```
+
+4. UI CONSIDERATIONS:
+   - Show broadcast status indicator
+   - Display "Listening to [channel_name]" when synced
+   - Option to "unsync" and control playback manually
+   - Handle multiple broadcasts (user chooses which to follow)
+
+5. REALTIME SUBSCRIPTION:
+   ```javascript
+   supabase
+     .channel('broadcast')
+     .on('postgres_changes', {
+       event: '*',
+       schema: 'public',
+       table: 'broadcast'
+     }, handleBroadcastUpdate)
+     .subscribe()
+   ```
+
+6. ERROR HANDLING:
+   - Network connectivity issues
+   - Track not found/unavailable
+   - Playback permission denied
+   - Broadcast interruption
+
+Technical Notes:
+- Use track_played_at for accurate sync calculation
+- Consider adding track duration to database for better validation
+- May need debouncing for rapid track changes
+- Test with different network conditions and delays

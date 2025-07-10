@@ -71,6 +71,7 @@
 		</a>
 
 		<div class="row right">
+			<a href="/broadcast">Broadcast</a>
 			<a href="/settings">Settings</a>
 			<!-- <a href="/playground/syncthing">Syncthing</a> -->
 			<InternetIndicator />
