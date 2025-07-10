@@ -1,9 +1,11 @@
 <script>
 	import Login from '$lib/components/login.svelte'
+	//import IconR4 from '$lib/icon-r4.svelte'
 </script>
 
 <div class="wrap">
 	<!--<img src="https://assets.radio4000.com/icon-r4.svg" alt="Radio4000">-->
+	<!--<IconR4 />-->
 	<svg width="300" height="260" viewBox="0 0 300 260" xmlns="http://www.w3.org/2000/svg">
 		<title>icon-r4</title>
 		<g fill="#000" fill-rule="evenodd">

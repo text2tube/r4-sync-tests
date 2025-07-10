@@ -13,11 +13,8 @@
 
 	// Listen to app state updates and update UI.
 	pg.live.query(`select * from app_state where id = 1`, [], (res) => {
-		if (res.rows[0].channels) {
-			channelId = res.rows[0].channels[0]
-		} else {
-			channelId = undefined
-		}
+		const appState = res.rows[0]
+		channelId = appState.channels ? appState.channels[0] : undefined
 	})
 
 	function submit(event) {

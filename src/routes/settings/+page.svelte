@@ -2,6 +2,7 @@
 	import {initDb, pg, exportDb} from '$lib/db'
 	import {pullChannels, needsUpdate, pullTracks} from '$lib/sync'
 	import {pullV1Channels} from '$lib/v1'
+	import {sdk} from '@radio4000/sdk'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
 
 	let totalSyncing = $state(false)
@@ -32,6 +33,11 @@
 		totalSyncing = false
 		console.timeEnd('totalSync')
 	}
+
+	async function logout() {
+		console.log('logout button clicked')
+		await sdk.auth.signOut()
+	}
 </script>
 
 <article>
@@ -49,6 +55,10 @@
 		channels from R4 (including version 1), use the buttons above &uarr;
 	</p>
 	<p>All application state interact directly with the local database.</p>
+
+	<p>
+		<button onclick={logout}>Logout</button>
+	</p>
 
 	<PgliteRepl />
 </article>

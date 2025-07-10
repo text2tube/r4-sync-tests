@@ -1,11 +1,12 @@
 <script>
 	import {checkUser} from '$lib/api'
+	import {sdk} from '@radio4000/sdk'
 
 	const captchaKey = 'b0a493f2-49df-486b-bdee-b8459f7b1c21'
 
 	let user = $state()
-
 	let loading = $state(true)
+
 	$effect(() => {
 		checkUser().then((u) => {
 			user = u
@@ -13,23 +14,22 @@
 		})
 	})
 
-	async function signin(event) {
+	async function signIn(event) {
 		user = event.detail.data.user
 		await checkUser()
 	}
 
-	async function signout() {
-		//user = undefined
-		await checkUser()
+	async function signOut() {
+		await sdk.auth.signOut()
 	}
 </script>
 
 {#if loading}
 	<p>&nbsp;</p>
 {:else if user}
-	<r4-sign-out onsubmit={signout}></r4-sign-out>
+	<r4-sign-out onsubmit={signOut}></r4-sign-out>
 {:else}
-	<r4-sign-in onsubmit={signin} hcaptcha-site-key={captchaKey}></r4-sign-in>
+	<r4-sign-in onsubmit={signIn} hcaptcha-site-key={captchaKey}></r4-sign-in>
 {/if}
 
 <style>

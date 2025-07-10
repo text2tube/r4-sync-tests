@@ -5,6 +5,7 @@
 	import QueuePanel from '$lib/components/queue-panel.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
+	import AuthListener from '$lib/components/auth-listener.svelte'
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
 	import InternetIndicator from '$lib/components/internet-indicator.svelte'
 	import {IconChevronUp, IconChevronDown} from 'obra-icons-svelte'
@@ -24,7 +25,7 @@
 				preloading = false
 				// Subscribe to queue panel visibility
 				pg.live.query('select queue_panel_visible from app_state where id = 1', [], (res) => {
-					queuePanelVisible = res.rows[0]?.queue_panel_visible ?? true
+					queuePanelVisible = res.rows[0]?.queue_panel_visible ?? false
 				})
 			})
 			.catch((err) => {
@@ -56,6 +57,8 @@
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />
+
+<AuthListener />
 
 <div class="layout">
 	<header class="row">
