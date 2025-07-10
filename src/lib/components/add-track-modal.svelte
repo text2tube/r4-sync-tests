@@ -8,7 +8,7 @@
 	/** @param {KeyboardEvent} event */
 	function handleKeyDown(event) {
 		if (event.target?.tagName === 'PGLITE-REPL' || event.target?.tagName === 'INPUT') return
-		if (event.key === 'c') showModal = true
+		if (event.key === 'c' && !event.metaKey && !event.ctrlKey) showModal = true
 	}
 
 	// Listen to app state updates and update UI.
