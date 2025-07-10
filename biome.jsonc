@@ -12,7 +12,7 @@
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab",
-		"lineWidth": 110
+		"lineWidth": 120
 	},
 	"organizeImports": {
 		"enabled": true
@@ -30,8 +30,7 @@
 		"formatter": {
 			"bracketSpacing": false,
 			"semicolons": "asNeeded",
-			"quoteStyle": "single",
-			"trailingCommas": "none"
+			"quoteStyle": "single"
 		}
 	}
 }

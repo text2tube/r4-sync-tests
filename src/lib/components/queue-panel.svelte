@@ -79,5 +79,4 @@
 			color: var(--gray-9);
 		}
 	}
-
 </style>

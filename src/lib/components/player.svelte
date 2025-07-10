@@ -184,7 +184,6 @@
 		<input type="range" min="0" max="100" name="volume" onchange={setVolume} />
 	</label>
  -->
-
 </article>
 
 <style>

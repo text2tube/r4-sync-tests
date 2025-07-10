@@ -167,7 +167,7 @@
 		.content {
 			grid-template-columns: 1fr;
 		}
-		
+
 		.queue-aside {
 			display: none;
 		}
