@@ -59,6 +59,43 @@ pg.live.query('SELECT * FROM app_state', [], (result) => {
 pg.sql`UPDATE app_state SET playlist_tracks = ${trackIds} WHERE id = 1`
 ```
 
+## Real-time Features
+
+### Supabase Real-time Patterns
+
+For real-time functionality (like broadcasting), use Supabase channels (not to be confused with our own `channels` table) and presence:
+
+**Pattern: Local-first, remote-sync**
+
+1. **Update local state immediately** for responsive UI
+2. **Sync to remote** in background
+3. **Handle failures gracefully**
+
+```js
+// Update local state first for immediate UI response
+await pg.sql`UPDATE app_state SET some_field = ${value} WHERE id = 1`
+
+// Then sync to remote (can fail without breaking UI)
+try {
+	const {error} = await sdk.supabase.from('table').upsert({data})
+	if (error) console.error('Sync failed:', error)
+} catch (error) {
+	// Handle gracefully, local state already updated
+}
+```
+
+### Service Organization
+
+**Services in `/src/lib/services/`** for complex features:
+- Handle real-time subscriptions and cleanup
+- Manage external state (like Supabase channels)
+- Export focused, single-purpose functions
+
+**Reusable functions in `/src/lib/api.js`**:
+- General data operations (sync, play, etc.)
+- Functions used across multiple services
+- Bridge between local database and remote API
+
 ## Component Guidelines
 
 ### Svelte 5 Runes
@@ -95,7 +132,9 @@ $effect(() => {
 
 ```
 /src/lib/db.ts           -- schema + migrations
-/src/lib/services/       -- business logic
+/src/lib/api.js          -- reusable data operations
+/src/lib/services/       -- complex features with real-time/external state
+/src/lib/sync.js         -- local/remote data synchronization
 /src/lib/migrations/     -- sql migration files
 /src/routes/             -- thin ui controllers
 ```
