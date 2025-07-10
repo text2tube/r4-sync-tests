@@ -34,10 +34,10 @@ export async function checkUser() {
 export async function playTrack(id) {
 	// @todo check if we need to switch playlist_tracks (different channel)
 	console.log('playTrack', id)
-	
+
 	// Update the app state
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
-	
+
 	// Update broadcast if currently broadcasting
 	if (isBroadcasting()) {
 		try {

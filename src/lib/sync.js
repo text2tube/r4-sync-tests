@@ -92,7 +92,7 @@ export async function pullTracks(slug) {
 export async function pullChannel(slug) {
 	const {data: channel, error} = await sdk.channels.readChannel(slug)
 	if (error) throw error
-	
+
 	if (channel) {
 		await pg.sql`
 			INSERT INTO channels (id, name, slug, description, image, created_at, updated_at)
@@ -110,7 +110,7 @@ export async function pullChannel(slug) {
 		`
 		console.log('Pulled channel', channel.slug)
 	}
-	
+
 	return channel
 }
 

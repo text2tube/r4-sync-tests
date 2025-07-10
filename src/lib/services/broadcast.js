@@ -24,13 +24,11 @@ export async function startBroadcasting(channelId, trackId) {
 	const trackPlayedAt = new Date().toISOString()
 
 	// Create broadcast row in remote Supabase
-	const {error} = await sdk.supabase
-		.from('broadcast')
-		.upsert({
-			channel_id: channelId,
-			track_id: trackId,
-			track_played_at: trackPlayedAt
-		})
+	const {error} = await sdk.supabase.from('broadcast').upsert({
+		channel_id: channelId,
+		track_id: trackId,
+		track_played_at: trackPlayedAt
+	})
 
 	if (error) {
 		console.error('Failed to create broadcast row:', error)
@@ -43,14 +41,16 @@ export async function startBroadcasting(channelId, trackId) {
 	// Listen for presence changes in the broadcast room
 	currentBroadcastRoom.on('presence', {event: 'sync'}, () => {
 		const presenceState = currentBroadcastRoom.presenceState()
-		const listeners = Object.values(presenceState).flat().filter(user => user.role === 'listener')
+		const listeners = Object.values(presenceState)
+			.flat()
+			.filter((user) => user.role === 'listener')
 		console.log('Broadcast room sync - listeners:', listeners.length, listeners)
 	})
 
 	currentBroadcastRoom.on('presence', {event: 'join'}, ({key, newPresences}) => {
 		console.log('Listener joined broadcast:', key, newPresences)
 	})
-	
+
 	currentBroadcastRoom.on('presence', {event: 'leave'}, ({key, leftPresences}) => {
 		console.log('Listener left broadcast:', key, leftPresences)
 	})
@@ -89,10 +89,7 @@ export async function stopBroadcasting() {
 
 	if (channelId) {
 		// Delete broadcast row from remote Supabase (can happen in background)
-		const {error} = await sdk.supabase
-			.from('broadcast')
-			.delete()
-			.eq('channel_id', channelId)
+		const {error} = await sdk.supabase.from('broadcast').delete().eq('channel_id', channelId)
 
 		if (error) {
 			console.error('Failed to delete broadcast row:', error)
@@ -168,18 +165,20 @@ export async function joinBroadcast(broadcasterChannelId) {
 		const presenceState = currentListeningRoom.presenceState()
 
 		// Find broadcaster presence (has track_id)
-		const broadcasterPresence = Object.values(presenceState).find(users =>
-			users.some(user => user.track_id)
+		const broadcasterPresence = Object.values(presenceState).find((users) =>
+			users.some((user) => user.track_id)
 		)
 
 		if (broadcasterPresence && broadcasterPresence.length > 0) {
-			const currentTrack = broadcasterPresence.find(user => user.track_id)
+			const currentTrack = broadcasterPresence.find((user) => user.track_id)
 			console.log('Syncing to current track:', currentTrack)
 			syncToTrack(currentTrack)
 		}
 
 		// Log all listeners for debugging
-		const listeners = Object.values(presenceState).flat().filter(user => user.role === 'listener')
+		const listeners = Object.values(presenceState)
+			.flat()
+			.filter((user) => user.role === 'listener')
 		console.log('Current listeners:', listeners.length, listeners)
 	})
 
@@ -187,7 +186,7 @@ export async function joinBroadcast(broadcasterChannelId) {
 	currentListeningRoom.on('presence', {event: 'join'}, ({key, newPresences}) => {
 		console.log('Someone joined:', key, newPresences)
 	})
-	
+
 	currentListeningRoom.on('presence', {event: 'leave'}, ({key, leftPresences}) => {
 		console.log('Someone left:', key, leftPresences)
 	})
@@ -260,10 +259,11 @@ async function syncToTrack(trackData) {
 	console.log('Syncing to track:', {track_id, playbackPosition})
 
 	// Only sync if position is reasonable (not too far in the past or future)
-	if (playbackPosition >= 0 && playbackPosition < 600) { // max 10 minutes
+	if (playbackPosition >= 0 && playbackPosition < 600) {
+		// max 10 minutes
 		// Check if track exists locally, if not sync entire channel
 		const localTrack = await pg.sql`SELECT * FROM tracks WHERE id = ${track_id}`
-		
+
 		if (localTrack.rows.length === 0) {
 			try {
 				// Get channel info from channel_track junction table
@@ -272,17 +272,17 @@ async function syncToTrack(trackData) {
 					.select('channel_id, channels(slug, name)')
 					.eq('track_id', track_id)
 					.single()
-				
+
 				if (channelTrack && !ctError && channelTrack.channels) {
 					const channel = channelTrack.channels
 					console.log('Syncing entire channel:', channel.slug)
-					
+
 					// Pull the channel metadata first (if needed)
 					await pullChannel(channel.slug)
-					
+
 					// Pull all tracks for this channel
 					await pullTracks(channel.slug)
-					
+
 					console.log('Successfully synced channel:', channel.slug)
 				} else {
 					console.error('Failed to fetch channel from channel_track table:', ctError)
@@ -309,9 +309,7 @@ async function syncToTrack(trackData) {
 export async function getActiveBroadcasts() {
 	try {
 		// Query remote Supabase for active broadcasts
-		const {data: broadcasts, error} = await sdk.supabase
-			.from('broadcast')
-			.select(`
+		const {data: broadcasts, error} = await sdk.supabase.from('broadcast').select(`
 				channel_id,
 				track_id,
 				track_played_at,
@@ -337,21 +335,26 @@ export async function getActiveBroadcasts() {
 			const presencePromise = new Promise((resolve) => {
 				tempChannel.on('presence', {event: 'sync'}, () => {
 					const presenceState = tempChannel.presenceState()
-					const listeners = Object.values(presenceState).flat().filter(user => user.role === 'listener')
-					
+					const listeners = Object.values(presenceState)
+						.flat()
+						.filter((user) => user.role === 'listener')
+
 					console.log(`Broadcast ${broadcast.channel_id}: presence state:`, presenceState)
-					console.log(`Broadcast ${broadcast.channel_id}: found ${listeners.length} listeners:`, listeners)
-					
+					console.log(
+						`Broadcast ${broadcast.channel_id}: found ${listeners.length} listeners:`,
+						listeners
+					)
+
 					resolve(listeners.length)
 				})
 			})
 
 			await tempChannel.subscribe()
-			
+
 			// Wait for presence sync or timeout after 2 seconds
 			const listenerCount = await Promise.race([
 				presencePromise,
-				new Promise(resolve => setTimeout(() => resolve(0), 2000))
+				new Promise((resolve) => setTimeout(() => resolve(0), 2000))
 			])
 
 			activeBroadcasts.push({
@@ -368,7 +371,6 @@ export async function getActiveBroadcasts() {
 
 		console.log('Found active broadcasts:', activeBroadcasts)
 		return activeBroadcasts
-
 	} catch (error) {
 		console.error('Failed to get active broadcasts:', error)
 		return []

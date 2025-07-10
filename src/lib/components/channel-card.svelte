@@ -9,7 +9,7 @@
 	let {channel, activeBroadcasts = []} = $props()
 
 	/** @type {boolean} */
-	let isLive = $derived(activeBroadcasts.some(broadcast => broadcast.channel_id === channel.id))
+	let isLive = $derived(activeBroadcasts.some((broadcast) => broadcast.channel_id === channel.id))
 
 	/** @param {MouseEvent} event */
 	async function doubleclick(event) {
@@ -46,9 +46,7 @@
 <article ondblclick={doubleclick} data-busy={channel.busy}>
 	<figure><ChannelAvatar id={channel.image} alt={channel.name} /></figure>
 	{#if isLive}
-		<button class="join-broadcast" onclick={handleJoinBroadcast}>
-			🔴 Join Live
-		</button>
+		<button class="join-broadcast" onclick={handleJoinBroadcast}> 🔴 Join Live </button>
 	{:else}
 		<ButtonPlay {channel} />
 	{/if}

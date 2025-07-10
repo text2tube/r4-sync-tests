@@ -48,7 +48,8 @@
 			currentTrack = trackRes.rows[0]
 
 			if (currentTrack) {
-				const channelRes = await pg.sql`SELECT * FROM channels WHERE id = ${currentTrack.channel_id}`
+				const channelRes =
+					await pg.sql`SELECT * FROM channels WHERE id = ${currentTrack.channel_id}`
 				currentChannel = channelRes.rows[0]
 			}
 		}
@@ -56,7 +57,9 @@
 
 	async function handleStartBroadcast() {
 		if (!currentChannel || !currentTrack) {
-			alert('You need to be playing a track to start broadcasting. Go to the home page and start playing music first.')
+			alert(
+				'You need to be playing a track to start broadcasting. Go to the home page and start playing music first.'
+			)
 			return
 		}
 
@@ -191,14 +194,10 @@
 
 			<menu>
 				{#if broadcasting}
-					<button onclick={handleStopBroadcast}>
-						🔴 Stop Broadcasting
-					</button>
+					<button onclick={handleStopBroadcast}> 🔴 Stop Broadcasting </button>
 					<p>Broadcasting to room: {currentChannel.id}</p>
 				{:else}
-					<button onclick={handleStartBroadcast}>
-						📡 Start Broadcasting
-					</button>
+					<button onclick={handleStartBroadcast}> 📡 Start Broadcasting </button>
 				{/if}
 			</menu>
 		{:else}
@@ -214,24 +213,15 @@
 
 	<div>
 		<label for="channelId">Channel ID to join:</label>
-		<input
-			id="channelId"
-			type="text"
-			bind:value={testChannelId}
-			placeholder="Enter channel ID"
-		/>
+		<input id="channelId" type="text" bind:value={testChannelId} placeholder="Enter channel ID" />
 	</div>
 
 	<menu>
 		{#if listening}
-			<button onclick={handleLeaveBroadcast}>
-				📻 Leave Broadcast
-			</button>
+			<button onclick={handleLeaveBroadcast}> 📻 Leave Broadcast </button>
 			<p>Listening to: {appState.listening_to_channel_id}</p>
 		{:else}
-			<button onclick={handleJoinBroadcast}>
-				🎧 Join Broadcast
-			</button>
+			<button onclick={handleJoinBroadcast}> 🎧 Join Broadcast </button>
 		{/if}
 	</menu>
 </section>
@@ -255,9 +245,7 @@
 						<p>🎵 Track: {broadcast.track_id}</p>
 						<small>Started: {new Date(broadcast.track_played_at).toLocaleTimeString()}</small>
 					</div>
-					<button onclick={() => handleJoinActiveBroadcast(broadcast.channel_id)}>
-						🎧 Join
-					</button>
+					<button onclick={() => handleJoinActiveBroadcast(broadcast.channel_id)}> 🎧 Join </button>
 				</li>
 			{/each}
 		</ul>

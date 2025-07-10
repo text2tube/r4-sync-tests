@@ -42,7 +42,7 @@
 		)
 
 		// Load active broadcasts initially
-		getActiveBroadcasts().then(broadcasts => {
+		getActiveBroadcasts().then((broadcasts) => {
 			activeBroadcasts = broadcasts
 		})
 
@@ -57,7 +57,7 @@
 					table: 'broadcast'
 				},
 				() => {
-					getActiveBroadcasts().then(broadcasts => {
+					getActiveBroadcasts().then((broadcasts) => {
 						activeBroadcasts = broadcasts
 					})
 				}
@@ -70,7 +70,7 @@
 					table: 'broadcast'
 				},
 				() => {
-					getActiveBroadcasts().then(broadcasts => {
+					getActiveBroadcasts().then((broadcasts) => {
 						activeBroadcasts = broadcasts
 					})
 				}
@@ -83,7 +83,7 @@
 					table: 'broadcast'
 				},
 				() => {
-					getActiveBroadcasts().then(broadcasts => {
+					getActiveBroadcasts().then((broadcasts) => {
 						activeBroadcasts = broadcasts
 					})
 				}

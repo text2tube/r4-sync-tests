@@ -17,7 +17,7 @@
 			}
 		}
 
-			/*
+		/*
 
 		this.listeners.addEventListener('auth', async ({detail}) => {
 			const sameUser = (this.user && this.user.id) === (detail.user && detail.user.id)
