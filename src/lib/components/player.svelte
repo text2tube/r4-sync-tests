@@ -19,7 +19,7 @@
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').AppState} AppState */
 
-	let autoplay = $state(false)
+	let autoplay = $state(true)
 
 	let title = $state('')
 	let image = $state('')
@@ -43,6 +43,9 @@
 	*/
 
 	let yt = $state()
+
+	/** @type {boolean} */
+	let isListeningToBroadcast = $derived(!!appState.listening_to_channel_id)
 
 	pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
 		appState = res.rows[0]
@@ -135,7 +138,12 @@
 			<ChannelAvatar id={image} alt={title} />
 		</figure>
 		<div>
-			<h2>{title}</h2>
+			<h2>
+				{title}
+				{#if isListeningToBroadcast}
+					<span class="broadcast-indicator">🔴 LIVE</span>
+				{/if}
+			</h2>
 			<h3>{track?.title}</h3>
 			<p>{description}</p>
 		</div>
@@ -270,5 +278,11 @@
 
 	[aria-pressed='false'] :global(svg) {
 		opacity: 0.2;
+	}
+	.broadcast-indicator {
+		color: red;
+		font-size: 0.8rem;
+		font-weight: bold;
+		margin-left: 0.5rem;
 	}
 </style>

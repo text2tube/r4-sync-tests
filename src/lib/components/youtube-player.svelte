@@ -18,7 +18,7 @@
 	}
 </script>
 
-<media-controller id="r5" noautohide>
+<media-controller id="r5" autohide="-1">
 	<youtube-video
 		src={url}
 		bind:this={yt}
