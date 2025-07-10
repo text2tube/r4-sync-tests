@@ -44,6 +44,11 @@ body {
 
 .scroll {
 	overflow-y: auto;
+	max-height: 100dvh;
+	overscroll-behavior: contain;
+	overflow-y: auto;
+	scrollbar-width: thin;
+	/*scrollbar-color: var(--white) var(--black);*/
 }
 
 /* WAIT LETS JUST TRY IT */
@@ -116,7 +121,7 @@ a:visited {
 	color: var(--gray-12);
 }
 a:hover {
-	color: var(--color-accent-light1);
+	/* color: var(--color-accent-light1); */
 }
 a:active,
 a:focus {

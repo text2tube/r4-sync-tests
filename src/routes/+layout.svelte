@@ -1,7 +1,8 @@
 <script>
 	import '../styles/style.css'
-	import {initDb} from '$lib/db'
+	import {initDb, pg} from '$lib/db'
 	import Player from '$lib/components/player.svelte'
+	import QueuePanel from '$lib/components/queue-panel.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
@@ -12,6 +13,7 @@
 	const {children} = $props()
 
 	let preloading = $state(true)
+	let queuePanelVisible = $state(true)
 
 	/** @type {HTMLInputElement|undefined} */
 	let playerLayoutCheckbox = $state()
@@ -20,9 +22,10 @@
 		initDb()
 			.then(() => {
 				preloading = false
-				// pg.live.query('select * from app_state', [], (res) => {
-				// 	console.log('layout queried app_state', res.rows[0])
-				// })
+				// Subscribe to queue panel visibility
+				pg.live.query('select queue_panel_visible from app_state where id = 1', [], (res) => {
+					queuePanelVisible = res.rows[0]?.queue_panel_visible ?? true
+				})
 			})
 			.catch((err) => {
 				console.error('Failed to initialize database:', err)
@@ -35,6 +38,11 @@
 	 * @param {KeyboardEvent} event */
 	function handleKeyDown(event) {
 		if (event.key === 'Escape' && playerLayoutCheckbox?.checked) playerLayoutCheckbox.click()
+	}
+
+	function toggleQueuePanel() {
+		const newVisible = !queuePanelVisible
+		pg.sql`UPDATE app_state SET queue_panel_visible = ${newVisible} WHERE id = 1`
 	}
 
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
@@ -65,20 +73,29 @@
 			<InternetIndicator />
 			{#if !preloading}
 				<AddTrackModal />
+				<button onclick={toggleQueuePanel}>
+					{queuePanelVisible ? 'Hide' : 'Show'} Queue
+				</button>
 				<ThemeToggle />
 			{/if}
 		</div>
 	</header>
 
-	<main>
-		{#if preloading}
-			<center>
-				<p>Preparing R4&hellip;</p>
-			</center>
-		{:else}
-			{@render children()}
+	<div class="content">
+		<main class="scroll">
+			{#if preloading}
+				<center>
+					<p>Preparing R4&hellip;</p>
+				</center>
+			{:else}
+				{@render children()}
+			{/if}
+		</main>
+
+		{#if !preloading && queuePanelVisible}
+			<QueuePanel />
 		{/if}
-	</main>
+	</div>
 
 	<footer>
 		<label class="playerToggle">
@@ -95,8 +112,19 @@
 <style>
 	.layout {
 		display: grid;
-		grid-template-rows: auto 1fr;
+		grid-template-rows: auto 1fr auto;
 		height: 100vh;
+	}
+
+	.content {
+		display: grid;
+		grid-template-columns: 1fr;
+		height: 100%;
+		overflow: hidden;
+	}
+
+	.content:global(:has(aside)) {
+		grid-template-columns: 1fr minmax(300px, 25vw);
 	}
 
 	header,
@@ -127,15 +155,28 @@
 	}
 
 	main {
-		overflow-y: auto;
 		/* space for fixed, bottom player */
 		padding-bottom: 10rem;
 	}
 
+	.queue-aside {
+	}
+
+	/* Mobile: hide aside */
+	@media (max-width: 768px) {
+		.content {
+			grid-template-columns: 1fr;
+		}
+		
+		.queue-aside {
+			display: none;
+		}
+	}
+
 	footer {
 		position: fixed;
-		left: 1rem;
-		right: 1rem;
+		left: 1.5rem;
+		right: 1.5rem;
 		bottom: 1rem;
 
 		border: 1px solid var(--gray-5);

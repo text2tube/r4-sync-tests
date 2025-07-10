@@ -3,11 +3,15 @@ import {live} from '@electric-sql/pglite/live'
 import {sdk} from '@radio4000/sdk'
 import {browser} from '$app/environment'
 import migrationsql from './migrations/01-create_tables.sql?raw'
+import migration02sql from './migrations/02-add_queue_panel_visibility.sql?raw'
 
 // This will limit the amount of channels pulled.
 export const debugLimit = 10
 
-const migrations = [{name: '01-create_tables', sql: migrationsql}]
+const migrations = [
+	{name: '01-create_tables', sql: migrationsql},
+	{name: '02-add_queue_panel_visibility', sql: migration02sql}
+]
 
 const persist = true
 const dbUrl = persist ? 'idb://radio4000test2' : 'memory://'

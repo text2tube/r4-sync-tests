@@ -47,7 +47,7 @@
 	pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
 		appState = res.rows[0]
 		// console.log('app_state livequery', $state.snapshot(appState))
-		const tid = res.rows[0].playlist_track
+		const tid = appState.playlist_track
 		setChannelFromTrack(tid)
 	})
 
@@ -185,9 +185,6 @@
 	</label>
  -->
 
-	<aside class="scroller">
-		<Tracklist ids={trackIds} currentId={track?.id} />
-	</aside>
 </article>
 
 <style>
@@ -238,8 +235,7 @@
 		menu {
 			gap: 0rem;
 		}
-		header p:last-of-type,
-		aside {
+		header p:last-of-type {
 			display: none;
 		}
 		h2,
@@ -251,10 +247,6 @@
 	/* Full overlay */
 	:global(footer:has(input:checked) > article) {
 		height: 100%;
-		@media (min-width: 500px) {
-			display: grid;
-			grid-template-columns: minmax(320px, 30vw) 1fr;
-		}
 		header {
 			margin: 3rem auto auto;
 			grid-template-columns: auto;
@@ -271,21 +263,9 @@
 		menu {
 			padding: 0;
 			margin-top: 1rem;
-			grid-column: 1;
 		}
 		:global(youtube-video) {
 			min-height: 300px;
-		}
-		aside {
-			grid-column: 2;
-			grid-row: 1/4;
-			display: initial;
-			margin-top: 1rem;
-			overflow: auto;
-			:global(li) {
-				padding-left: 0.5rem;
-				padding-right: 0.25rem;
-			}
 		}
 	}
 

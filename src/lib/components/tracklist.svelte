@@ -53,21 +53,15 @@
 	li > span:first-child {
 		grid-row: span 2;
 		color: var(--gray-6);
-	}
-	.title {
 		font-size: var(--font-size-regular);
-		font-weight: initial;
+		text-indent: 0.2em;
 	}
-	.description {
-		grid-column: 2;
-		&.nobtn {
-			color: var(--gray-8);
-		}
+
+	.nobtn.title {
+		font-size: var(--font-size-regular);
 	}
-	li.current {
-		.title {
-			color: var(--color-accent);
-			font-weight: 600;
-		}
+
+	li.current .title {
+		color: var(--color-accent);
 	}
 </style>
