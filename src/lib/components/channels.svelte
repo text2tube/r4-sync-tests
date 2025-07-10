@@ -3,12 +3,12 @@
 	import {sdk} from '@radio4000/sdk'
 	import {IconGrid, IconUnorderedList} from 'obra-icons-svelte'
 	import ChannelCard from './channel-card.svelte'
-	import {getActiveBroadcasts} from '$lib/services/broadcast'
+	import {readBroadcasts} from '$lib/api'
 
 	/** @type {import('$lib/types').Channel[]}*/
 	let channels = $state([])
 
-	/** @type {Array}*/
+	/** @type {import('$lib/types').Broadcast[]}*/
 	let activeBroadcasts = $state([])
 
 	/** @type {'list' | 'grid'}*/
@@ -40,60 +40,6 @@
 				channels = res.rows
 			}
 		)
-
-		// Load active broadcasts initially
-		getActiveBroadcasts().then((broadcasts) => {
-			activeBroadcasts = broadcasts
-		})
-
-		// Listen for real-time changes to the broadcast table
-		const broadcastChannel = sdk.supabase
-			.channel('channels-broadcast-changes')
-			.on(
-				'postgres_changes',
-				{
-					event: 'INSERT',
-					schema: 'public',
-					table: 'broadcast'
-				},
-				() => {
-					getActiveBroadcasts().then((broadcasts) => {
-						activeBroadcasts = broadcasts
-					})
-				}
-			)
-			.on(
-				'postgres_changes',
-				{
-					event: 'DELETE',
-					schema: 'public',
-					table: 'broadcast'
-				},
-				() => {
-					getActiveBroadcasts().then((broadcasts) => {
-						activeBroadcasts = broadcasts
-					})
-				}
-			)
-			.on(
-				'postgres_changes',
-				{
-					event: 'UPDATE',
-					schema: 'public',
-					table: 'broadcast'
-				},
-				() => {
-					getActiveBroadcasts().then((broadcasts) => {
-						activeBroadcasts = broadcasts
-					})
-				}
-			)
-			.subscribe()
-
-		// Cleanup function
-		return () => {
-			broadcastChannel.unsubscribe()
-		}
 	})
 
 	async function setDisplay(value) {
@@ -110,7 +56,7 @@
 <ul class={display}>
 	{#each channels as channel (channel.id)}
 		<li>
-			<ChannelCard {channel} {activeBroadcasts} />
+			<ChannelCard {channel} />
 		</li>
 	{/each}
 </ul>

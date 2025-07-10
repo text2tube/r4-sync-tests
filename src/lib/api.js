@@ -1,14 +1,12 @@
 import {pg} from '$lib/db'
-import {needsUpdate, pullTracks} from '$lib/sync'
+import {needsUpdate, pullTracks, pullChannel} from '$lib/sync'
 import {sdk} from '@radio4000/sdk'
-import {updateBroadcast, isBroadcasting} from '$lib/services/broadcast'
 
 /** @typedef {object} User
  * @prop {string} id
  * @prop {string} email
- *
+ */
 
-/** Returns a user */
 export async function checkUser() {
 	try {
 		const {data: user, error} = await sdk.users.readUser()
@@ -19,7 +17,7 @@ export async function checkUser() {
 			const {data: channels} = await sdk.channels.readUserChannels()
 			console.log('checkUser channels', channels)
 			if (channels) {
-				await pg.sql`update app_state set channels = ${channels.map((c) => c.id)}`
+				await pg.sql`update app_state set channels = ${channels.map((/** @type {any} */ c) => c.id)}`
 			}
 			return user
 		}
@@ -28,58 +26,83 @@ export async function checkUser() {
 	}
 }
 
-/**
- * @param {string} id
- */
+/** @param {string} id */
 export async function playTrack(id) {
-	// @todo check if we need to switch playlist_tracks (different channel)
-	console.log('playTrack', id)
-
-	// Update the app state
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
-
-	// Update broadcast if currently broadcasting
-	if (isBroadcasting()) {
-		try {
-			await updateBroadcast(id)
-		} catch (error) {
-			console.error('Failed to update broadcast:', error)
-		}
-	}
 }
 
-/**
- * Just play the channel already. Wait, what does playing a channel even mean? Who am i?
- * @param {import('$lib/types').Channel} channel
- */
-export async function playChannel({id, slug}) {
-	let tracks = (
-		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
-	).rows
+export async function readBroadcasts() {
+	const {data, error} = await sdk.supabase.from('broadcast').select(`
+			channel_id,
+			track_id,
+			track_played_at,
+			channels (
+				name,
+				slug
+			)
+		`)
+	if (error) throw error
+	return data || []
+}
 
-	// get tracks if needed
+/** @param {import('$lib/types').Channel} channel */
+export async function playChannel({id, slug}) {
+	let tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
+
 	if (!tracks?.length) {
 		await pullTracks(slug)
 	}
-	tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`)
-		.rows
+	tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
 
-	// Pull in background to be sure
 	needsUpdate(slug).then((needs) => {
 		console.log('needsUpdate', slug, needs)
 		if (needs) return pullTracks(slug)
 	})
 
 	const ids = tracks.map((t) => t.id)
-
 	return loadPlaylist(ids)
 }
 
-/**
- * Updates app state with channel and track to indicate we want to play
- * @param {string[]} ids,
- * @param {number} index
- */
+/** @param {string} trackId */
+export async function ensureTrackAvailable(trackId) {
+	try {
+		if ((await pg.sql`SELECT 1 FROM tracks WHERE id = ${trackId}`).rows.length > 0) {
+			return true
+		}
+
+		const {data} = await sdk.supabase.from('channel_track').select('channels(slug)').eq('track_id', trackId).single()
+
+		// @ts-expect-error shut up
+		const slug = data?.channels?.slug
+		if (!slug) return false
+
+		if (await needsUpdate(slug)) {
+			await pullChannel(slug)
+			await pullTracks(slug)
+			return true
+		}
+
+		return false
+	} catch (error) {
+		console.error('Error ensuring track availability:', error)
+		return false
+	}
+}
+
+/** @param {any} broadcast */
+export async function syncToBroadcast(broadcast) {
+	const {track_id, track_played_at} = broadcast
+	const playbackPosition = (Date.now() - new Date(track_played_at).getTime()) / 1000
+
+	if (playbackPosition < 0 || playbackPosition > 600) return false
+
+	if (!(await ensureTrackAvailable(track_id))) return false
+
+	await playTrack(track_id)
+	return true
+}
+
+/** @param {string[]} ids @param {number} index */
 async function loadPlaylist(ids, index = 0) {
 	console.log('loadPlaylist', ids?.length, ids[index])
 	if (!ids || !ids[index]) throw new Error('uhoh loadplaylist missing stuff')

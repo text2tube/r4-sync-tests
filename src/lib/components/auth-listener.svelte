@@ -7,7 +7,7 @@
 	})
 
 	async function change(detail) {
-		console.log(detail)
+		console.log('auth change', detail)
 		if (detail === 'signed out') {
 			try {
 				await pg.sql`update app_state set channels = null where id = 1`

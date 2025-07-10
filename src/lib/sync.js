@@ -73,7 +73,7 @@ export async function pullTracks(slug) {
           description = EXCLUDED.description,
           discogs_url = EXCLUDED.discogs_url,
           updated_at = EXCLUDED.updated_at
-      `
+      `,
 			)
 			await Promise.all(inserts)
 			console.log('Pulled v2 tracks', tracks?.length)
@@ -115,7 +115,7 @@ export async function pullChannel(slug) {
 }
 
 /**
- * Check if a channel's tracks need pulling
+ * Returns true if a channel's tracks need pulling
  * @param {string} slug - Channel slug
  * @returns {Promise<boolean>}
  */
@@ -123,7 +123,7 @@ export async function needsUpdate(slug) {
 	try {
 		// Get channel ID for remote query
 		const {
-			rows: [channel]
+			rows: [channel],
 		} = await pg.sql`select * from channels where slug = ${slug}`
 
 		const {id, firebase_id} = channel

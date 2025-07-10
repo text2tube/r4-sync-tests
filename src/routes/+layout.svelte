@@ -8,7 +8,9 @@
 	import AuthListener from '$lib/components/auth-listener.svelte'
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
 	import InternetIndicator from '$lib/components/internet-indicator.svelte'
+	import LiveBroadcasts from '$lib/components/live-broadcasts.svelte'
 	import {IconChevronUp, IconChevronDown} from 'obra-icons-svelte'
+	import {setupBroadcastSync} from '$lib/services/broadcast'
 	import '@radio4000/components'
 
 	const {children} = $props()
@@ -23,10 +25,10 @@
 		initDb()
 			.then(() => {
 				preloading = false
-				// Subscribe to queue panel visibility
 				pg.live.query('select queue_panel_visible from app_state where id = 1', [], (res) => {
 					queuePanelVisible = res.rows[0]?.queue_panel_visible ?? false
 				})
+				setupBroadcastSync()
 			})
 			.catch((err) => {
 				console.error('Failed to initialize database:', err)
@@ -71,6 +73,9 @@
 		</a>
 
 		<div class="row right">
+			{#if !preloading} 
+				<LiveBroadcasts />
+			{/if}
 			<a href="/broadcast">Broadcast</a>
 			<a href="/settings">Settings</a>
 			<!-- <a href="/playground/syncthing">Syncthing</a> -->

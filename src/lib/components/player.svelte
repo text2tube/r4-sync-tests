@@ -19,7 +19,7 @@
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').AppState} AppState */
 
-	let autoplay = $state(true)
+	let autoplay = $state(false)
 
 	let title = $state('')
 	let image = $state('')
@@ -55,6 +55,7 @@
 	})
 
 	/**
+	 * Awaits a query and returns the first row or undefined
 	 * @template T
 	 * @param {Promise<{rows: T[]}>} query
 	 * @returns {Promise<T|undefined>}
@@ -74,9 +75,7 @@
 		if (!tid || tid === track?.id) return
 		const t = await first(pg.sql`select * from tracks where id = ${tid} order by created_at desc`)
 		const c = await first(pg.sql`select * from channels where id = ${t.channel_id}`)
-		console.log(c.slug, t.title)
 		if (t && c) {
-			//if (!autoplay) autoplay = true
 			track = t
 			title = c.name
 			image = c.image
@@ -112,11 +111,11 @@
 			return
 		}
 		yt.play()
-		//autoplay = true
+		autoplay = true
 	}
 
 	function handleError(event) {
-		const code = event.detail.data
+		const code = event.detail?.data
 		console.error('Player error', code)
 		if (code === 150) {
 			next()

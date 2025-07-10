@@ -3,13 +3,11 @@
 	import ButtonPlay from './button-play.svelte'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import {needsUpdate, pullTracks} from '$lib/sync'
-	import {joinBroadcast} from '$lib/services/broadcast'
 
-	/** @type {{channel: import('$lib/types').Channel, activeBroadcasts?: Array}}*/
-	let {channel, activeBroadcasts = []} = $props()
+	/** @type {{channel: import('$lib/types').Channel}}*/
+	let {channel} = $props()
 
-	/** @type {boolean} */
-	let isLive = $derived(activeBroadcasts.some((broadcast) => broadcast.channel_id === channel.id))
+	let isLive = $state(false)
 
 	/** @param {MouseEvent} event */
 	async function doubleclick(event) {
@@ -32,24 +30,11 @@
 		console.log('Deleted tracks')
 		deleting = false
 	}
-
-	async function handleJoinBroadcast() {
-		try {
-			await joinBroadcast(channel.id)
-		} catch (error) {
-			console.error('Failed to join broadcast:', error)
-			alert('Failed to join broadcast')
-		}
-	}
 </script>
 
 <article ondblclick={doubleclick} data-busy={channel.busy}>
 	<figure><ChannelAvatar id={channel.image} alt={channel.name} /></figure>
-	{#if isLive}
-		<button class="join-broadcast" onclick={handleJoinBroadcast}> 🔴 Join Live </button>
-	{:else}
-		<ButtonPlay {channel} />
-	{/if}
+	<ButtonPlay {channel} />
 	<div>
 		<h3>
 			{channel.name}
@@ -122,18 +107,5 @@
 		font-size: 0.8rem;
 		font-weight: bold;
 		margin-left: 0.5rem;
-	}
-	.join-broadcast {
-		position: absolute;
-		left: 0.75rem;
-		background: red;
-		color: white;
-		width: 2.5rem;
-		height: 2.5rem;
-		border: 0;
-		border-radius: 50%;
-		font-size: 0.7rem;
-		font-weight: bold;
-		cursor: pointer;
 	}
 </style>

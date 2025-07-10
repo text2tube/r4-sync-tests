@@ -11,6 +11,10 @@ export interface Channel {
 	track_count?: number
 	busy: boolean
 	firebase_id?: string
+	// for broadcasting
+	broadcasting?: boolean
+	broadcast_track_id?: string
+	broadcast_started_at?: string
 }
 
 export type Track = {
@@ -35,8 +39,17 @@ export interface AppState {
 	volume?: number
 	counter?: number
 	channels_display?: string
+	// the user's channels
 	channels?: string[]
 	shuffle?: boolean
+	broadcasting_channel_id?: string
+	listening_to_channel_id?: string
+}
+
+export interface Broadcast {
+	channel_id: string
+	track_id: string
+	track_played_at: string
 }
 
 export interface Ok<T> {
@@ -52,13 +65,13 @@ export interface Error<E> {
 export function ok<T>(value: T): Ok<T> {
 	return {
 		ok: true,
-		value
+		value,
 	}
 }
 
 export function err<T>(error: T): Error<T> {
 	return {
 		ok: false,
-		error
+		error,
 	}
 }

@@ -4,13 +4,15 @@ import {sdk} from '@radio4000/sdk'
 import {browser} from '$app/environment'
 import migrationsql from './migrations/01-create_tables.sql?raw'
 import migration02sql from './migrations/02-add_queue_panel_visibility.sql?raw'
+import migration03sql from './migrations/03-add_broadcasts_table.sql?raw'
 
 // This will limit the amount of channels pulled.
 export const debugLimit = 10
 
 const migrations = [
 	{name: '01-create_tables', sql: migrationsql},
-	{name: '02-add_queue_panel_visibility', sql: migration02sql}
+	{name: '02-add_queue_panel_visibility', sql: migration02sql},
+	{name: '03-add_broadcast_fields', sql: migration03sql}
 ]
 
 const persist = true
