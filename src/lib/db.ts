@@ -33,6 +33,7 @@ export async function dropAllTables() {
 	await pg.sql`drop table if exists app_state CASCADE;`
 	await pg.sql`drop table if exists tracks CASCADE;`
 	await pg.sql`drop table if exists channels CASCADE;`
+	await pg.sql`drop table if exists migrations CASCADE;`
 	console.log('Dropped all tables')
 }
 
