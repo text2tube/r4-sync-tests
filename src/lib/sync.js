@@ -85,6 +85,36 @@ export async function pullTracks(slug) {
 }
 
 /**
+ * Pull a single channel by slug from Radio4000 into local database
+ * @param {string} slug - Channel slug
+ * @returns {Promise<import('$lib/types').Channel|null>}
+ */
+export async function pullChannel(slug) {
+	const {data: channel, error} = await sdk.channels.readChannel(slug)
+	if (error) throw error
+	
+	if (channel) {
+		await pg.sql`
+			INSERT INTO channels (id, name, slug, description, image, created_at, updated_at)
+			VALUES (
+				${channel.id}, ${channel.name}, ${channel.slug},
+				${channel.description}, ${channel.image},
+				${channel.created_at}, ${channel.updated_at}
+			)
+			ON CONFLICT (id) DO UPDATE SET
+				name = EXCLUDED.name,
+				slug = EXCLUDED.slug,
+				description = EXCLUDED.description,
+				image = EXCLUDED.image,
+				updated_at = EXCLUDED.updated_at
+		`
+		console.log('Pulled channel', channel.slug)
+	}
+	
+	return channel
+}
+
+/**
  * Check if a channel's tracks need pulling
  * @param {string} slug - Channel slug
  * @returns {Promise<boolean>}

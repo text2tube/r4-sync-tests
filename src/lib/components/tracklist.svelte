@@ -29,21 +29,18 @@
 	{#each tracks as item, index (item.id)}
 		<li class={item.id === currentId ? 'current' : ''} ondblclick={() => playTrack(item.id)}>
 			<span>{index + 1}.</span>
-			<button class="nobtn title" onclick={() => playTrack(item.id)}>
+			<div class="title">
 				{item.title}
-			</button>
-			<button class="nobtn description" onclick={() => playTrack(item.id)}
-				><small>{item.description}</small></button
-			>
+			</div>
+			<div class="description">
+				<small>{item.description}</small>
+			</div>
 			<!--<p>{formatDate(item.created_at)}</p>-->
 		</li>
 	{/each}
 </ul>
 
 <style>
-	button.nobtn {
-		all: unset;
-	}
 	li {
 		display: grid;
 		grid-template-columns: 3rem auto;
@@ -57,7 +54,7 @@
 		text-indent: 0.2em;
 	}
 
-	.nobtn.title {
+	.title {
 		font-size: var(--font-size-regular);
 	}
 

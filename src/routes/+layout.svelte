@@ -127,7 +127,7 @@
 	}
 
 	.content:global(:has(aside)) {
-		grid-template-columns: 1fr minmax(300px, 25vw);
+		grid-template-columns: 1fr minmax(400px, 25vw);
 	}
 
 	header,

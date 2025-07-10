@@ -13,6 +13,7 @@ Database is state. All app state lives in the `app_state` table. Minimal compone
 - Ideally through `app_state` table updates
 - Avoid component-level state for app data
 - Live queries propagate changes to UI automatically
+- Avoid server-side code, prefer client side for loading data as well
 
 ## Debugging
 
