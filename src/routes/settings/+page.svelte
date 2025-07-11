@@ -6,6 +6,7 @@
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
 
 	let totalSyncing = $state(false)
+	let resetting = $state(false)
 
 	// /** @type {import('$lib/types').AppState}*/
 	// let appState = $state({})
@@ -34,6 +35,18 @@
 		console.timeEnd('totalSync')
 	}
 
+	async function resetDatabase() {
+		resetting = true
+		try {
+			await initDb(true)
+			// Force page reload to refresh all state
+			window.location.reload()
+		} catch (error) {
+			console.error('Database reset failed:', error)
+			resetting = false
+		}
+	}
+
 	async function logout() {
 		console.log('logout button clicked')
 		await sdk.auth.signOut()
@@ -42,7 +55,9 @@
 
 <article>
 	<menu>
-		<button onclick={() => initDb(true)}>Reset local database</button>
+		<button onclick={resetDatabase} data-loading={resetting} disabled={resetting}>
+			{#if resetting}Resetting...{:else}Reset local database{/if}
+		</button>
 		<button onclick={totalSync} data-loading={totalSyncing} disabled={totalSyncing}>
 			{#if totalSyncing}Pulling{:else}Pull{/if} channels
 		</button>

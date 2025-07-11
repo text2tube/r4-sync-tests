@@ -39,18 +39,24 @@
 		}
 	})
 
-	pg.live.query(`
-		SELECT 
-			b.channel_id,
-			b.track_id,
-			b.track_played_at,
-			c.name as channel_name,
-			c.slug as channel_slug
-		FROM broadcasts b
-		LEFT JOIN channels c ON b.channel_id = c.id
-		ORDER BY b.track_played_at DESC
-	`, [], (res) => {
-		activeBroadcasts = res.rows
+	async function loadBroadcasts() {
+		try {
+			const {data, error} = await sdk.supabase.from('broadcast').select(`
+				channel_id,
+				track_id,
+				track_played_at
+			`)
+			if (error) throw error
+			activeBroadcasts = data || []
+		} catch (error) {
+			console.error('Failed to load broadcasts:', error)
+		}
+	}
+
+	$effect(() => {
+		loadBroadcasts()
+		const interval = setInterval(loadBroadcasts, 5000)
+		return () => clearInterval(interval)
 	})
 </script>
 
@@ -97,7 +103,7 @@
 			{#each activeBroadcasts as broadcast (broadcast.channel_id)}
 				<li>
 					<div>
-						<strong>{broadcast.channel_name}</strong>
+						<strong>{broadcast.channel_id}</strong>
 						<p>🎵 Track: {broadcast.track_id}</p>
 						<small>Started: {new Date(broadcast.track_played_at).toLocaleTimeString()}</small>
 					</div>
@@ -134,25 +140,6 @@
 		padding: 1rem;
 		border: 1px solid var(--gray-5);
 		border-radius: var(--border-radius);
-	}
-
-	menu {
-		display: flex;
-		gap: 1rem;
-		margin: 1rem 0;
-		padding: 0;
-	}
-
-	input {
-		padding: 0.5rem;
-		border: 1px solid var(--gray-5);
-		border-radius: var(--border-radius);
-		margin-left: 0.5rem;
-	}
-
-	label {
-		display: block;
-		margin-bottom: 0.5rem;
 	}
 
 	pre {

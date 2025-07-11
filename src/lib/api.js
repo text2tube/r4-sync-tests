@@ -67,24 +67,41 @@ export async function playChannel({id, slug}) {
 export async function ensureTrackAvailable(trackId) {
 	try {
 		if ((await pg.sql`SELECT 1 FROM tracks WHERE id = ${trackId}`).rows.length > 0) {
+			console.log('found track locally', {trackId})
 			return true
 		}
 
+		console.log('fetching track channel', {trackId})
 		const {data} = await sdk.supabase.from('channel_track').select('channels(slug)').eq('track_id', trackId).single()
 
 		// @ts-expect-error shut up
 		const slug = data?.channels?.slug
-		if (!slug) return false
+		if (!slug) {
+			console.log('track channel not found', {trackId})
+			return false
+		}
 
-		if (await needsUpdate(slug)) {
+		console.log('pulling channel for track', {trackId, slug})
+		try {
+			if (await needsUpdate(slug)) {
+				await pullChannel(slug)
+				await pullTracks(slug)
+				console.log('pulled channel', {slug})
+				return true
+			}
+		} catch (error) {
+			// Channel doesn't exist locally, pull it
+			console.log('channel not found locally, pulling', {slug})
 			await pullChannel(slug)
 			await pullTracks(slug)
+			console.log('pulled channel', {slug})
 			return true
 		}
 
+		console.log('channel already up to date', {slug})
 		return false
 	} catch (error) {
-		console.error('Error ensuring track availability:', error)
+		console.log('failed ensuring track availability', {trackId, error: error.message})
 		return false
 	}
 }
@@ -94,11 +111,20 @@ export async function syncToBroadcast(broadcast) {
 	const {track_id, track_played_at} = broadcast
 	const playbackPosition = (Date.now() - new Date(track_played_at).getTime()) / 1000
 
-	if (playbackPosition < 0 || playbackPosition > 600) return false
+	console.log('syncing to broadcast', {trackId: track_id, playbackPosition})
 
-	if (!(await ensureTrackAvailable(track_id))) return false
+	if (playbackPosition < 0 || playbackPosition > 600) {
+		console.log('rejected broadcast sync', {reason: 'too old', playbackPosition})
+		return false
+	}
+
+	if (!(await ensureTrackAvailable(track_id))) {
+		console.log('rejected broadcast sync', {reason: 'track unavailable', trackId: track_id})
+		return false
+	}
 
 	await playTrack(track_id)
+	console.log('synced to broadcast', {trackId: track_id})
 	return true
 }
 

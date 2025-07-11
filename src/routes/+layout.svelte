@@ -76,8 +76,6 @@
 			{#if !preloading} 
 				<LiveBroadcasts />
 			{/if}
-			<a href="/broadcast">Broadcast</a>
-			<a href="/settings">Settings</a>
 			<!-- <a href="/playground/syncthing">Syncthing</a> -->
 			<InternetIndicator />
 			{#if !preloading}
@@ -87,6 +85,7 @@
 				</button>
 				<ThemeToggle />
 			{/if}
+			<a href="/settings">Settings</a>
 		</div>
 	</header>
 

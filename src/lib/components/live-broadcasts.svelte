@@ -2,62 +2,55 @@
 	import {sdk} from '@radio4000/sdk'
 	import {pg} from '$lib/db'
 	import {joinBroadcast} from '$lib/services/broadcast'
+	import ChannelAvatar from './channel-avatar.svelte'
 
 	/** @type {any[]} */
 	let activeBroadcasts = $state([])
 
-	pg.live.query(`
-		SELECT 
-			b.channel_id,
-			b.track_id,
-			b.track_played_at,
-			c.name as channel_name,
-			c.slug as channel_slug
-		FROM broadcasts b
-		LEFT JOIN channels c ON b.channel_id = c.id
-		ORDER BY b.track_played_at DESC
-	`, [], (res) => {
-		activeBroadcasts = res.rows
-	})
-
-	async function syncRemoteBroadcasts() {
+	async function loadBroadcasts() {
 		try {
-			console.log('🔄 Syncing remote broadcasts...')
 			const {data, error} = await sdk.supabase.from('broadcast').select(`
 				channel_id,
 				track_id,
-				track_played_at
+				track_played_at,
+				channels (
+					id,
+					name,
+					slug,
+					image,
+					description
+				)
 			`)
 			if (error) throw error
 			
-			console.log('📡 Got remote broadcasts:', data?.length || 0, data)
-			
-			await pg.sql`DELETE FROM broadcasts`
-			
-			for (const broadcast of data || []) {
-				await pg.sql`
-					INSERT INTO broadcasts (channel_id, track_id, track_played_at)
-					VALUES (${broadcast.channel_id}, ${broadcast.track_id}, ${broadcast.track_played_at})
-				`
-			}
-
-			const localCount = await pg.sql`SELECT COUNT(*) as count FROM broadcasts`
-			console.log('💾 Local broadcasts after sync:', localCount.rows[0].count)
-
+			activeBroadcasts = data || []
+			console.log('loaded broadcasts', {count: activeBroadcasts.length})
 		} catch (error) {
-			console.error('Failed to sync remote broadcasts:', error)
+			console.log('failed loading broadcasts', {error: error.message})
 		}
 	}
 
 	$effect(() => {
-		console.log('here')
-		syncRemoteBroadcasts()
+		loadBroadcasts()
 
 		const broadcastChannel = sdk.supabase
 			.channel('live-broadcasts')
-			.on('postgres_changes', {event: '*', schema: 'public', table: 'broadcast'}, () => {
-				console.log('remote broadcast change detected -> syncing to local')
-				syncRemoteBroadcasts()
+			.on('postgres_changes', {event: '*', schema: 'public', table: 'broadcast'}, async (payload) => {
+				console.log('detected remote broadcast change', {event: payload.eventType, channelId: payload.new?.channel_id || payload.old?.channel_id})
+				
+				// If broadcast was deleted, clear listening state for that channel
+				if (payload.eventType === 'DELETE' && payload.old?.channel_id) {
+					const deletedChannelId = payload.old.channel_id
+					const {rows} = await pg.sql`SELECT listening_to_channel_id FROM app_state WHERE id = 1`
+					const currentListeningTo = rows[0]?.listening_to_channel_id
+					
+					if (currentListeningTo === deletedChannelId) {
+						await pg.sql`UPDATE app_state SET listening_to_channel_id = NULL WHERE id = 1`
+						console.log('cleared listening state', {channelId: deletedChannelId})
+					}
+				}
+				
+				loadBroadcasts()
 			})
 			.subscribe()
 
@@ -67,10 +60,10 @@
 
 {#if activeBroadcasts.length > 0}
 	<div class="live-broadcasts">
-		<span>🔴 Live:</span>
+		<span>Live radios 🔴</span>
 		{#each activeBroadcasts as broadcast (broadcast.channel_id)}
-			<button onclick={() => joinBroadcast(broadcast.channel_id)}>
-				{broadcast.channel_name}
+			<button onclick={() => joinBroadcast(broadcast.channel_id)} class="broadcast-button">
+				@{broadcast.channels.slug}
 			</button>
 		{/each}
 	</div>
@@ -89,7 +82,10 @@
 		font-weight: 500;
 	}
 
-	.live-broadcasts button {
+	.bbroadcast-button {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
 		background: var(--red-2);
 		color: var(--red-11);
 		border: 1px solid var(--red-6);
@@ -99,7 +95,7 @@
 		cursor: pointer;
 	}
 
-	.live-broadcasts button:hover {
+	.broadcast-button:hover {
 		background: var(--red-3);
 		border-color: var(--red-7);
 	}

@@ -2,18 +2,50 @@ import {sdk} from '@radio4000/sdk'
 import {pg} from '$lib/db'
 
 /** @param {string} channelId */
-export const startBroadcasting = (channelId) =>
-	pg.sql`UPDATE app_state SET broadcasting_channel_id = ${channelId} WHERE id = 1`
+export async function startBroadcasting(channelId) {
+	await pg.sql`UPDATE app_state SET broadcasting_channel_id = ${channelId} WHERE id = 1`
+	console.log('started broadcasting', {channelId})
+}
 
-export const stopBroadcasting = () =>
-	pg.sql`UPDATE app_state SET broadcasting_channel_id = NULL WHERE id = 1`
+export async function stopBroadcasting() {
+	await pg.sql`UPDATE app_state SET broadcasting_channel_id = NULL WHERE id = 1`
+	console.log('stopped broadcasting')
+}
 
 /** @param {string} channelId */
-export const joinBroadcast = (channelId) =>
-	pg.sql`UPDATE app_state SET listening_to_channel_id = ${channelId} WHERE id = 1`
+export async function joinBroadcast(channelId) {
+	try {
+		console.log('joining broadcast', {channelId})
+		
+		const {data, error} = await sdk.supabase
+			.from('broadcast')
+			.select('*')
+			.eq('channel_id', channelId)
+			.single()
 
-export const leaveBroadcast = () =>
-	pg.sql`UPDATE app_state SET listening_to_channel_id = NULL WHERE id = 1`
+		if (error) throw error
+		if (!data) throw new Error('Broadcast not found')
+
+		console.log('fetched broadcast', {trackId: data.track_id, playedAt: data.track_played_at})
+
+		const {syncToBroadcast} = await import('$lib/api.js')
+		const synced = await syncToBroadcast(data)
+		
+		if (synced) {
+			await pg.sql`UPDATE app_state SET listening_to_channel_id = ${channelId} WHERE id = 1`
+			console.log('joined broadcast', {channelId, trackId: data.track_id})
+		} else {
+			console.log('rejected broadcast sync', {reason: 'track unavailable or too old'})
+		}
+	} catch (error) {
+		console.log('failed joining broadcast', {channelId, error: error.message})
+	}
+}
+
+export async function leaveBroadcast() {
+	await pg.sql`UPDATE app_state SET listening_to_channel_id = NULL WHERE id = 1`
+	console.log('left broadcast')
+}
 
 /** @type {string|null} */
 let lastBroadcastingChannelId = null
@@ -35,9 +67,9 @@ export function setupBroadcastSync() {
 						track_id: playlist_track,
 						track_played_at: new Date().toISOString(),
 					})
-					console.log('🔴 Started broadcasting:', broadcasting_channel_id)
+					console.log('created remote broadcast', {channelId: broadcasting_channel_id, trackId: playlist_track})
 				} catch (error) {
-					console.error('Failed to start broadcasting:', error)
+					console.log('failed creating remote broadcast', {channelId: broadcasting_channel_id, error: error.message})
 				}
 			} else {
 				if (lastBroadcastingChannelId) {
@@ -45,9 +77,9 @@ export function setupBroadcastSync() {
 						await sdk.supabase.from('broadcast')
 							.delete()
 							.eq('channel_id', lastBroadcastingChannelId)
-						console.log('⭕ Stopped broadcasting:', lastBroadcastingChannelId)
+						console.log('deleted remote broadcast', {channelId: lastBroadcastingChannelId})
 					} catch (error) {
-						console.error('Failed to stop broadcasting:', error)
+						console.log('failed deleting remote broadcast', {channelId: lastBroadcastingChannelId, error: error.message})
 					}
 				}
 			}
@@ -62,9 +94,9 @@ export function setupBroadcastSync() {
 						track_played_at: new Date().toISOString(),
 					})
 					.eq('channel_id', broadcasting_channel_id)
-				console.log('🎵 Updated broadcast track:', playlist_track)
+				console.log('updated remote broadcast track', {channelId: broadcasting_channel_id, trackId: playlist_track})
 			} catch (error) {
-				console.error('Failed to update broadcast track:', error)
+				console.log('failed updating remote broadcast track', {channelId: broadcasting_channel_id, trackId: playlist_track, error: error.message})
 			}
 			lastTrackId = playlist_track
 		}
