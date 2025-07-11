@@ -37,7 +37,7 @@
 	<ButtonPlay {channel} />
 	<div>
 		<h3>
-			{channel.name}
+			<a href={`/${channel.slug}`}>{channel.name}</a>
 			{#if isLive}
 				<span class="live-indicator">🔴 LIVE</span>
 			{/if}

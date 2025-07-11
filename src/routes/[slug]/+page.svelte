@@ -140,8 +140,7 @@
 {:else if channel}
 	<article>
 		<ChannelCard {channel} />
-
-		<h3>Tracks ({trackIds.length})</h3>
+		<p>{channel.description}</p>
 		<section>
 			{#if trackIds.length > 0}
 				<Tracklist ids={trackIds} />
@@ -153,3 +152,10 @@
 {:else}
 	<p>Channel not found</p>
 {/if}
+<style>
+	header {
+		position: sticky;
+		top: 0.5rem;
+		margin: 0 0.5rem;
+	}
+	</style>

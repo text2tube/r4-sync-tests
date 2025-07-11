@@ -10,23 +10,29 @@
 	import InternetIndicator from '$lib/components/internet-indicator.svelte'
 	import LiveBroadcasts from '$lib/components/live-broadcasts.svelte'
 	import {IconChevronUp, IconChevronDown} from 'obra-icons-svelte'
-	import {setupBroadcastSync} from '$lib/services/broadcast'
+	import {setupBroadcastSync, stopBroadcasting} from '$lib/services/broadcast'
 	import '@radio4000/components'
 
 	const {children} = $props()
 
 	let preloading = $state(true)
 	let queuePanelVisible = $state(true)
+	/** @type {import('$lib/types').AppState} */
+	let appState = $state({})
 
 	/** @type {HTMLInputElement|undefined} */
 	let playerLayoutCheckbox = $state()
+
+	const broadcasting = $derived(!!appState.broadcasting_channel_id)
 
 	$effect(() => {
 		initDb()
 			.then(() => {
 				preloading = false
-				pg.live.query('select queue_panel_visible from app_state where id = 1', [], (res) => {
-					queuePanelVisible = res.rows[0]?.queue_panel_visible ?? false
+				pg.live.query('select queue_panel_visible, broadcasting_channel_id from app_state where id = 1', [], (res) => {
+					const state = res.rows[0]
+					queuePanelVisible = state?.queue_panel_visible ?? false
+					appState = state || {}
 				})
 				setupBroadcastSync()
 			})
@@ -75,6 +81,9 @@
 		<div class="row right">
 			{#if !preloading} 
 				<LiveBroadcasts />
+				{#if broadcasting}
+					<button onclick={() => stopBroadcasting()}> 🔴 Stop Broadcasting </button>
+				{/if}
 			{/if}
 			<!-- <a href="/playground/syncthing">Syncthing</a> -->
 			<InternetIndicator />
