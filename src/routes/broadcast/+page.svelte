@@ -66,27 +66,27 @@
 	{#if channelId}
 		{#if currentTrack && currentChannel}
 			<p><strong>Track:</strong> {currentTrack.title}</p>
-				{#if broadcasting}
-					<button onclick={() => stopBroadcasting()}> 🔴 Stop Broadcasting </button>
-				{:else}
-					<button
-						onclick={async () => {
-							if (!currentChannel || !currentTrack) {
-								alert(
-									'You need to be playing a track to start broadcasting. Go to the home page and start playing music first.'
-								)
-								return
-							}
-							const player = /** @type {HTMLElement & {paused: boolean, play(): void} | null} */ (
-								document.querySelector('youtube-video')
+			{#if broadcasting}
+				<button onclick={() => stopBroadcasting()}> 🔴 Stop Broadcasting </button>
+			{:else}
+				<button
+					onclick={async () => {
+						if (!currentChannel || !currentTrack) {
+							alert(
+								'You need to be playing a track to start broadcasting. Go to the home page and start playing music first.'
 							)
-							if (player?.paused) player.play()
-							await startBroadcasting(currentChannel.id)
-						}}
-					>
-						📡 Start Broadcasting
-					</button>
-				{/if}
+							return
+						}
+						const player = /** @type {HTMLElement & {paused: boolean, play(): void} | null} */ (
+							document.querySelector('youtube-video')
+						)
+						if (player?.paused) player.play()
+						await startBroadcasting(currentChannel.id)
+					}}
+				>
+					📡 Start Broadcasting
+				</button>
+			{/if}
 		{:else}
 			<p>No track currently playing. Go to the <a href="/">home page</a> to start a track first.</p>
 		{/if}

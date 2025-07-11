@@ -188,20 +188,20 @@ r4-track-create {
 	}
 }
 
-	textarea,
-	input[type='email'],
-	input[type='search'],
-	input[type='password'],
-	input[type='text'],
-	input[type='url'] {
-		font-size: var(--font-size-regular);
-		min-height: 2rem;
-		padding: 0 0.5rem;
-		background: var(--gray-1);
-		color: var(--gray-12);
-		border: 1px solid var(--gray-6);
-		border-radius: var(--border-radius);
-	}
+textarea,
+input[type='email'],
+input[type='search'],
+input[type='password'],
+input[type='text'],
+input[type='url'] {
+	font-size: var(--font-size-regular);
+	min-height: 2rem;
+	padding: 0 0.5rem;
+	background: var(--gray-1);
+	color: var(--gray-12);
+	border: 1px solid var(--gray-6);
+	border-radius: var(--border-radius);
+}
 
 article:has(media-controller[mediapaused]) .play {
 	display: inline-flex;

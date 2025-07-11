@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS channels (
 	slug TEXT UNIQUE NOT NULL,
 	description TEXT,
 	image TEXT,
-	tracks_outdated BOOLEAN,
+	tracks_synced_at TIMESTAMP WITH TIME ZONE,
 	busy BOOLEAN,
 	firebase_id TEXT unique
 );

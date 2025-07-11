@@ -29,11 +29,15 @@
 		initDb()
 			.then(() => {
 				preloading = false
-				pg.live.query('select queue_panel_visible, broadcasting_channel_id from app_state where id = 1', [], (res) => {
-					const state = res.rows[0]
-					queuePanelVisible = state?.queue_panel_visible ?? false
-					appState = state || {}
-				})
+				pg.live.query(
+					'select queue_panel_visible, broadcasting_channel_id from app_state where id = 1',
+					[],
+					(res) => {
+						const state = res.rows[0]
+						queuePanelVisible = state?.queue_panel_visible ?? false
+						appState = state || {}
+					}
+				)
 				setupBroadcastSync()
 			})
 			.catch((err) => {
@@ -79,7 +83,7 @@
 		</a>
 
 		<div class="row right">
-			{#if !preloading} 
+			{#if !preloading}
 				<LiveBroadcasts />
 				{#if broadcasting}
 					<button onclick={() => stopBroadcasting()}> 🔴 Stop Broadcasting </button>

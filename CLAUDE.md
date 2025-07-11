@@ -87,11 +87,13 @@ try {
 ### Service Organization
 
 **Services in `/src/lib/services/`** for complex features:
+
 - Handle real-time subscriptions and cleanup
 - Manage external state (like Supabase channels)
 - Export focused, single-purpose functions
 
 **Reusable functions in `/src/lib/api.js`**:
+
 - General data operations (sync, play, etc.)
 - Functions used across multiple services
 - Bridge between local database and remote API

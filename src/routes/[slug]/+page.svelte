@@ -54,23 +54,22 @@
 			const dir = currentDir || 'desc'
 
 			// Get all tracks for the channel with searchable fields
-			const query = 'SELECT id, title, description, created_at, updated_at FROM tracks WHERE channel_id = $1'
+			const query =
+				'SELECT id, title, description, created_at, updated_at FROM tracks WHERE channel_id = $1'
 			const {rows} = await pg.query(query, [channel.id])
 
 			// Apply ordering first to all tracks
 			const sortComparator = (a, b) => {
 				if (order === 'created') {
-					return dir === 'asc' 
+					return dir === 'asc'
 						? new Date(a.created_at) - new Date(b.created_at)
 						: new Date(b.created_at) - new Date(a.created_at)
 				} else if (order === 'updated') {
-					return dir === 'asc' 
+					return dir === 'asc'
 						? new Date(a.updated_at) - new Date(b.updated_at)
 						: new Date(b.updated_at) - new Date(a.updated_at)
 				} else if (order === 'title') {
-					return dir === 'asc' 
-						? a.title.localeCompare(b.title)
-						: b.title.localeCompare(a.title)
+					return dir === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title)
 				}
 				return 0
 			}
@@ -80,14 +79,14 @@
 			// Apply search if search term exists
 			if (search) {
 				const searchTerm = search.toLowerCase()
-				filteredTracks = filteredTracks.filter(track => {
+				filteredTracks = filteredTracks.filter((track) => {
 					const title = (track.title || '').toLowerCase()
 					const description = (track.description || '').toLowerCase()
 					return title.includes(searchTerm) || description.includes(searchTerm)
 				})
 			}
 
-			trackIds = filteredTracks.map(track => track.id)
+			trackIds = filteredTracks.map((track) => track.id)
 		} catch (err) {
 			console.error('Error loading tracks:', err)
 			trackIds = []
@@ -124,13 +123,13 @@
 </script>
 
 <header>
-<SearchControls
-	search={currentSearch}
-	order={currentOrder}
-	dir={currentDir}
-	onSearchChange={handleSearchChange}
-	onOrderChange={handleOrderChange}
-/>
+	<SearchControls
+		search={currentSearch}
+		order={currentOrder}
+		dir={currentDir}
+		onSearchChange={handleSearchChange}
+		onOrderChange={handleOrderChange}
+	/>
 </header>
 
 {#if loading}
@@ -152,10 +151,11 @@
 {:else}
 	<p>Channel not found</p>
 {/if}
+
 <style>
 	header {
 		position: sticky;
 		top: 0.5rem;
 		margin: 0 0.5rem;
 	}
-	</style>
+</style>

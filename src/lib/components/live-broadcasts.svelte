@@ -22,7 +22,7 @@
 				)
 			`)
 			if (error) throw error
-			
+
 			activeBroadcasts = data || []
 			console.log('loaded broadcasts', {count: activeBroadcasts.length})
 		} catch (error) {
@@ -35,23 +35,30 @@
 
 		const broadcastChannel = sdk.supabase
 			.channel('live-broadcasts')
-			.on('postgres_changes', {event: '*', schema: 'public', table: 'broadcast'}, async (payload) => {
-				console.log('detected remote broadcast change', {event: payload.eventType, channelId: payload.new?.channel_id || payload.old?.channel_id})
-				
-				// If broadcast was deleted, clear listening state for that channel
-				if (payload.eventType === 'DELETE' && payload.old?.channel_id) {
-					const deletedChannelId = payload.old.channel_id
-					const {rows} = await pg.sql`SELECT listening_to_channel_id FROM app_state WHERE id = 1`
-					const currentListeningTo = rows[0]?.listening_to_channel_id
-					
-					if (currentListeningTo === deletedChannelId) {
-						await pg.sql`UPDATE app_state SET listening_to_channel_id = NULL WHERE id = 1`
-						console.log('cleared listening state', {channelId: deletedChannelId})
+			.on(
+				'postgres_changes',
+				{event: '*', schema: 'public', table: 'broadcast'},
+				async (payload) => {
+					console.log('detected remote broadcast change', {
+						event: payload.eventType,
+						channelId: payload.new?.channel_id || payload.old?.channel_id
+					})
+
+					// If broadcast was deleted, clear listening state for that channel
+					if (payload.eventType === 'DELETE' && payload.old?.channel_id) {
+						const deletedChannelId = payload.old.channel_id
+						const {rows} = await pg.sql`SELECT listening_to_channel_id FROM app_state WHERE id = 1`
+						const currentListeningTo = rows[0]?.listening_to_channel_id
+
+						if (currentListeningTo === deletedChannelId) {
+							await pg.sql`UPDATE app_state SET listening_to_channel_id = NULL WHERE id = 1`
+							console.log('cleared listening state', {channelId: deletedChannelId})
+						}
 					}
+
+					loadBroadcasts()
 				}
-				
-				loadBroadcasts()
-			})
+			)
 			.subscribe()
 
 		return () => broadcastChannel.unsubscribe()

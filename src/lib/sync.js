@@ -1,6 +1,6 @@
 import {pg, debugLimit} from '$lib/db'
 import {sdk} from '@radio4000/sdk'
-import {pullV1Tracks} from '$lib/v1'
+import {pullV1Tracks, pullV1Channels} from '$lib/v1'
 
 /**
  * Pull channel metadata from Radio4000 into local database. Does not touch tracks.
@@ -73,14 +73,17 @@ export async function pullTracks(slug) {
           description = EXCLUDED.description,
           discogs_url = EXCLUDED.discogs_url,
           updated_at = EXCLUDED.updated_at
-      `,
+      `
 			)
 			await Promise.all(inserts)
 			console.log('Pulled v2 tracks', tracks?.length)
 		})
-	} finally {
-		// Always mark channel as not busy when done
-		await pg.sql`update channels set busy = false, tracks_outdated = false where slug = ${slug}`
+		// Mark as successfully synced
+		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP where slug = ${slug}`
+	} catch (error) {
+		// On error, just mark as not busy (tracks_synced_at stays NULL for retry)
+		await pg.sql`update channels set busy = false where slug = ${slug}`
+		throw error
 	}
 }
 
@@ -123,7 +126,7 @@ export async function needsUpdate(slug) {
 	try {
 		// Get channel ID for remote query
 		const {
-			rows: [channel],
+			rows: [channel]
 		} = await pg.sql`select * from channels where slug = ${slug}`
 
 		const {id, firebase_id} = channel
@@ -156,6 +159,9 @@ export async function needsUpdate(slug) {
 		const localLatest = localRows[0]
 		if (!localLatest) return true
 
+		// If never synced, needs update
+		if (!channel.tracks_synced_at) return true
+
 		// Compare timestamps (ignoring milliseconds)
 		const remoteMsRemoved = new Date(remoteLatest.updated_at).setMilliseconds(0)
 		const localMsRemoved = new Date(localLatest.updated_at).setMilliseconds(0)
@@ -166,4 +172,145 @@ export async function needsUpdate(slug) {
 		console.error('Error checking for updates', error)
 		return true // On error, suggest update to be safe
 	}
+}
+
+/**
+ * Batch check which channels need track updates - much faster than individual needsUpdate calls
+ * @param {string[]} channelIds - Array of channel IDs to check
+ * @returns {Promise<Set<string>>} Set of channel IDs that need updates
+ */
+export async function batchNeedsUpdate(channelIds) {
+	if (!channelIds.length) return new Set()
+
+	try {
+		// Get all channel data we need
+		const {rows: channels} = await pg.sql`
+			select id, slug, tracks_synced_at, firebase_id from channels 
+			where id = ANY(${channelIds})
+		`
+
+		// Filter out v1 channels (they don't need updates)
+		const v2Channels = channels.filter((ch) => !ch.firebase_id)
+		if (!v2Channels.length) return new Set()
+
+		const v2ChannelIds = v2Channels.map((ch) => ch.id)
+
+		// Single batch query for all remote latest updates
+		const {data: remoteUpdates, error: remoteError} = await sdk.supabase
+			.from('channel_track')
+			.select('channel_id, updated_at')
+			.in('channel_id', v2ChannelIds)
+			.order('updated_at', {ascending: false})
+
+		if (remoteError) throw remoteError
+
+		// Get latest remote update per channel
+		const remoteLatestMap = new Map()
+		remoteUpdates?.forEach((update) => {
+			if (!remoteLatestMap.has(update.channel_id)) {
+				remoteLatestMap.set(update.channel_id, update.updated_at)
+			}
+		})
+
+		// Get all local latest updates in one query
+		const {rows: localUpdates} = await pg.sql`
+			select channel_id, max(updated_at) as updated_at
+			from tracks
+			where channel_id = ANY(${v2ChannelIds})
+			group by channel_id
+		`
+
+		const localLatestMap = new Map()
+		localUpdates.forEach((update) => {
+			localLatestMap.set(update.channel_id, update.updated_at)
+		})
+
+		// Determine which channels need updates
+		const needsUpdateSet = new Set()
+		const toleranceMs = 20 * 1000
+
+		for (const channel of v2Channels) {
+			const {id, tracks_synced_at} = channel
+
+			// If never synced, needs update
+			if (!tracks_synced_at) {
+				needsUpdateSet.add(id)
+				continue
+			}
+
+			// If no local tracks, needs update
+			if (!localLatestMap.has(id)) {
+				needsUpdateSet.add(id)
+				continue
+			}
+
+			// If no remote tracks, skip
+			if (!remoteLatestMap.has(id)) continue
+
+			// Compare timestamps
+			const remoteMs = new Date(remoteLatestMap.get(id)).setMilliseconds(0)
+			const localMs = new Date(localLatestMap.get(id)).setMilliseconds(0)
+
+			if (remoteMs - localMs > toleranceMs) {
+				needsUpdateSet.add(id)
+			}
+		}
+
+		return needsUpdateSet
+	} catch (error) {
+		console.error('Error in batch needs update check', error)
+		// On error, return all channel IDs to be safe
+		return new Set(channelIds)
+	}
+}
+
+/**
+ * Complete sync: channels + tracks. Sequential and resumable.
+ * Uses the same logic as totalSync but as a reusable function.
+ */
+export async function totalSync() {
+	console.time('totalSync')
+
+	// Step 1: Pull channel metadata (lightweight)
+	await pullChannels()
+
+	// Step 2: Pull v1 channels in parallel (they don't need individual track sync)
+	await pullV1Channels()
+
+	// Step 3: Sequential track sync for v2 channels
+	await sequentialTrackSync()
+
+	console.timeEnd('totalSync')
+}
+
+/**
+ * Sequential track sync for v2 channels that need it
+ */
+export async function sequentialTrackSync() {
+	// Get channels that need track sync
+	const {rows: channels} = await pg.query(`
+		SELECT slug, name FROM channels 
+		WHERE firebase_id IS NULL 
+		AND tracks_synced_at IS NULL
+		ORDER BY name
+	`)
+
+	if (channels.length === 0) {
+		console.log('All channels already synced')
+		return
+	}
+
+	console.log(`Starting sequential track sync for ${channels.length} channels`)
+
+	for (const channel of channels) {
+		try {
+			console.log(`Syncing tracks for: ${channel.name}`)
+			await pullTracks(channel.slug)
+		} catch (error) {
+			console.error(`Failed to sync tracks for ${channel.name}:`, error)
+			// Continue to next channel - error handling is in pullTracks
+		}
+	}
+
+	console.log('Sequential track sync completed')
 }

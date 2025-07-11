@@ -1,12 +1,29 @@
 <script>
 	import {initDb, pg, exportDb} from '$lib/db'
-	import {pullChannels, needsUpdate, pullTracks} from '$lib/sync'
-	import {pullV1Channels} from '$lib/v1'
+	import {totalSync} from '$lib/sync'
 	import {sdk} from '@radio4000/sdk'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
+	import SyncDebug from '$lib/components/sync-debug.svelte'
 
 	let totalSyncing = $state(false)
 	let resetting = $state(false)
+	let syncProgress = $state({synced: 0, total: 0})
+
+	// Live query for sync progress
+	pg.live.query(
+		`
+		SELECT 
+			COUNT(*) FILTER (WHERE tracks_synced_at IS NOT NULL AND firebase_id IS NULL) as synced,
+			COUNT(*) FILTER (WHERE firebase_id IS NULL) as total
+		FROM channels
+	`,
+		[],
+		(result) => {
+			if (result.rows[0]) {
+				syncProgress = result.rows[0]
+			}
+		}
+	)
 
 	// /** @type {import('$lib/types').AppState}*/
 	// let appState = $state({})
@@ -16,23 +33,13 @@
 	// 	appState = res.rows[0]
 	// })
 
-	// A wrapper around the other sync methods.
-	// v2 channels -> v1 channels incl. tracks -> v2 tracks
-	async function totalSync() {
-		console.time('totalSync')
+	async function handleTotalSync() {
 		totalSyncing = true
-		await pullChannels()
-		const {rows} = await pg.query(`select * from channels where firebase_id is null`)
-		await Promise.allSettled([
-			pullV1Channels(),
-			rows.map(async ({slug}) => {
-				if (await needsUpdate(slug)) {
-					pullTracks(slug)
-				}
-			})
-		])
-		totalSyncing = false
-		console.timeEnd('totalSync')
+		try {
+			await totalSync()
+		} finally {
+			totalSyncing = false
+		}
 	}
 
 	async function resetDatabase() {
@@ -58,8 +65,14 @@
 		<button onclick={resetDatabase} data-loading={resetting} disabled={resetting}>
 			{#if resetting}Resetting...{:else}Reset local database{/if}
 		</button>
-		<button onclick={totalSync} data-loading={totalSyncing} disabled={totalSyncing}>
-			{#if totalSyncing}Pulling{:else}Pull{/if} channels
+		<button onclick={handleTotalSync} data-loading={totalSyncing} disabled={totalSyncing}>
+			{#if totalSyncing}
+				Syncing ({syncProgress.synced}/{syncProgress.total})
+			{:else}
+				Pull channels {syncProgress.total > 0
+					? `(${syncProgress.synced}/${syncProgress.total} synced)`
+					: ''}
+			{/if}
 		</button>
 		<button disabled>Import local database</button>
 		<button onclick={exportDb}>Export local database</button>
@@ -74,6 +87,8 @@
 	<p>
 		<button onclick={logout}>Logout</button>
 	</p>
+
+	<SyncDebug />
 
 	<PgliteRepl />
 </article>
