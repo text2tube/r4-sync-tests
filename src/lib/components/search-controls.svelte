@@ -1,36 +1,52 @@
 <script>
 	import {goto} from '$app/navigation'
 	import {page} from '$app/stores'
+	import {IconSearch, IconSort, IconFunnelAscending, IconFunnelDescending} from 'obra-icons-svelte'
 
-	let {search = '', order = 'created', onSearchChange, onOrderChange} = $props()
+	let {search = '', order = 'created', dir = 'desc', onSearchChange, onOrderChange} = $props()
 
 	let searchValue = $state(search)
-	let orderValue = $state(order)
-	let debounceTimer
+	let sortField = $state(order)
+	let sortDirection = $state(dir)
 
 	// Update internal state when props change
 	$effect(() => {
 		searchValue = search
-		orderValue = order
+		sortField = order
+		sortDirection = dir
 	})
 
-	function handleSearchInput(event) {
-		searchValue = event.target.value
-		clearTimeout(debounceTimer)
-		debounceTimer = setTimeout(() => {
-			updateURL()
-		}, 300)
+	function handleSubmit(event) {
+		event.preventDefault()
+		performSearch()
 	}
 
-	function handleOrderChange(event) {
-		orderValue = event.target.value
+	function handleSearchBlur() {
+		performSearch()
+	}
+
+	function handleSortFieldChange(event) {
+		sortField = event.target.value
+		onOrderChange(sortField, sortDirection)
+		updateURL()
+	}
+
+	function toggleSortDirection() {
+		sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'
+		onOrderChange(sortField, sortDirection)
+		updateURL()
+	}
+
+	function performSearch() {
+		onSearchChange(searchValue)
 		updateURL()
 	}
 
 	function updateURL() {
 		const params = new URLSearchParams()
 		if (searchValue) params.set('search', searchValue)
-		if (orderValue !== 'created') params.set('order', orderValue)
+		if (sortField !== 'created') params.set('order', sortField)
+		if (sortDirection !== 'desc') params.set('dir', sortDirection)
 
 		const queryString = params.toString()
 		const newUrl = `${$page.url.pathname}${queryString ? `?${queryString}` : ''}`
@@ -39,29 +55,35 @@
 
 	function clearSearch() {
 		searchValue = ''
-		updateURL()
+		performSearch()
 	}
 </script>
 
-<form>
+<form onsubmit={handleSubmit}>
+	<IconSearch />
 	<input
 		type="search"
 		placeholder="Search tracks..."
-		value={searchValue}
-		oninput={handleSearchInput}
+		bind:value={searchValue}
+		onblur={handleSearchBlur}
 	/>
-	{#if searchValue}
-		<button type="button" onclick={clearSearch}>×</button>
-	{/if}
+	<!--<button type="button" onclick={clearSearch}>Search</button>-->
 
-	<label>
-		Sort by:
-		<select value={orderValue} onchange={handleOrderChange}>
-			<option value="created">Newest first</option>
-			<option value="created_asc">Oldest first</option>
-			<option value="title">Title A-Z</option>
+	<!--<label>
+		<IconSort />
+		<select bind:value={sortField}>
+			<option value="created">Created</option>
+			<option value="updated">Updated</option>
+			<option value="title">Title</option>
 		</select>
 	</label>
+	<button type="button" onclick={toggleSortDirection}>
+		{#if sortDirection === 'asc'}
+			<IconFunnelAscending />
+		{:else}
+			<IconFunnelDescending />
+		{/if}
+	</button>-->
 </form>
 
 <style>
@@ -74,25 +96,13 @@
 	}
 
 	input[type='search'] {
+		margin-left: -0.5rem;
 		flex: 1;
-		min-width: 200px;
-		padding: 0.5rem;
-	}
-
-	button {
-		background: none;
-		border: none;
-		font-size: 1.2rem;
-		cursor: pointer;
 	}
 
 	label {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-	}
-
-	select {
-		padding: 0.5rem;
 	}
 </style>

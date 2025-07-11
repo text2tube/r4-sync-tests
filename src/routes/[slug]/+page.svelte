@@ -4,8 +4,9 @@
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
 	import SearchControls from '$lib/components/search-controls.svelte'
+	// import fuzzysort from 'fuzzysort'
 
-	/** @type {{data: {slug: string, search: string, order: string}}} */
+	/** @type {{data: {slug: string, search: string, order: string, dir: string}}} */
 	let {data} = $props()
 
 	let channel = $state(null)
@@ -14,6 +15,7 @@
 	let error = $state(null)
 	let currentSearch = $state(data.search)
 	let currentOrder = $state(data.order)
+	let currentDir = $state(data.dir)
 
 	async function loadChannel() {
 		loading = true
@@ -33,7 +35,7 @@
 
 			// Load tracks for this channel with search and sorting
 			if (channel) {
-				await loadTracks()
+				await queryTracks()
 			}
 		} catch (err) {
 			console.error('Error fetching channel:', err)
@@ -43,32 +45,49 @@
 		}
 	}
 
-	async function loadTracks() {
+	async function queryTracks() {
 		if (!channel?.id) return
 
 		try {
-			// Validate parameters
 			const search = currentSearch?.trim() || ''
 			const order = currentOrder || 'created'
+			const dir = currentDir || 'desc'
 
-			let query = 'SELECT id FROM tracks WHERE channel_id = $1'
-			let params = [channel.id]
+			// Get all tracks for the channel with searchable fields
+			const query = 'SELECT id, title, description, created_at, updated_at FROM tracks WHERE channel_id = $1'
+			const {rows} = await pg.query(query, [channel.id])
 
+			// Apply ordering first to all tracks
+			const sortComparator = (a, b) => {
+				if (order === 'created') {
+					return dir === 'asc' 
+						? new Date(a.created_at) - new Date(b.created_at)
+						: new Date(b.created_at) - new Date(a.created_at)
+				} else if (order === 'updated') {
+					return dir === 'asc' 
+						? new Date(a.updated_at) - new Date(b.updated_at)
+						: new Date(b.updated_at) - new Date(a.updated_at)
+				} else if (order === 'title') {
+					return dir === 'asc' 
+						? a.title.localeCompare(b.title)
+						: b.title.localeCompare(a.title)
+				}
+				return 0
+			}
+
+			let filteredTracks = [...rows].sort(sortComparator)
+
+			// Apply search if search term exists
 			if (search) {
-				query += ' AND (title ILIKE $2 OR description ILIKE $2)'
-				params.push(`%${search}%`)
+				const searchTerm = search.toLowerCase()
+				filteredTracks = filteredTracks.filter(track => {
+					const title = (track.title || '').toLowerCase()
+					const description = (track.description || '').toLowerCase()
+					return title.includes(searchTerm) || description.includes(searchTerm)
+				})
 			}
 
-			if (order === 'created_asc') {
-				query += ' ORDER BY created_at ASC'
-			} else if (order === 'title') {
-				query += ' ORDER BY title ASC'
-			} else {
-				query += ' ORDER BY created_at DESC'
-			}
-
-			const {rows} = await pg.query(query, params)
-			trackIds = rows.map((row) => row.id)
+			trackIds = filteredTracks.map(track => track.id)
 		} catch (err) {
 			console.error('Error loading tracks:', err)
 			trackIds = []
@@ -77,12 +96,13 @@
 
 	async function handleSearchChange(search) {
 		currentSearch = search
-		await loadTracks()
+		await queryTracks()
 	}
 
-	async function handleOrderChange(order) {
+	async function handleOrderChange(order, dir) {
 		currentOrder = order
-		await loadTracks()
+		currentDir = dir
+		await queryTracks()
 	}
 
 	// Load channel when slug changes
@@ -96,18 +116,22 @@
 	$effect(() => {
 		currentSearch = data.search || ''
 		currentOrder = data.order || 'created'
+		currentDir = data.dir || 'desc'
 		if (channel) {
-			loadTracks()
+			queryTracks()
 		}
 	})
 </script>
 
+<header>
 <SearchControls
 	search={currentSearch}
 	order={currentOrder}
+	dir={currentDir}
 	onSearchChange={handleSearchChange}
 	onOrderChange={handleOrderChange}
 />
+</header>
 
 {#if loading}
 	<p>Loading...</p>
