@@ -11,6 +11,8 @@
 	import InternetIndicator from '$lib/components/internet-indicator.svelte'
 	import LiveBroadcasts from '$lib/components/live-broadcasts.svelte'
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
+	import LiveChat from '$lib/components/live-chat.svelte'
+	import DraggablePanel from '$lib/components/draggable-panel.svelte'
 	import {IconSearch, IconChevronUp, IconChevronDown} from 'obra-icons-svelte'
 	import {setupBroadcastSync, stopBroadcasting, startBroadcasting} from '$lib/broadcast'
 	import {toggleQueuePanel as toggleQueuePanelApi} from '$lib/api'
@@ -24,6 +26,7 @@
 	/** @type {import('$lib/types').AppState} */
 	let appState = $state({})
 	let queuePanelVisible = $state(true)
+	let chatPanelVisible = $state(false)
 	/** @type {HTMLInputElement|undefined} */
 	let playerLayoutCheckbox = $state()
 
@@ -66,6 +69,10 @@
 		toggleQueuePanelApi()
 	}
 
+	function toggleChatPanel() {
+		chatPanelVisible = !chatPanelVisible
+	}
+
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
 	// $effect(() => {
 	// 	window.addEventListener('beforeunload', async (event) => {
@@ -101,6 +108,7 @@
 			{#if !preloading}
 				<AddTrackModal />
 				<button onclick={toggleQueuePanel}>Queue</button>
+				<button onclick={toggleChatPanel}>Chat</button>
 				<ThemeToggle />
 			{/if}
 			<a href="/settings">Settings</a>
@@ -122,6 +130,12 @@
 			<QueuePanel />
 		{/if}
 	</div>
+
+	{#if chatPanelVisible}
+		<DraggablePanel title="R4 Chat" panelId="chat">
+			<LiveChat />
+		</DraggablePanel>
+	{/if}
 
 	<footer>
 		<label class="playerToggle">
