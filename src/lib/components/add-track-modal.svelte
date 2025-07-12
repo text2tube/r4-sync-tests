@@ -34,7 +34,7 @@
 
 <Modal bind:showModal>
 	{#snippet header()}
-		<h2>Add Track ›</h2>
+		<h2>Add track</h2>
 	{/snippet}
 	{#if channelId}
 		<r4-track-create channel_id={channelId} onsubmit={submit}></r4-track-create>

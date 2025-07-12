@@ -184,7 +184,7 @@ r4-track-create {
 	}
 	legend,
 	label {
-		color: var(--gray-5);
+		/* color: var(--gray-12); */
 	}
 }
 

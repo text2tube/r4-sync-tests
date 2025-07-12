@@ -21,7 +21,7 @@
 		<header>
 			{@render header?.()}
 			<!-- svelte-ignore a11y_autofocus -->
-			<button class="IconBtn" autofocus onclick={() => dialog.close()} title="Close modal">
+			<button autofocus onclick={() => dialog.close()} title="Close modal">
 				<IconClose size={20} />
 			</button>
 		</header>
@@ -35,19 +35,12 @@
 		width: 100%;
 		background: none;
 		padding: calc(0.2px + 13vh) 12px 13vh;
-		/* position: absolute;
-		top: 0;
-		left: 0;
-		height: 100vh;
-		display: flex;
-		align-items: flex-start;
-		justify-content: center;
-		z-index: 100; */
 	}
 	dialog::backdrop {
 		background: rgba(0, 0, 0, 0.4);
 	}
 	dialog > div {
+		max-width: 640px;
 		margin: auto;
 		flex: 1;
 		background: var(--gray-3);
@@ -57,7 +50,7 @@
 			lch(0 0 0 / 0.188) 0px 3px 12px,
 			lch(0 0 0 / 0.188) 0px 2px 8px,
 			lch(0 0 0 / 0.188) 0px 1px 1px;
-		border: 1px solid var(--gray-5);
+		border: 1px solid var(--gray-12);
 		border-radius: var(--border-radius);
 		padding: 1em;
 	}
@@ -90,8 +83,5 @@
 	}
 	header :global(h2) {
 		margin: 0;
-	}
-	button {
-		display: block;
 	}
 </style>
