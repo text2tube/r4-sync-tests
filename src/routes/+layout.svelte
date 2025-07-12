@@ -92,6 +92,7 @@
 				</button>
 				<ThemeToggle />
 			{/if}
+			<a href="/search">Search</a>
 			<a href="/settings">Settings</a>
 		</div>
 	</header>

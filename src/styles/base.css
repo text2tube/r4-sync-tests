@@ -217,3 +217,8 @@ article:not(:has(media-controller[mediapaused])) .play {
 menu {
 	padding: 0;
 }
+
+ul.list,
+ul.grid {
+	list-style: none;
+}
