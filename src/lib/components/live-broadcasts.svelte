@@ -2,7 +2,13 @@
 	import {sdk} from '@radio4000/sdk'
 	import {pg} from '$lib/db'
 	import {joinBroadcast} from '$lib/broadcast'
-	import {readBroadcastsWithChannel} from '$lib/api'
+	import {subscribeToAppState, readBroadcastsWithChannel} from '$lib/api'
+
+	/** @type {import('$lib/types').AppState} */
+	let appState = $state({})
+	subscribeToAppState((state) => {
+		appState = state
+	})
 
 	/** @type {import('$lib/types').BroadcastWithChannel[]} */
 	let activeBroadcasts = $state([])
@@ -94,7 +100,6 @@
 							}
 						}
 					}
-
 					activeBroadcasts = await readBroadcastsWithChannel()
 					await updateChannelBroadcastStatus(activeBroadcasts)
 				}
@@ -109,7 +114,7 @@
 	<div class="live-broadcasts">
 		<span>Live radios 🔴 &rarr;</span>
 		{#each activeBroadcasts as broadcast (broadcast.channel_id)}
-			<button onclick={() => joinBroadcast(broadcast.channel_id)} class="broadcast-button">
+			<button class={[{active: broadcast.channel_id === appState.listening_to_channel_id}]} onclick={() => joinBroadcast(broadcast.channel_id)}>
 				@{broadcast.channels.slug}
 			</button>
 		{/each}
@@ -123,5 +128,8 @@
 		gap: 0.5rem;
 		font-size: var(--font-size-small);
 		line-height: 1;
+	}
+	button.active {
+		background-color: var(--color-lavender);
 	}
 </style>
