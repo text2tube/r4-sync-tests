@@ -78,6 +78,10 @@
 		}
 	}
 
+	figure {
+		max-width: 25vw;
+	}
+
 	article :global(figure + button) {
 		position: absolute;
 		left: 0.75rem;

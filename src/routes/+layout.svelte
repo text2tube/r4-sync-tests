@@ -10,7 +10,7 @@
 	import InternetIndicator from '$lib/components/internet-indicator.svelte'
 	import LiveBroadcasts from '$lib/components/live-broadcasts.svelte'
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
-	import {IconChevronUp, IconChevronDown} from 'obra-icons-svelte'
+	import {IconSearch, IconChevronUp, IconChevronDown} from 'obra-icons-svelte'
 	import {setupBroadcastSync, stopBroadcasting, startBroadcasting} from '$lib/broadcast'
 	import '@radio4000/components'
 
@@ -77,6 +77,7 @@
 				<TestCounter />
 			{/if}
 		</a>
+		<a href="/search" class="btn"><IconSearch /></a>
 
 		<div class="row right">
 			{#if !preloading}
@@ -87,12 +88,9 @@
 			<InternetIndicator />
 			{#if !preloading}
 				<AddTrackModal />
-				<button onclick={toggleQueuePanel}>
-					{queuePanelVisible ? 'Hide' : 'Show'} Queue
-				</button>
+				<button onclick={toggleQueuePanel}>Queue</button>
 				<ThemeToggle />
 			{/if}
-			<a href="/search">Search</a>
 			<a href="/settings">Settings</a>
 		</div>
 	</header>

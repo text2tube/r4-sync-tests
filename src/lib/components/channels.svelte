@@ -55,18 +55,4 @@
 		width: 1.25em;
 		margin-right: 0.2em;
 	}
-
-	.grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-		gap: 1rem 0;
-		padding: 0;
-
-		:global(figure) {
-			width: 100%;
-			aspect-ratio: 1 / 1;
-			background: var(--gray-2);
-			border-radius: var(--border-radius);
-		}
-	}
 </style>
