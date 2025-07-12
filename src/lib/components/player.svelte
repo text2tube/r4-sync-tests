@@ -141,7 +141,7 @@
 			<h2>
 				<a href={`/${slug}`}>{title}</a>
 				{#if isListeningToBroadcast}
-					<span class="broadcast-indicator">🔴 LIVE</span>
+				<span class="broadcast-indicator">🔴 LIVE</span>
 				{/if}
 			</h2>
 			<h3>{track?.title}</h3>

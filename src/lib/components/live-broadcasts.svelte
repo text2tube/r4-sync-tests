@@ -1,7 +1,7 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
 	import {pg} from '$lib/db'
-	import {joinBroadcast} from '$lib/broadcast'
+	import {joinBroadcast, leaveBroadcast} from '$lib/broadcast'
 	import {subscribeToAppState, readBroadcastsWithChannel} from '$lib/api'
 
 	/** @type {import('$lib/types').AppState} */
@@ -112,9 +112,16 @@
 	<div class="live-broadcasts">
 		<span>Live radios 🔴 &rarr;</span>
 		{#each activeBroadcasts as broadcast (broadcast.channel_id)}
+			{@const isActive = broadcast.channel_id === appState.listening_to_channel_id}
 			<button
-				class={[{active: broadcast.channel_id === appState.listening_to_channel_id}]}
-				onclick={() => joinBroadcast(broadcast.channel_id)}
+				class={[{active: isActive}]}
+				onclick={() => {
+					if (isActive) {
+						leaveBroadcast()
+					} else {
+						joinBroadcast(broadcast.channel_id)
+					}
+				}}
 			>
 				@{broadcast.channels.slug}
 			</button>
