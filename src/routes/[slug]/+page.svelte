@@ -148,10 +148,10 @@
 {:else if channel}
 	<article>
 		<header>
-		<ChannelAvatar id={channel.image} alt={channel.name} />
-		<h1>{channel.name}</h1>
-		<p>{channel.description}</p>
-	</header>
+			<ChannelAvatar id={channel.image} alt={channel.name} />
+			<h1>{channel.name}</h1>
+			<p>{channel.description}</p>
+		</header>
 		<section>
 			{#if trackIds.length > 0}
 				<Tracklist ids={trackIds} currentId={appState.playlist_track} />
@@ -166,6 +166,10 @@
 
 <style>
 	header {
+		margin-bottom: 1rem;
+	}
+
+	header:has(form) {
 		position: sticky;
 		top: 0.5rem;
 		margin: 0 0.5rem;
@@ -183,11 +187,7 @@
 		flex: 1;
 	}
 
-	header {
-		margin-bottom: 1rem;
-	}
-
-	:global(article img) {
+	article header :global(img) {
 		margin: 1rem 1rem 1rem 0.5rem;
 		max-width: calc(100vw - 2rem);
 		border-radius: var(--border-radius);

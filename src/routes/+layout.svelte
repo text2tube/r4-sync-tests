@@ -228,6 +228,7 @@
 	footer:has(input:checked) label {
 		width: 100%;
 		bottom: auto;
+		top: 0.7rem;
 	}
 	footer:has(input:checked) {
 		left: 0;

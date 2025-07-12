@@ -159,7 +159,7 @@ figure {
 	border-bottom: 1px solid var(--gray-4);
 }
 .list > li:hover {
-	background: var(--gray-5);
+	background: var(--gray-2);
 }
 
 r4-sign-in,
