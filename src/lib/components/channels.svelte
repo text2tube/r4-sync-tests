@@ -50,10 +50,12 @@
 			margin: 0;
 		}
 	}
+
 	menu :global(svg) {
 		width: 1.25em;
 		margin-right: 0.2em;
 	}
+
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

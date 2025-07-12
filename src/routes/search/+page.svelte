@@ -178,28 +178,4 @@ TODO: Future search features
 		font-size: var(--font-size-regular);
 		margin: 0.5rem;
 	}
-
-	/* Track list styling similar to tracklist.svelte */
-	.list {
-		margin-left: 1rem;
-	}
-	.list li {
-		display: grid;
-		grid-template-columns: 2rem auto;
-		padding: 0.5rem 0 0.3rem 0;
-		line-height: 1.2;
-		cursor: pointer;
-		border-bottom: 1px solid var(--gray-3);
-	}
-
-	.list li:last-child {
-		border-bottom: none;
-	}
-
-	.list li > span:first-child {
-		grid-row: span 3;
-		color: var(--gray-6);
-		font-size: var(--font-size-regular);
-		text-indent: 0.2em;
-	}
 </style>
