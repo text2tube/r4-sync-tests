@@ -6,9 +6,10 @@ CREATE TABLE IF NOT EXISTS channels (
 	slug TEXT UNIQUE NOT NULL,
 	description TEXT,
 	image TEXT,
-	tracks_synced_at TIMESTAMP WITH TIME ZONE,
 	busy BOOLEAN,
-	firebase_id TEXT unique
+	firebase_id TEXT unique,
+	tracks_synced_at TIMESTAMP WITH TIME ZONE,
+	broadcasting BOOLEAN
 );
 
 CREATE INDEX IF NOT EXISTS idx_channels_slug ON channels(slug);

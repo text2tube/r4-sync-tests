@@ -6,10 +6,29 @@
 
 	let activeBroadcasts = $state([])
 
+	async function updateChannelBroadcastStatus(broadcasts) {
+		const broadcastingChannelIds = broadcasts.map(b => b.channel_id)
+
+		console.log(broadcastingChannelIds )
+		
+		// Reset all channels to not broadcasting
+		await pg.sql`UPDATE channels SET broadcasting = false`
+		
+		// Set broadcasting channels to true
+		if (broadcastingChannelIds.length > 0) {
+			await pg.sql`
+				UPDATE channels 
+				SET broadcasting = true 
+				WHERE id = ANY(${broadcastingChannelIds})
+			`
+		}
+	}
+
 	$effect(() => {
 		// Initial load.
-		readBroadcastsWithChannel().then((data) => {
+		readBroadcastsWithChannel().then(async (data) => {
 			activeBroadcasts = data
+			await updateChannelBroadcastStatus(data)
 		})
 
 		// Listen for remote changes.
@@ -32,8 +51,9 @@
 					}
 
 					// Refresh from remote.
-					readBroadcastsWithChannel().then((data) => {
+					readBroadcastsWithChannel().then(async (data) => {
 						activeBroadcasts = data
+						await updateChannelBroadcastStatus(data)
 					})
 				}
 			)

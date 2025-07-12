@@ -7,7 +7,6 @@
 	/** @type {{channel: import('$lib/types').Channel}}*/
 	let {channel} = $props()
 
-	let isLive = $state(false)
 
 	/** @param {MouseEvent} event */
 	async function doubleclick(event) {
@@ -38,7 +37,7 @@
 	<div>
 		<h3>
 			<a href={`/${channel.slug}`}>{channel.name}</a>
-			{#if isLive}
+			{#if channel.broadcasting}
 				<span class="live-indicator">🔴 LIVE</span>
 			{/if}
 		</h3>
