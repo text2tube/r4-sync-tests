@@ -47,12 +47,16 @@
 	let isListeningToBroadcast = $derived(!!appState.listening_to_channel_id)
 
 	subscribeToAppState(async (state) => {
-		appState = state
-		const tid = appState.playlist_track
+		const trackChanged = appState.playlist_track && appState.playlist_track !== state.playlist_track
+		const tid = state.playlist_track
 		if (tid) {
-			autoplay = true
 			await setChannelFromTrack(tid)
 		}
+		if (trackChanged) {
+			console.log('playlist_track changed -> autoplay=true')
+			autoplay = true
+		}
+		appState = state
 	})
 
 
@@ -92,6 +96,7 @@
 			return
 		}
 		yt.play()
+		console.log('play() -> autoplay=true')
 		autoplay = true
 	}
 
