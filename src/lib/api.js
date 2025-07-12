@@ -93,8 +93,8 @@ export async function ensureTrackAvailable(trackId) {
 
 		console.log('channel already up to date', {slug})
 		return false
-	} catch (error) {
-		console.log('failed ensuring track availability', {trackId, error: error.message})
+	} catch (/** @type {any} */ err) {
+		console.log('failed ensuring track availability', {trackId, error: err.message})
 		return false
 	}
 }
@@ -132,6 +132,7 @@ async function loadPlaylist(ids, index = 0) {
   `
 }
 
+/** @returns {Promise<import('$lib/types').BroadcastWithChannel[]>} */
 export async function readBroadcastsWithChannel() {
 	const {data, error} = await sdk.supabase.from('broadcast').select(`
 		channel_id,
@@ -146,33 +147,49 @@ export async function readBroadcastsWithChannel() {
 		)
 	`)
 	if (error) throw error
+	// @ts-expect-error shut up
 	return data || []
 }
 
 // App State Management Functions
 
+/** @param {any} callback */
 export async function subscribeToAppState(callback) {
 	return pg.live.query('SELECT * FROM app_state WHERE id = 1', [], (res) => {
 		callback(res.rows[0] || {})
 	})
 }
 
+/** @param {string} trackId */
 export async function getTrackWithChannel(trackId) {
 	const {rows: trackRows} = await pg.sql`SELECT * FROM tracks WHERE id = ${trackId}`
 	const track = trackRows[0]
 	if (!track) return null
-	
+
 	const {rows: channelRows} = await pg.sql`SELECT * FROM channels WHERE id = ${track.channel_id}`
 	const channel = channelRows[0]
 	return {track, channel}
 }
 
-export async function searchChannelTracks(channelId, searchTerm = '', orderBy = 'created_at', direction = 'desc') {
-	const query = 'SELECT id, title, description, created_at, updated_at FROM tracks WHERE channel_id = $1'
+/**
+ * @param {string} channelId
+ * @param {string} searchTerm
+ * @param {string} orderBy
+ * @param {string} direction
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function searchChannelTracks(
+	channelId,
+	searchTerm = '',
+	orderBy = 'created_at',
+	direction = 'desc'
+) {
+	const query =
+		'SELECT id, title, description, created_at, updated_at FROM tracks WHERE channel_id = $1'
 	const {rows} = await pg.query(query, [channelId])
-	
+
 	let filteredTracks = [...rows]
-	
+
 	if (searchTerm.trim()) {
 		const search = searchTerm.toLowerCase()
 		filteredTracks = filteredTracks.filter((track) => {
@@ -181,8 +198,8 @@ export async function searchChannelTracks(channelId, searchTerm = '', orderBy = 
 			return title.includes(search) || description.includes(search)
 		})
 	}
-	
-	return filteredTracks.map(track => track.id)
+
+	return filteredTracks.map((track) => track.id)
 }
 
 export async function getChannelsWithTrackCounts() {

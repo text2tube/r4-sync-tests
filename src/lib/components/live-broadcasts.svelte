@@ -4,9 +4,13 @@
 	import {joinBroadcast} from '$lib/broadcast'
 	import {readBroadcastsWithChannel} from '$lib/api'
 
+	/** @type {import('$lib/types').BroadcastWithChannel[]} */
 	let activeBroadcasts = $state([])
 
-	/* Set channel.broadcasting on local channels from the remote broadcasts */
+	/**
+	 * Set channel.broadcasting on local channels from the remote broadcasts
+	 * @param {import('$lib/types').BroadcastWithChannel[]} broadcasts
+	 */
 	async function updateChannelBroadcastStatus(broadcasts) {
 		const broadcastingChannelIds = broadcasts.map((b) => b.channel_id)
 

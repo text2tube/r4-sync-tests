@@ -59,7 +59,6 @@
 		appState = state
 	})
 
-
 	/** @param {string} tid} */
 	async function setChannelFromTrack(tid) {
 		if (!tid || tid === track?.id) return

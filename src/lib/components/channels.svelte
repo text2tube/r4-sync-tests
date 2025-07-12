@@ -7,7 +7,6 @@
 	/** @type {import('$lib/types').Channel[]}*/
 	let channels = $state([])
 
-
 	/** @type {'list' | 'grid'}*/
 	let display = $state('list')
 

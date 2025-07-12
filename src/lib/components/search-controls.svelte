@@ -21,7 +21,6 @@
 		performSearch()
 	}
 
-
 	function performSearch() {
 		onSearchChange(searchValue)
 		updateURL()
@@ -37,7 +36,6 @@
 		const newUrl = `${$page.url.pathname}${queryString ? `?${queryString}` : ''}`
 		goto(newUrl, {replaceState: true})
 	}
-
 </script>
 
 <form onsubmit={handleSubmit}>
