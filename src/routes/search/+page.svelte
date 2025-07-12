@@ -23,9 +23,19 @@
 	/** @type {import('$lib/types.ts').Channel[]} */
 	let channelSummary = $state([])
 
+	/** @type {import('$lib/types.ts').Channel[]} */
+	let allChannels = $state([])
+
 	let searchQuery = $state('')
 	let isLoading = $state(false)
 	let debounceTimer = $state()
+
+	// Command definitions
+	const commands = [
+		{id: 'settings', title: 'Go to Settings', type: 'link', target: '/settings'},
+		{id: 'toggle-theme', title: 'Toggle Theme', type: 'command', action: toggleTheme},
+		{id: 'toggle-queue', title: 'Toggle Queue Panel', type: 'command', action: toggleQueuePanel}
+	]
 	
 	/** Parse search tokens from query */
 	function parseSearchTokens(query) {
@@ -43,7 +53,18 @@
 			searchQuery = urlSearch
 			performSearch()
 		}
+		// Load all channels for autocomplete
+		loadAllChannels()
 	})
+
+	async function loadAllChannels() {
+		try {
+			const result = await pg.query('SELECT id, name, slug FROM channels ORDER BY name')
+			allChannels = result.rows
+		} catch (error) {
+			console.error('Failed to load channels:', error)
+		}
+	}
 
 	function debouncedSearch() {
 		clearTimeout(debounceTimer)
@@ -52,6 +73,14 @@
 
 	async function performSearch() {
 		if (!searchQuery.trim()) {
+			channels = []
+			tracks = []
+			channelSummary = []
+			return
+		}
+
+		// Skip database search for short queries (but still allow command execution)
+		if (searchQuery.trim().length < 2) {
 			channels = []
 			tracks = []
 			channelSummary = []
@@ -149,6 +178,19 @@
 
 	function handleSubmit(event) {
 		event.preventDefault()
+		
+		// Try smart execution first
+		if (executeCommand(searchQuery)) {
+			// Clear search query after successful command execution
+			searchQuery = ''
+			// Clear search results to avoid showing "No results found"
+			channels = []
+			tracks = []
+			channelSummary = []
+			return
+		}
+		
+		// Fall back to regular search
 		updateURL()
 	}
 
@@ -161,6 +203,64 @@
 		const newUrl = `/search${queryString ? `?${queryString}` : ''}`
 		goto(newUrl, {replaceState: true})
 	}
+
+	// Command functions
+	function toggleTheme() {
+		const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+		const newTheme = currentTheme === 'light' ? 'dark' : 'light'
+		
+		if (newTheme === 'dark') {
+			document.documentElement.classList.remove('light')
+			document.documentElement.classList.add('dark')
+		} else {
+			document.documentElement.classList.remove('dark')
+			document.documentElement.classList.add('light')
+		}
+		pg.sql`update app_state set theme = ${newTheme} where id = 1`.catch(console.warn)
+	}
+
+	function toggleQueuePanel() {
+		pg.sql`UPDATE app_state SET queue_panel_visible = NOT queue_panel_visible WHERE id = 1`
+	}
+
+	// Smart execution - handle different input types
+	function executeCommand(query) {
+		const trimmed = query.trim().toLowerCase()
+		
+		// Check if it's a command (starts with >)
+		if (trimmed.startsWith('>')) {
+			const commandQuery = trimmed.slice(1)
+			const command = commands.find(cmd => 
+				cmd.title.toLowerCase().includes(commandQuery) || 
+				cmd.id === commandQuery ||
+				commandQuery.includes(cmd.id.replace('-', ' '))
+			)
+			
+			if (command) {
+				if (command.type === 'link') {
+					goto(command.target)
+				} else if (command.type === 'command') {
+					command.action()
+				}
+				return true
+			}
+		}
+		
+		// Check if it's a channel mention
+		if (trimmed.startsWith('@')) {
+			const slug = trimmed.slice(1)
+			goto(`/${slug}`)
+			return true
+		}
+		
+		// Check if it's a direct page
+		if (trimmed === 'settings') {
+			goto('/settings')
+			return true
+		}
+		
+		return false
+	}
 </script>
 
 <svelte:head>
@@ -171,11 +271,21 @@
 	<IconSearch />
 	<input
 		type="search"
-		placeholder="Search channels and tracks... (@slug to scope)"
+		list="command-suggestions"
+		placeholder="Search or jump to…"
 		bind:value={searchQuery}
 		oninput={debouncedSearch}
 	/>
+	<datalist id="command-suggestions">
+		{#each commands as command}
+			<option value=">{command.id}">>{command.title}</option>
+		{/each}
+		{#each allChannels as channel}
+			<option value="@{channel.slug}">@{channel.slug} - {channel.name}</option>
+		{/each}
+	</datalist>
 </form>
+
 
 {#if isLoading}
 	<p>Searching...</p>
@@ -187,6 +297,10 @@
 		<p><small>Found {tracks.length} tracks from @{tokens.mentions[0]}</small></p>
 	{:else}
 		<p><small>Found {channels.length} channels and {tracks.length} tracks</small></p>
+	{/if}
+
+	{#if channels.length === 0 && tracks.length === 0 && channelSummary.length === 0}
+		<p>No results found for "{searchQuery}"</p>
 	{/if}
 	
 	{#if channels.length > 0}
@@ -241,10 +355,8 @@
 
 		</section>
 	{/if}
-
-	{#if channels.length === 0 && tracks.length === 0 && channelSummary.length === 0}
-		<p>No results found for "{searchQuery}"</p>
-	{/if}
+{:else}
+<p>tip: <code>@</code> to search channels, <code>&gt;</code> for commands. press cmd/ctrl+k to come here.</p>
 {/if}
 
 <style>
@@ -253,6 +365,11 @@
 		gap: 1rem;
 		margin: 0.5rem 0.5rem 2rem;
 		align-items: center;
+
+		& + p {
+			margin-top: -1rem;
+			margin-left: 0.5rem;
+		}
 	}
 
 	input[type='search'] {

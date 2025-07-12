@@ -1,6 +1,7 @@
 <script>
 	import '../styles/style.css'
 	import {initDb, pg} from '$lib/db'
+	import {goto} from '$app/navigation'
 	import Player from '$lib/components/player.svelte'
 	import QueuePanel from '$lib/components/queue-panel.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
@@ -44,9 +45,20 @@
 
 	/**
 	 * Close the player overlay, if open, on escape key press.
+	 * Open command palette on Cmd+K.
 	 * @param {KeyboardEvent} event */
 	function handleKeyDown(event) {
 		if (event.key === 'Escape' && playerLayoutCheckbox?.checked) playerLayoutCheckbox.click()
+		if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
+			event.preventDefault()
+			goto('/search').then(() => {
+				// Focus the search input after navigation
+				setTimeout(() => {
+					const searchInput = document.querySelector('input[type="search"]')
+					if (searchInput) searchInput.focus()
+				}, 0)
+			})
+		}
 	}
 
 	function toggleQueuePanel() {
@@ -62,23 +74,9 @@
 	// 		await pg.close()
 	// 	})
 	// })
-
-  function handleUnhandledRejection(event) {
-    console.error('Unhandled promise rejection:', event.reason)
-    // Add to your app_state error queue
-    event.preventDefault() // Prevents console error
-  }
-
-  function handleError(event) {
-    console.error('Uncaught error:', event.error)
-    // Handle synchronous errors
-  }
 </script>
 
-<svelte:window 
-	onkeydown={handleKeyDown} 
- onunhandledrejection={handleUnhandledRejection} 
- onerror={handleError} />
+<svelte:window onkeydown={handleKeyDown} />
 
 <AuthListener />
 
@@ -91,7 +89,7 @@
 				<TestCounter />
 			{/if}
 		</a>
-		<a href="/search" class="btn"><IconSearch /></a>
+		<a href="/search" class="btn" title="cmd/ctrl+k"><IconSearch /></a>
 
 		<div class="row right">
 			{#if !preloading}
