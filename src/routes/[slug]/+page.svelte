@@ -147,9 +147,11 @@
 	<p>Error loading channel: {error.message}</p>
 {:else if channel}
 	<article>
+		<header>
+		<ChannelAvatar id={channel.image} alt={channel.name} />
 		<h1>{channel.name}</h1>
 		<p>{channel.description}</p>
-		<ChannelAvatar id={channel.image} alt={channel.name} />
+	</header>
 		<section>
 			{#if trackIds.length > 0}
 				<Tracklist ids={trackIds} currentId={appState.playlist_track} />
@@ -181,12 +183,38 @@
 		flex: 1;
 	}
 
-	:global(article img) {
-		max-width: 250px;
+	header {
+		margin-bottom: 1rem;
 	}
+
+	:global(article img) {
+		margin: 1rem 1rem 1rem 0.5rem;
+		max-width: calc(100vw - 2rem);
+		border-radius: var(--border-radius);
+		float: left;
+
+		@media (min-width: 600px) {
+			max-width: 13rem;
+		}
+	}
+
 	h1,
 	h1 + p {
-		margin: 0;
+		margin: 0 1rem;
 		font-size: var(--font-size-title2);
+		line-height: 1.3;
+		max-width: 60ch;
+	}
+
+	h1 {
+		padding-top: 5rem;
+	}
+
+	p {
+		color: var(--gray-10);
+	}
+
+	section {
+		clear: both;
 	}
 </style>
