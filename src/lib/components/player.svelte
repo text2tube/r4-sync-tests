@@ -49,9 +49,9 @@
 
 	pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
 		appState = res.rows[0]
-		// console.log('app_state livequery', $state.snapshot(appState))
 		const tid = appState.playlist_track
 		setChannelFromTrack(tid)
+		if (tid) autoplay = true
 	})
 
 	/**
