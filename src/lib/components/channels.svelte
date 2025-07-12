@@ -3,7 +3,6 @@
 	import {sdk} from '@radio4000/sdk'
 	import {IconGrid, IconUnorderedList} from 'obra-icons-svelte'
 	import ChannelCard from './channel-card.svelte'
-	import {readBroadcasts} from '$lib/api'
 
 	/** @type {import('$lib/types').Channel[]}*/
 	let channels = $state([])

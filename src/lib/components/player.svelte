@@ -115,9 +115,9 @@
 	}
 
 	function handleError(event) {
-		const code = event.detail?.data
-		console.error('Player error', code)
+		const code = event.target.error.code
 		if (code === 150) {
+			console.log('YouTube player error 150 -> next()')
 			next()
 		} else {
 			console.warn('Unhandled player error', code)
