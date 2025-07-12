@@ -25,7 +25,7 @@
 	})
 </script>
 
-<ul class="list">
+<ul class="list tracks">
 	{#each tracks as item, index (item.id)}
 		<li class={item.id === currentId ? 'current' : ''} ondblclick={() => playTrack(item.id)}>
 			<span>{index + 1}.</span>
@@ -41,5 +41,3 @@
 	{/each}
 </ul>
 
-<style>
-</style>

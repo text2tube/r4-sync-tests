@@ -159,7 +159,7 @@ figure {
 	border-bottom: 1px solid var(--gray-4);
 }
 .list > *:hover {
-	background: var(--gray-2);
+	background: light-dark(var(--gray-2), var(--gray-3));
 }
 
 r4-sign-in,
