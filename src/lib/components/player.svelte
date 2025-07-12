@@ -36,14 +36,6 @@
 
 	/** @type {Track|undefined} */
 	let track = $state()
-	/*
-	let track = $derived.by(async () => {
-		const id = appState.playlist_track
-		const x = await first(pg.sql`select * from tracks where id = ${id}`)
-		console.log(id, x)
-		return x
-	})
-	*/
 
 	let yt = $state()
 
