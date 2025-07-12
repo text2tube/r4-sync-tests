@@ -35,7 +35,8 @@ export async function playTrack(id) {
 /** @param {import('$lib/types').Channel} channel */
 export async function playChannel({id, slug}) {
 	// Check if currently listening to a broadcast, and leave it if switching to different channel
-	const {rows: appStateRows} = await pg.sql`SELECT listening_to_channel_id FROM app_state WHERE id = 1`
+	const {rows: appStateRows} =
+		await pg.sql`SELECT listening_to_channel_id FROM app_state WHERE id = 1`
 	const currentState = appStateRows[0]
 	if (currentState?.listening_to_channel_id && currentState.listening_to_channel_id !== id) {
 		await leaveBroadcast()

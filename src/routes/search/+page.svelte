@@ -17,10 +17,10 @@ TODO: Future search features
 
 	/** @type {import('$lib/types.ts').Channel[]} */
 	let channels = $state([])
-	
+
 	/** @type {import('$lib/types.ts').Track[]} */
 	let tracks = $state([])
-	
+
 	let searchQuery = $state('')
 	let isLoading = $state(false)
 	let debounceTimer = $state()
@@ -51,16 +51,20 @@ TODO: Future search features
 		console.log('querying', query)
 
 		try {
-			const channelResults = await pg.query(`
+			const channelResults = await pg.query(
+				`
 				SELECT id, name, slug, description, image
 				FROM channels 
 				WHERE LOWER(name) LIKE $1 
 				   OR LOWER(slug) LIKE $1 
 				   OR LOWER(description) LIKE $1
 				ORDER BY name
-			`, [query])
+			`,
+				[query]
+			)
 
-			const trackResults = await pg.query(`
+			const trackResults = await pg.query(
+				`
 				SELECT t.id, t.title, t.description, t.url, t.channel_id,
 				       c.name as channel_name, c.slug as channel_slug
 				FROM tracks t
@@ -69,7 +73,9 @@ TODO: Future search features
 				   OR LOWER(t.description) LIKE $1 
 				   OR LOWER(t.url) LIKE $1
 				ORDER BY t.title
-			`, [query])
+			`,
+				[query]
+			)
 
 			channels = channelResults.rows
 			tracks = trackResults.rows
@@ -137,10 +143,8 @@ TODO: Future search features
 						<span>{index + 1}.</span>
 						<div class="title">{track.title}</div>
 						<div class="description">
+							<small><a href="/{track.channel_slug}">@{track.channel_slug}</a></small>
 							<small>{track.description}</small>
-						</div>
-						<div class="channel">
-							<small>@<a href="/channels/{track.channel_slug}">{track.channel_name}</a></small>
 						</div>
 					</li>
 				{/each}
@@ -187,7 +191,7 @@ TODO: Future search features
 		cursor: pointer;
 		border-bottom: 1px solid var(--gray-3);
 	}
-	
+
 	.list li:last-child {
 		border-bottom: none;
 	}
@@ -198,5 +202,4 @@ TODO: Future search features
 		font-size: var(--font-size-regular);
 		text-indent: 0.2em;
 	}
-
 </style>
