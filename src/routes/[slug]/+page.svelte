@@ -1,7 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
 	import {pullChannel} from '$lib/sync'
-	import ChannelCard from '$lib/components/channel-card.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
 	import SearchControls from '$lib/components/search-controls.svelte'

@@ -7,13 +7,13 @@
 	let activeBroadcasts = $state([])
 
 	async function updateChannelBroadcastStatus(broadcasts) {
-		const broadcastingChannelIds = broadcasts.map(b => b.channel_id)
+		const broadcastingChannelIds = broadcasts.map((b) => b.channel_id)
 
-		console.log(broadcastingChannelIds )
-		
+		console.log(broadcastingChannelIds)
+
 		// Reset all channels to not broadcasting
 		await pg.sql`UPDATE channels SET broadcasting = false`
-		
+
 		// Set broadcasting channels to true
 		if (broadcastingChannelIds.length > 0) {
 			await pg.sql`
@@ -24,14 +24,15 @@
 		}
 
 		// Sync local broadcast state: if user's channel is broadcasting remotely, ensure local state matches
-		const {rows} = await pg.sql`SELECT broadcasting_channel_id, channels FROM app_state WHERE id = 1`
+		const {rows} =
+			await pg.sql`SELECT broadcasting_channel_id, channels FROM app_state WHERE id = 1`
 		const state = rows[0]
 		const userChannelId = state?.channels?.[0]
-		
+
 		if (userChannelId) {
 			const isUserBroadcasting = broadcastingChannelIds.includes(userChannelId)
 			const hasLocalBroadcastState = !!state?.broadcasting_channel_id
-			
+
 			if (isUserBroadcasting && !hasLocalBroadcastState) {
 				await pg.sql`UPDATE app_state SET broadcasting_channel_id = ${userChannelId} WHERE id = 1`
 				console.log('synced local broadcast state', {channelId: userChannelId})
@@ -83,7 +84,7 @@
 
 {#if activeBroadcasts.length > 0}
 	<div class="live-broadcasts">
-		<span>Live radios 🔴</span>
+		<span>Live radios 🔴 &rarr;</span>
 		{#each activeBroadcasts as broadcast (broadcast.channel_id)}
 			<button onclick={() => joinBroadcast(broadcast.channel_id)} class="broadcast-button">
 				@{broadcast.channels.slug}
@@ -98,9 +99,6 @@
 		align-items: center;
 		gap: 0.5rem;
 		font-size: var(--font-size-small);
-	}
-
-	.live-broadcasts span {
-		color: var(--red-9);
+		line-height: 1;
 	}
 </style>

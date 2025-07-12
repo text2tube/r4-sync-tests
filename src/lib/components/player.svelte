@@ -1,7 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
 	import ChannelAvatar from './channel-avatar.svelte'
-	import Tracklist from '$lib/components/tracklist.svelte'
 	import YoutubePlayer from '$lib/components/youtube-player.svelte'
 	import {
 		IconShuffle,

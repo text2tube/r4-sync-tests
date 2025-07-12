@@ -1,5 +1,5 @@
 <script>
-	import {IconWifi, IconWifiOff} from 'obra-icons-svelte'
+	import {IconWifiOff} from 'obra-icons-svelte'
 
 	let online = $state(navigator.onLine)
 	$effect(() => {

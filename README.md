@@ -7,8 +7,8 @@ The `main` branch deploys to https://pg.radio4000.com for now.
 ## Developing
 
 ```bash
-npm install
-npm run dev
+bun install
+bun run dev
 ```
 
 ## Credits

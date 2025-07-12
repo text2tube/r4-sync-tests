@@ -82,7 +82,7 @@ export async function ensureTrackAvailable(trackId) {
 				console.log('pulled channel', {slug})
 				return true
 			}
-		} catch (error) {
+		} catch {
 			// Channel doesn't exist locally, pull it
 			console.log('channel not found locally, pulling', {slug})
 			await pullChannel(slug)

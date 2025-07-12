@@ -7,7 +7,6 @@
 	/** @type {{channel: import('$lib/types').Channel}}*/
 	let {channel} = $props()
 
-
 	/** @param {MouseEvent} event */
 	async function doubleclick(event) {
 		event.currentTarget?.querySelector('button')?.click()

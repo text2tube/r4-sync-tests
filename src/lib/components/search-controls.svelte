@@ -1,19 +1,15 @@
 <script>
 	import {goto} from '$app/navigation'
 	import {page} from '$app/stores'
-	import {IconSearch, IconSort, IconFunnelAscending, IconFunnelDescending} from 'obra-icons-svelte'
+	import {IconSearch} from 'obra-icons-svelte'
 
 	let {search = '', order = 'created', dir = 'desc', onSearchChange, onOrderChange} = $props()
 
 	let searchValue = $state(search)
-	let sortField = $state(order)
-	let sortDirection = $state(dir)
 
 	// Update internal state when props change
 	$effect(() => {
 		searchValue = search
-		sortField = order
-		sortDirection = dir
 	})
 
 	function handleSubmit(event) {
@@ -25,17 +21,6 @@
 		performSearch()
 	}
 
-	function handleSortFieldChange(event) {
-		sortField = event.target.value
-		onOrderChange(sortField, sortDirection)
-		updateURL()
-	}
-
-	function toggleSortDirection() {
-		sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'
-		onOrderChange(sortField, sortDirection)
-		updateURL()
-	}
 
 	function performSearch() {
 		onSearchChange(searchValue)
@@ -45,18 +30,14 @@
 	function updateURL() {
 		const params = new URLSearchParams()
 		if (searchValue) params.set('search', searchValue)
-		if (sortField !== 'created') params.set('order', sortField)
-		if (sortDirection !== 'desc') params.set('dir', sortDirection)
+		if (order !== 'created') params.set('order', order)
+		if (dir !== 'desc') params.set('dir', dir)
 
 		const queryString = params.toString()
 		const newUrl = `${$page.url.pathname}${queryString ? `?${queryString}` : ''}`
 		goto(newUrl, {replaceState: true})
 	}
 
-	function clearSearch() {
-		searchValue = ''
-		performSearch()
-	}
 </script>
 
 <form onsubmit={handleSubmit}>

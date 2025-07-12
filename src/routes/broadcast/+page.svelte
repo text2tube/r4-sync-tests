@@ -9,7 +9,6 @@
 	let currentChannel = $state()
 
 	const channelId = $derived(appState.channels?.[0])
-	const broadcasting = $derived(!!appState.broadcasting_channel_id)
 
 	pg.live.query('SELECT * FROM app_state WHERE id = 1', [], async (res) => {
 		appState = res.rows[0]

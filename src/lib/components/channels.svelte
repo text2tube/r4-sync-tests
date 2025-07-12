@@ -1,14 +1,11 @@
 <script>
 	import {pg} from '$lib/db'
-	import {sdk} from '@radio4000/sdk'
 	import {IconGrid, IconUnorderedList} from 'obra-icons-svelte'
 	import ChannelCard from './channel-card.svelte'
 
 	/** @type {import('$lib/types').Channel[]}*/
 	let channels = $state([])
 
-	/** @type {import('$lib/types').Broadcast[]}*/
-	let activeBroadcasts = $state([])
 
 	/** @type {'list' | 'grid'}*/
 	let display = $state('list')
