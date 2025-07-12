@@ -145,3 +145,21 @@ async function loadPlaylist(ids, index = 0) {
 			playlist_track = ${ids[index]}
   `
 }
+
+// Returns a join of active broadcasts with their channel info.
+export async function loadBroadcasts() {
+	const {data, error} = await sdk.supabase.from('broadcast').select(`
+		channel_id,
+		track_id,
+		track_played_at,
+		channels (
+			id,
+			name,
+			slug,
+			image,
+			description
+		)
+	`)
+	if (error) throw error
+	return data || []
+}

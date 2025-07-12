@@ -9,35 +9,31 @@
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
 	import InternetIndicator from '$lib/components/internet-indicator.svelte'
 	import LiveBroadcasts from '$lib/components/live-broadcasts.svelte'
+	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
 	import {IconChevronUp, IconChevronDown} from 'obra-icons-svelte'
-	import {setupBroadcastSync, stopBroadcasting} from '$lib/services/broadcast'
+	import {setupBroadcastSync, stopBroadcasting, startBroadcasting} from '$lib/broadcast'
 	import '@radio4000/components'
 
 	const {children} = $props()
 
+	// This is true until the database is initialized.
 	let preloading = $state(true)
-	let queuePanelVisible = $state(true)
+
 	/** @type {import('$lib/types').AppState} */
 	let appState = $state({})
-
+	let queuePanelVisible = $state(true)
 	/** @type {HTMLInputElement|undefined} */
 	let playerLayoutCheckbox = $state()
-
-	const broadcasting = $derived(!!appState.broadcasting_channel_id)
 
 	$effect(() => {
 		initDb()
 			.then(() => {
 				preloading = false
-				pg.live.query(
-					'select queue_panel_visible, broadcasting_channel_id from app_state where id = 1',
-					[],
-					(res) => {
-						const state = res.rows[0]
-						queuePanelVisible = state?.queue_panel_visible ?? false
-						appState = state || {}
-					}
-				)
+				pg.live.query('SELECT * FROM app_state WHERE id = 1', [], async (res) => {
+					const state = res.rows[0]
+					queuePanelVisible = state?.queue_panel_visible ?? false
+					appState = state || {}
+				})
 				setupBroadcastSync()
 			})
 			.catch((err) => {
@@ -85,9 +81,7 @@
 		<div class="row right">
 			{#if !preloading}
 				<LiveBroadcasts />
-				{#if broadcasting}
-					<button onclick={() => stopBroadcasting()}> 🔴 Stop Broadcasting </button>
-				{/if}
+				<BroadcastControls {appState} />
 			{/if}
 			<!-- <a href="/playground/syncthing">Syncthing</a> -->
 			<InternetIndicator />
