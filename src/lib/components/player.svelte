@@ -12,7 +12,7 @@
 		// IconVolume2Fill,
 		// IconVolumeOffFill
 	} from 'obra-icons-svelte'
-	import {playTrack} from '$lib/api'
+	import {playTrack, subscribeToAppState, getTrackWithChannel} from '$lib/api'
 
 	/** @typedef {import('$lib/types').Channel} Channel */
 	/** @typedef {import('$lib/types').Track} Track */
@@ -46,8 +46,8 @@
 	/** @type {boolean} */
 	let isListeningToBroadcast = $derived(!!appState.listening_to_channel_id)
 
-	pg.live.query('select * from app_state where id = 1', [], async (res) => {
-		appState = res.rows[0]
+	subscribeToAppState(async (state) => {
+		appState = state
 		const tid = appState.playlist_track
 		if (tid) {
 			autoplay = true
@@ -55,41 +55,21 @@
 		}
 	})
 
-	/**
-	 * Awaits a query and returns the first row or undefined
-	 * @template T
-	 * @param {Promise<{rows: T[]}>} query
-	 * @returns {Promise<T|undefined>}
-	 */
-	async function first(query) {
-		try {
-			const x = await query
-			if (x.rows) return x.rows[0]
-			return undefined
-		} catch (err) {
-			console.log('here', err)
-		}
-	}
 
 	/** @param {string} tid} */
 	async function setChannelFromTrack(tid) {
 		if (!tid || tid === track?.id) return
-		const t = await first(pg.sql`select * from tracks where id = ${tid} order by created_at desc`)
-		const c = await first(pg.sql`select * from channels where id = ${t.channel_id}`)
-		if (t && c) {
-			track = t
-			title = c.name
-			image = c.image
-			description = c.description
+		const result = await getTrackWithChannel(tid)
+		if (result) {
+			track = result.track
+			title = result.channel.name
+			image = result.channel.image
+			description = result.channel.description
 		}
 	}
 
 	function toggleShuffle() {
-		pg.sql`update app_state set shuffle = ${!appState.shuffle} where id = 1`.then(() => {
-			pg.sql`select shuffle from app_state where id = 1`.then(({rows}) => {
-				console.log(rows[0])
-			})
-		})
+		pg.sql`UPDATE app_state SET shuffle = ${!appState.shuffle} WHERE id = 1`
 	}
 
 	function previous() {

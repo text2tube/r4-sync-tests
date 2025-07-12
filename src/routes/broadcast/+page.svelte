@@ -1,5 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
+	import {subscribeToAppState} from '$lib/api'
 
 	/** @type {import('$lib/types').AppState} */
 	let appState = $state({})
@@ -10,19 +11,19 @@
 
 	const channelId = $derived(appState.channels?.[0])
 
-	pg.live.query('SELECT * FROM app_state WHERE id = 1', [], async (res) => {
-		appState = res.rows[0]
+	subscribeToAppState(async (state) => {
+		appState = state
 
 		if (channelId) {
-			const channelRes = await pg.sql`SELECT * FROM channels WHERE id = ${channelId}`
-			currentChannel = channelRes.rows[0]
+			const {rows} = await pg.sql`SELECT * FROM channels WHERE id = ${channelId}`
+			currentChannel = rows[0]
 		} else {
 			currentChannel = undefined
 		}
 
 		if (appState.playlist_track) {
-			const trackRes = await pg.sql`SELECT * FROM tracks WHERE id = ${appState.playlist_track}`
-			currentTrack = trackRes.rows[0]
+			const {rows} = await pg.sql`SELECT * FROM tracks WHERE id = ${appState.playlist_track}`
+			currentTrack = rows[0]
 		}
 	})
 </script>

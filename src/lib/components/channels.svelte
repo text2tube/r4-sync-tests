@@ -1,5 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
+	import {subscribeToAppState, getChannelsWithTrackCounts} from '$lib/api'
 	import {IconGrid, IconUnorderedList} from 'obra-icons-svelte'
 	import ChannelCard from './channel-card.svelte'
 
@@ -10,37 +11,18 @@
 	/** @type {'list' | 'grid'}*/
 	let display = $state('list')
 
-	pg.sql`select channels_display from app_state`.then((res) => {
-		display = res.rows[0].channels_display || display
+	subscribeToAppState((state) => {
+		display = state.channels_display || display
 	})
 
-	// Double query to render asap, before the "live" query below.
-	pg.sql`select * from channels order by name`.then((res) => {
-		channels = res.rows
-	})
-
-	$effect(() => {
-		pg.live.incrementalQuery(
-			`
-			SELECT
-				channels.*,
-				COUNT(tracks.id) AS track_count
-			FROM channels
-			LEFT JOIN tracks ON tracks.channel_id = channels.id
-			GROUP BY channels.id
-			ORDER BY channels.name
-		`,
-			[],
-			'id',
-			(res) => {
-				channels = res.rows
-			}
-		)
+	// Load channels with track counts
+	getChannelsWithTrackCounts().then((data) => {
+		channels = data
 	})
 
 	async function setDisplay(value) {
 		display = value
-		await pg.sql`update app_state set channels_display = ${value} where id = 1`
+		await pg.sql`UPDATE app_state SET channels_display = ${value} WHERE id = 1`
 	}
 </script>
 

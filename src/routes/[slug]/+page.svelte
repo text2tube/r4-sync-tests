@@ -1,6 +1,7 @@
 <script>
 	import {pg} from '$lib/db'
 	import {pullChannel} from '$lib/sync'
+	import {subscribeToAppState, searchChannelTracks} from '$lib/api'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
 	import SearchControls from '$lib/components/search-controls.svelte'
@@ -21,8 +22,8 @@
 
 	/** @type {import('$lib/types').AppState} */
 	let appState = $state({})
-	pg.live.query('select * from app_state where id = 1', [], (res) => {
-		appState = res.rows[0] || {}
+	subscribeToAppState((state) => {
+		appState = state
 	})
 
 	async function loadChannel() {
@@ -54,24 +55,10 @@
 
 		try {
 			const search = currentSearch?.trim() || ''
-			// const order = currentOrder || 'created'
-			// const dir = currentDir || 'desc'
+			const order = currentOrder || 'created_at'
+			const dir = currentDir || 'desc'
 
-			// Get all tracks for the channel with searchable fields
-			const query =
-				'SELECT id, title, description, created_at, updated_at FROM tracks WHERE channel_id = $1'
-			const {rows} = await pg.query(query, [channel.id])
-			let filteredTracks = [...rows]
-			// Apply search if search term exists
-			if (search) {
-				const searchTerm = search.toLowerCase()
-				filteredTracks = filteredTracks.filter((track) => {
-					const title = (track.title || '').toLowerCase()
-					const description = (track.description || '').toLowerCase()
-					return title.includes(searchTerm) || description.includes(searchTerm)
-				})
-			}
-			trackIds = filteredTracks.map((track) => track.id)
+			trackIds = await searchChannelTracks(channel.id, search, order, dir)
 		} catch (err) {
 			console.error('Error loading tracks:', err)
 			trackIds = []

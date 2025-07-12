@@ -1,5 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
+	import {subscribeToAppState} from '$lib/api'
 	import Tracklist from './tracklist.svelte'
 
 	/** @typedef {import('$lib/types').AppState} AppState */
@@ -13,8 +14,8 @@
 	/** @type {string|undefined} */
 	let currentTrackId = $derived(appState.playlist_track)
 
-	pg.live.query('select * from app_state where id = 1', [], (res) => {
-		appState = res.rows[0] || {}
+	subscribeToAppState((state) => {
+		appState = state
 	})
 
 	function clearQueue() {

@@ -148,3 +148,52 @@ export async function readBroadcastsWithChannel() {
 	if (error) throw error
 	return data || []
 }
+
+// App State Management Functions
+
+export async function subscribeToAppState(callback) {
+	return pg.live.query('SELECT * FROM app_state WHERE id = 1', [], (res) => {
+		callback(res.rows[0] || {})
+	})
+}
+
+export async function getTrackWithChannel(trackId) {
+	const {rows: trackRows} = await pg.sql`SELECT * FROM tracks WHERE id = ${trackId}`
+	const track = trackRows[0]
+	if (!track) return null
+	
+	const {rows: channelRows} = await pg.sql`SELECT * FROM channels WHERE id = ${track.channel_id}`
+	const channel = channelRows[0]
+	return {track, channel}
+}
+
+export async function searchChannelTracks(channelId, searchTerm = '', orderBy = 'created_at', direction = 'desc') {
+	const query = 'SELECT id, title, description, created_at, updated_at FROM tracks WHERE channel_id = $1'
+	const {rows} = await pg.query(query, [channelId])
+	
+	let filteredTracks = [...rows]
+	
+	if (searchTerm.trim()) {
+		const search = searchTerm.toLowerCase()
+		filteredTracks = filteredTracks.filter((track) => {
+			const title = (track.title || '').toLowerCase()
+			const description = (track.description || '').toLowerCase()
+			return title.includes(search) || description.includes(search)
+		})
+	}
+	
+	return filteredTracks.map(track => track.id)
+}
+
+export async function getChannelsWithTrackCounts() {
+	const {rows} = await pg.sql`
+		SELECT 
+			c.*,
+			COUNT(t.id) as track_count
+		FROM channels c
+		LEFT JOIN tracks t ON c.id = t.channel_id
+		GROUP BY c.id
+		ORDER BY c.name
+	`
+	return rows
+}
