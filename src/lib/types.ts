@@ -75,13 +75,13 @@ export interface Error<E> {
 export function ok<T>(value: T): Ok<T> {
 	return {
 		ok: true,
-		value,
+		value
 	}
 }
 
 export function err<T>(error: T): Error<T> {
 	return {
 		ok: false,
-		error,
+		error
 	}
 }

@@ -13,7 +13,7 @@
 	/** @type {string|undefined} */
 	let currentTrackId = $derived(appState.playlist_track)
 
-	pg.live.query(`select * from app_state where id = 1`, [], (res) => {
+	pg.live.query('select * from app_state where id = 1', [], (res) => {
 		appState = res.rows[0] || {}
 	})
 

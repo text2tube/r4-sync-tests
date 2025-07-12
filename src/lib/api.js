@@ -33,12 +33,15 @@ export async function playTrack(id) {
 
 /** @param {import('$lib/types').Channel} channel */
 export async function playChannel({id, slug}) {
-	let tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
+	let tracks = (
+		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
+	).rows
 
 	if (!tracks?.length) {
 		await pullTracks(slug)
 	}
-	tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
+	tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`)
+		.rows
 
 	needsUpdate(slug).then((needs) => {
 		console.log('needsUpdate', slug, needs)
@@ -58,7 +61,11 @@ export async function ensureTrackAvailable(trackId) {
 		}
 
 		console.log('fetching track channel', {trackId})
-		const {data} = await sdk.supabase.from('channel_track').select('channels(slug)').eq('track_id', trackId).single()
+		const {data} = await sdk.supabase
+			.from('channel_track')
+			.select('channels(slug)')
+			.eq('track_id', trackId)
+			.single()
 
 		// @ts-expect-error shut up
 		const slug = data?.channels?.slug
