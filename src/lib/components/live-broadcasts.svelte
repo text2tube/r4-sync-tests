@@ -6,6 +6,7 @@
 
 	let activeBroadcasts = $state([])
 
+	/* Set channel.broadcasting on local channels from the remote broadcasts */
 	async function updateChannelBroadcastStatus(broadcasts) {
 		const broadcastingChannelIds = broadcasts.map((b) => b.channel_id)
 
@@ -58,6 +59,7 @@
 				{event: '*', schema: 'public', table: 'broadcast'},
 				async (payload) => {
 					console.log('detected remote broadcast change', payload)
+
 					// If broadcast was deleted, clear listening state for that channel
 					if (payload.eventType === 'DELETE' && payload.old?.channel_id) {
 						const deletedChannelId = payload.old.channel_id
@@ -69,11 +71,8 @@
 						}
 					}
 
-					// Refresh from remote.
-					readBroadcastsWithChannel().then(async (data) => {
-						activeBroadcasts = data
-						await updateChannelBroadcastStatus(data)
-					})
+					activeBroadcasts = await readBroadcastsWithChannel()
+					await updateChannelBroadcastStatus(activeBroadcasts)
 				}
 			)
 			.subscribe()

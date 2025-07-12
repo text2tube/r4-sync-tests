@@ -1,5 +1,6 @@
 import {sdk} from '@radio4000/sdk'
 import {pg} from '$lib/db'
+import {syncToBroadcast} from '$lib/api.js'
 
 /** @param {string} channelId */
 export async function startBroadcasting(channelId) {
@@ -17,18 +18,13 @@ export async function joinBroadcast(channelId) {
 	try {
 		console.log('joining broadcast', {channelId})
 
-		const {data, error} = await sdk.supabase
-			.from('broadcast')
-			.select('*')
-			.eq('channel_id', channelId)
-			.single()
+		const {data, error} = await sdk.supabase.from('broadcast').select('*').eq('channel_id', channelId).single()
 
 		if (error) throw error
 		if (!data) throw new Error('Broadcast not found')
 
 		console.log('fetched broadcast', {trackId: data.track_id, playedAt: data.track_played_at})
 
-		const {syncToBroadcast} = await import('$lib/api.js')
 		const synced = await syncToBroadcast(data)
 
 		if (synced) {
@@ -40,7 +36,7 @@ export async function joinBroadcast(channelId) {
 	} catch (error) {
 		console.log('failed joining broadcast', {
 			channelId,
-			error: /** @type {Error} */ (error).message
+			error: /** @type {Error} */ (error).message,
 		})
 	}
 }
@@ -68,31 +64,28 @@ export function setupBroadcastSync() {
 					const {error} = await sdk.supabase.from('broadcast').upsert({
 						channel_id: broadcasting_channel_id,
 						track_id: playlist_track,
-						track_played_at: new Date().toISOString()
+						track_played_at: new Date().toISOString(),
 					})
 					if (error) throw error
 					console.log('created remote broadcast', {
 						channelId: broadcasting_channel_id,
-						trackId: playlist_track
+						trackId: playlist_track,
 					})
 				} catch (error) {
 					console.warn('failed to create remote broadcast', {
 						channelId: broadcasting_channel_id,
-						error: /** @type {Error} */ (error).message
+						error: /** @type {Error} */ (error).message,
 					})
 				}
 			} else {
 				if (lastBroadcastingChannelId) {
 					try {
-						await sdk.supabase
-							.from('broadcast')
-							.delete()
-							.eq('channel_id', lastBroadcastingChannelId)
+						await sdk.supabase.from('broadcast').delete().eq('channel_id', lastBroadcastingChannelId)
 						console.log('deleted remote broadcast', {channelId: lastBroadcastingChannelId})
 					} catch (error) {
 						console.warn('failed deleting remote broadcast', {
 							channelId: lastBroadcastingChannelId,
-							error: /** @type {Error} */ (error).message
+							error: /** @type {Error} */ (error).message,
 						})
 					}
 				}
@@ -106,18 +99,18 @@ export function setupBroadcastSync() {
 					.from('broadcast')
 					.update({
 						track_id: playlist_track,
-						track_played_at: new Date().toISOString()
+						track_played_at: new Date().toISOString(),
 					})
 					.eq('channel_id', broadcasting_channel_id)
 				console.log('updated remote broadcast track', {
 					channelId: broadcasting_channel_id,
-					trackId: playlist_track
+					trackId: playlist_track,
 				})
 			} catch (error) {
 				console.log('failed updating remote broadcast track', {
 					channelId: broadcasting_channel_id,
 					trackId: playlist_track,
-					error: /** @type {Error} */ (error).message
+					error: /** @type {Error} */ (error).message,
 				})
 			}
 			lastTrackId = playlist_track
