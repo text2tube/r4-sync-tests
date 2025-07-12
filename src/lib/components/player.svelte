@@ -133,35 +133,28 @@
 	</header>
 
 	<div class="center">
+		<menu>
+			<button onclick={toggleShuffle} aria-pressed={appState.shuffle} title="Toggle shuffle">
+				<IconShuffle />
+			</button>
+			<button onclick={previous} title="Go previous track">
+				<IconPreviousFill />
+			</button>
+			<button class="play" onclick={play}>
+				<IconPlayFill />
+			</button>
+			<button class="pause" onclick={() => yt.pause()}>
+				<IconPause />
+			</button>
+			<button onclick={next} title="Go next track">
+				<IconNextFill />
+			</button>
+		</menu>
 
-	<menu>
-		<button onclick={toggleShuffle} aria-pressed={appState.shuffle} title="Toggle shuffle">
-			<IconShuffle />
-		</button>
-		<button onclick={previous} title="Go previous track">
-			<IconPreviousFill />
-		</button>
-		<button class="play" onclick={play}>
-			<IconPlayFill />
-		</button>
-		<button class="pause" onclick={() => yt.pause()}>
-			<IconPause />
-		</button>
-		<button onclick={next} title="Go next track">
-			<IconNextFill />
-		</button>
-		<!--
-		<div class="volume">
-			<media-mute-button mediacontroller="r5"></media-mute-button>
-			<media-volume-range mediacontroller="r5"></media-volume-range>
-		</div>
-	-->
-	</menu>
-
-	<media-control-bar mediacontroller="r5">
-    <media-time-range mediacontroller="r5"></media-time-range>
-		<media-time-display showduration remaining></media-time-display>
-  </media-control-bar>
+		<media-control-bar mediacontroller="r5">
+			<media-time-range></media-time-range>
+			<media-time-display showduration></media-time-display>
+		</media-control-bar>
 	</div>
 
 	<media-control-bar mediacontroller="r5">
@@ -169,8 +162,8 @@
 		<!-- <media-time-range></media-time-range> -->
 		<!-- <media-playback-rate-button></media-playback-rate-button> -->
 		<!-- <media-fullscreen-button></media-fullscreen-button> -->
-		<media-mute-button mediacontroller="r5"></media-mute-button>
-		<media-volume-range mediacontroller="r5"></media-volume-range>
+		<media-mute-button></media-mute-button>
+		<media-volume-range></media-volume-range>
 	</media-control-bar>
 
 	<YoutubePlayer
@@ -217,8 +210,8 @@
 	figure {
 		margin: 0;
 	}
-	h2,
-	h3{
+
+	h3 {
 		font-weight: 400;
 	}
 
@@ -283,16 +276,17 @@
 	[aria-pressed='false'] :global(svg) {
 		opacity: 0.2;
 	}
+
 	.broadcast-indicator {
+		font-size: 1em;
+		margin-left: 0.2rem;
 		color: red;
-		font-size: 0.8rem;
-		font-weight: bold;
-		margin-left: 0.5rem;
 	}
 
 	media-control-bar {
 		--media-control-height: 2rem;
-		--media-background-color: none;
+		--media-background-color: transparent;
+		--media-control-hover-background: transparent;
 		--media-button-icon-width: 1.5rem;
 		--media-button-padding: 0 0.5rem;
 		--media-control-padding: 0.5rem;
@@ -302,6 +296,6 @@
 		--media-icon-color: var(--gray-12);
 		--media-range-track-background: hsla(0, 0%, 0%, 0.2);
 		--media-range-track-background: var(--gray-11);
+		--media-range-track-background: hsla(0, 0%, 0%, 0.2);
 	}
-
 </style>
