@@ -30,6 +30,9 @@
 
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
+	
+	/** @type {string[]} */
+	let activeQueue = $derived(appState.shuffle ? (appState.playlist_tracks_shuffled || []) : trackIds)
 
 	/** @type {Track|undefined} */
 	let track = $state()
@@ -73,21 +76,41 @@
 		}
 	}
 
+	function generateShuffleQueue() {
+		const shuffled = [...trackIds].sort(() => Math.random() - 0.5)
+		
+		// If current track exists, put it first in shuffle queue
+		if (track?.id && shuffled.includes(track.id)) {
+			const filtered = shuffled.filter(id => id !== track.id)
+			return [track.id, ...filtered]
+		}
+		return shuffled
+	}
+
 	function toggleShuffle() {
-		pg.sql`UPDATE app_state SET shuffle = ${!appState.shuffle} WHERE id = 1`
+		const newShuffleState = !appState.shuffle
+		
+		if (newShuffleState) {
+			// Turning shuffle ON - generate new shuffle queue
+			const shuffledQueue = generateShuffleQueue()
+			pg.sql`UPDATE app_state SET shuffle = true, playlist_tracks_shuffled = ${shuffledQueue} WHERE id = 1`
+		} else {
+			// Turning shuffle OFF - clear shuffle queue
+			pg.sql`UPDATE app_state SET shuffle = false, playlist_tracks_shuffled = ${[]} WHERE id = 1`
+		}
 	}
 
 	function previous() {
 		if (!track?.id) return
-		const idx = trackIds.indexOf(track.id)
-		const prev = trackIds[idx - 1]
+		const idx = activeQueue.indexOf(track.id)
+		const prev = activeQueue[idx - 1]
 		if (prev) playTrack(prev)
 	}
 
 	function next() {
 		if (!track?.id) return
-		const idx = trackIds.indexOf(track.id)
-		const next = trackIds[idx + 1]
+		const idx = activeQueue.indexOf(track.id)
+		const next = activeQueue[idx + 1]
 		if (next) playTrack(next)
 	}
 
@@ -135,7 +158,7 @@
 
 	<div class="center">
 		<menu>
-			<button onclick={toggleShuffle} aria-pressed={appState.shuffle} title="Toggle shuffle">
+			<button onclick={toggleShuffle} aria-pressed={appState.shuffle} title={appState.shuffle ? 'Disable shuffle' : 'Enable shuffle'}>
 				<IconShuffle />
 			</button>
 			<button onclick={previous} title="Go previous track">

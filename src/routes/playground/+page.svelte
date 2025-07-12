@@ -11,8 +11,11 @@
 	})
 
 	function add() {
-		return pg.sql`insert into channels (name, slug) values (${'huguooo'}, ${'hugo123'})`
+		throw new Error('something bad happened')
+		//return pg.sql`insert into channels (name, slug) values (${'huguooo'}, ${'hugo123'})`
 	}
 </script>
 
-<button onclick={add}>increment {count}</button>
+<button onclick={add}>throw an unexpected error</button>
+
+<p>{count} x 2 = {double}</p>

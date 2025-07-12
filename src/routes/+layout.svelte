@@ -62,9 +62,23 @@
 	// 		await pg.close()
 	// 	})
 	// })
+
+  function handleUnhandledRejection(event) {
+    console.error('Unhandled promise rejection:', event.reason)
+    // Add to your app_state error queue
+    event.preventDefault() // Prevents console error
+  }
+
+  function handleError(event) {
+    console.error('Uncaught error:', event.error)
+    // Handle synchronous errors
+  }
 </script>
 
-<svelte:window onkeydown={handleKeyDown} />
+<svelte:window 
+	onkeydown={handleKeyDown} 
+ onunhandledrejection={handleUnhandledRejection} 
+ onerror={handleError} />
 
 <AuthListener />
 

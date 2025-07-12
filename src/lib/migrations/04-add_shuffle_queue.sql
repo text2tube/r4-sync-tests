@@ -1,0 +1,1 @@
+ALTER TABLE app_state ADD COLUMN IF NOT EXISTS playlist_tracks_shuffled UUID[] DEFAULT ARRAY[]::UUID[];
