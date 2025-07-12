@@ -2,6 +2,7 @@
 	import Channels from '$lib/components/channels.svelte'
 	import {pg} from '$lib/db'
 	import {totalSync} from '$lib/sync'
+	import {IconCloudDownloadAlt} from 'obra-icons-svelte'
 
 	let channelCount = $state(0)
 	let syncing = $state(false)
@@ -22,11 +23,29 @@
 </script>
 
 {#if channelCount === 0}
-	<p>
-		<button onclick={pullRadios} disabled={syncing}>
-			{syncing ? 'Pulling radios...' : 'Pull radios from radio4000.com'}
+	<menu>
+		<button onclick={pullRadios} disabled={syncing}
+			><IconCloudDownloadAlt />{syncing ? 'Pulling radios...' : 'Pull radios from radio4000.com'}
 		</button>
-	</p>
+	</menu>
 {/if}
 
 <Channels />
+
+<style>
+	menu {
+		top: 0;
+		z-index: 1;
+		padding: 0 0.5rem;
+		display: flex;
+		gap: 0.5rem;
+		margin: 1rem 0 0.6rem;
+		> * {
+			margin: 0;
+		}
+	}
+	menu :global(svg) {
+		width: 1.25em;
+		margin-right: 0.2em;
+	}
+</style>
