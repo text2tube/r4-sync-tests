@@ -15,6 +15,7 @@ export interface Channel {
 	broadcasting?: boolean
 	broadcast_track_id?: string
 	broadcast_started_at?: string
+	tracks_synced_at?: string
 }
 
 export type Track = {

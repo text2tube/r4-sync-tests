@@ -1,7 +1,8 @@
 <script>
 	import {pg} from '$lib/db'
-	import {needsUpdate} from '$lib/sync'
+	import {pullTracks} from '$lib/sync'
 
+	/** @type {import('$lib/types').Channel[]} */
 	let channels = $state([])
 
 	// Live query for channels with track counts
@@ -21,29 +22,40 @@
 		}
 	)
 
-	async function deleteChannel(channelId, channelName) {
-		if (!confirm(`Delete channel "${channelName}" and all its tracks?`)) return
-		await pg.sql`DELETE FROM channels WHERE id = ${channelId}`
+	/**
+	 * @param {string} id
+	 * @param {string} name
+	 */
+	async function deleteChannel(id, name) {
+		if (!confirm(`Delete channel "${name}" and all its tracks?`)) return
+		await pg.sql`DELETE FROM channels WHERE id = ${id}`
 	}
 
-	async function deleteTracks(channelId, channelName) {
-		if (!confirm(`Delete all tracks for "${channelName}"?`)) return
-		await pg.sql`DELETE FROM tracks WHERE channel_id = ${channelId}`
-		await pg.sql`UPDATE channels SET tracks_synced_at = NULL WHERE id = ${channelId}`
+	/**
+	 * @param {string} id
+	 * @param {string} name
+	 */
+	async function deleteTracks(id, name) {
+		if (!confirm(`Delete all tracks for "${name}"?`)) return
+		await pg.sql`DELETE FROM tracks WHERE channel_id = ${id}`
+		await pg.sql`UPDATE channels SET tracks_synced_at = NULL WHERE id = ${id}`
 	}
 
+	/** @param {string | null} dateStr */
 	function formatDate(dateStr) {
 		if (!dateStr) return 'Never'
 		return new Date(dateStr).toLocaleString()
 	}
 
+	/** @param {import('$lib/types').Channel} channel */
 	function getStatusIndicator(channel) {
-		if (channel.firebase_id) return '🟡' // v1 channel
-		if (!channel.tracks_synced_at) return '🔴' // Never synced
-		if (channel.track_count === 0) return '🔴' // No tracks
-		return '🟢' // Synced with tracks
+		if (channel.firebase_id) return '🟡'
+		if (!channel.tracks_synced_at) return '🔴'
+		if (channel.track_count === 0) return '🔴'
+		return '🟢'
 	}
 
+	/** @param {import('$lib/types').Channel} channel */
 	function getStatusText(channel) {
 		if (channel.firebase_id) return 'v1 (read-only)'
 		if (!channel.tracks_synced_at) return 'Never synced'
@@ -58,37 +70,28 @@
 	{#if channels.length === 0}
 		<p>No channels found. Run sync to populate.</p>
 	{:else}
-		<details>
-			<summary>Legend</summary>
-			<ul>
-				<li>🟢 Up to date</li>
-				<li>🟠 Needs update</li>
-				<li>🔴 Never synced</li>
-				<li>🟡 v1 channel (read-only)</li>
-			</ul>
-		</details>
-
-		<div class="channel-list">
+		<section class="channel-list">
 			{#each channels as channel (channel.id)}
 				<article>
 					<div>
-						<span>{getStatusIndicator(channel)}</span>
-						<strong>{channel.name} </strong>
-						<span>/{channel.slug}</span>
-						<span class="track-count">{channel.track_count} tracks</span>
+						<p>
+							<span>@{channel.slug}</span>
+							<span class="track-count">{channel.track_count} tracks</span>
+						</p>
+						<p>
+							{getStatusIndicator(channel)}
+							{getStatusText(channel)}
+							{#if channel.tracks_synced_at}
+								{formatDate(channel.tracks_synced_at)}
+							{/if}
+							{#if channel.busy}
+								🔄 Syncing...
+							{/if}
+						</p>
 					</div>
 
-					<p>
-						{getStatusText(channel)}
-						{#if channel.tracks_synced_at}
-							synced: {formatDate(channel.tracks_synced_at)}
-						{/if}
-						{#if channel.busy}
-							🔄 Syncing...
-						{/if}
-					</p>
-
-					<menu class="channel-actions">
+					<menu>
+						<button onclick={() => pullTracks(channel.slug)}>Pull tracks</button>
 						<button
 							onclick={() => deleteTracks(channel.id, channel.name)}
 							disabled={channel.track_count === 0}
@@ -101,7 +104,7 @@
 					</menu>
 				</article>
 			{/each}
-		</div>
+		</section>
 	{/if}
 </section>
 
@@ -113,7 +116,7 @@
 	.channel-list {
 		display: flex;
 		flex-direction: column;
-		gap: 2rem;
+		gap: 1rem;
 		margin: 2rem 0;
 
 		article {

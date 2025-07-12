@@ -47,11 +47,13 @@
 	/** @type {boolean} */
 	let isListeningToBroadcast = $derived(!!appState.listening_to_channel_id)
 
-	pg.live.query(`select * from app_state where id = 1`, [], async (res) => {
+	pg.live.query('select * from app_state where id = 1', [], async (res) => {
 		appState = res.rows[0]
 		const tid = appState.playlist_track
-		setChannelFromTrack(tid)
-		if (tid) autoplay = true
+		if (tid) {
+			autoplay = true
+			await setChannelFromTrack(tid)
+		}
 	})
 
 	/**
