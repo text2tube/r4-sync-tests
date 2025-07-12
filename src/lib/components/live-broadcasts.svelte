@@ -2,13 +2,13 @@
 	import {sdk} from '@radio4000/sdk'
 	import {pg} from '$lib/db'
 	import {joinBroadcast} from '$lib/broadcast'
-	import {loadBroadcasts} from '$lib/api'
+	import {readBroadcastsWithChannel} from '$lib/api'
 
 	let activeBroadcasts = $state([])
 
 	$effect(() => {
 		// Initial load.
-		loadBroadcasts().then((data) => {
+		readBroadcastsWithChannel().then((data) => {
 			activeBroadcasts = data
 		})
 
@@ -32,7 +32,7 @@
 					}
 
 					// Refresh from remote.
-					loadBroadcasts().then((data) => {
+					readBroadcastsWithChannel().then((data) => {
 						activeBroadcasts = data
 					})
 				}

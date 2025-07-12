@@ -2,27 +2,13 @@
 
 A (sveltekit) web app with a local PostgreSQL database that can more or less sync with R4 and Matrix remotes.
 
-It also contains a sync experiment on /syncthing.
-
-## Ideas
-
-- use a worker when using the db https://pglite.dev/examples/opfs
-- maintain a local log of changes in a format that we can later apply to R4 supabase and/or Matrix
+The `main` branch deploys to https://pg.radio4000.com for now.
 
 ## Developing
 
 ```bash
 npm install
 npm run dev
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-npm run preview
 ```
 
 ## Credits

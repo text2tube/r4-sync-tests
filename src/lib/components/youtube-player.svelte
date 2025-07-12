@@ -11,9 +11,9 @@
 
 	function check(e) {
 		const {volume, muted} = e.target
-		console.log('volume change', {volume, muted})
+		// console.log('volume change', {volume, muted})
 		pg.sql`update app_state set muted = ${muted}, volume = ${volume} where id = 1`.then(() => {
-			console.log('persisted volume + muted', volume, muted)
+			// console.log('persisted volume + muted', volume, muted)
 		})
 	}
 </script>

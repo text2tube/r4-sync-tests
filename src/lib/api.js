@@ -31,31 +31,14 @@ export async function playTrack(id) {
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
 }
 
-export async function readBroadcasts() {
-	const {data, error} = await sdk.supabase.from('broadcast').select(`
-			channel_id,
-			track_id,
-			track_played_at,
-			channels (
-				name,
-				slug
-			)
-		`)
-	if (error) throw error
-	return data || []
-}
-
 /** @param {import('$lib/types').Channel} channel */
 export async function playChannel({id, slug}) {
-	let tracks = (
-		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
-	).rows
+	let tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
 
 	if (!tracks?.length) {
 		await pullTracks(slug)
 	}
-	tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`)
-		.rows
+	tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
 
 	needsUpdate(slug).then((needs) => {
 		console.log('needsUpdate', slug, needs)
@@ -75,11 +58,7 @@ export async function ensureTrackAvailable(trackId) {
 		}
 
 		console.log('fetching track channel', {trackId})
-		const {data} = await sdk.supabase
-			.from('channel_track')
-			.select('channels(slug)')
-			.eq('track_id', trackId)
-			.single()
+		const {data} = await sdk.supabase.from('channel_track').select('channels(slug)').eq('track_id', trackId).single()
 
 		// @ts-expect-error shut up
 		const slug = data?.channels?.slug
@@ -146,8 +125,7 @@ async function loadPlaylist(ids, index = 0) {
   `
 }
 
-// Returns a join of active broadcasts with their channel info.
-export async function loadBroadcasts() {
+export async function readBroadcastsWithChannel() {
 	const {data, error} = await sdk.supabase.from('broadcast').select(`
 		channel_id,
 		track_id,

@@ -52,6 +52,16 @@ export interface Broadcast {
 	track_played_at: string
 }
 
+export interface BroadcastWithChannel extends Broadcast {
+	channels: {
+		id: string
+		name: string
+		slug: string
+		image?: string
+		description?: string
+	}
+}
+
 export interface Ok<T> {
 	ok: true
 	value: T
@@ -65,13 +75,13 @@ export interface Error<E> {
 export function ok<T>(value: T): Ok<T> {
 	return {
 		ok: true,
-		value
+		value,
 	}
 }
 
 export function err<T>(error: T): Error<T> {
 	return {
 		ok: false,
-		error
+		error,
 	}
 }
