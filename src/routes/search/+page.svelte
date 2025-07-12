@@ -20,9 +20,22 @@
 	/** @type {import('$lib/types.ts').Track[]} */
 	let tracks = $state([])
 
+	/** @type {import('$lib/types.ts').Channel[]} */
+	let channelSummary = $state([])
+
 	let searchQuery = $state('')
 	let isLoading = $state(false)
 	let debounceTimer = $state()
+	
+	/** Parse search tokens from query */
+	function parseSearchTokens(query) {
+		const mentions = query.match(/@\w+/g) || []
+		const cleanQuery = query.replace(/@\w+/g, '').trim()
+		return {
+			text: cleanQuery,
+			mentions: mentions.map(m => m.slice(1)) // remove @
+		}
+	}
 
 	onMount(() => {
 		const urlSearch = $page.url.searchParams.get('search')
@@ -41,43 +54,92 @@
 		if (!searchQuery.trim()) {
 			channels = []
 			tracks = []
+			channelSummary = []
 			return
 		}
 
 		isLoading = true
-		const query = `%${searchQuery.toLowerCase()}%`
+		const tokens = parseSearchTokens(searchQuery)
+		const query = `%${tokens.text.toLowerCase()}%`
+		const mention = tokens.mentions[0] // Use first mention for now
 
-		console.log('querying', query)
+		console.log('querying', {query, mention, tokens})
 
 		try {
-			const channelResults = await pg.query(
-				`
-				SELECT id, name, slug, description, image
-				FROM channels 
-				WHERE LOWER(name) LIKE $1 
-				   OR LOWER(slug) LIKE $1 
-				   OR LOWER(description) LIKE $1
-				ORDER BY name
-			`,
-				[query]
-			)
+			// Only search channels by name/description if no mention (since @mention targets specific channel)
+			let channelResults = {rows: []}
+			if (!mention) {
+				channelResults = await pg.query(
+					`
+					SELECT id, name, slug, description, image
+					FROM channels 
+					WHERE LOWER(name) LIKE $1 
+					   OR LOWER(slug) LIKE $1 
+					   OR LOWER(description) LIKE $1
+					ORDER BY name
+				`,
+					[query]
+				)
+			}
 
-			const trackResults = await pg.query(
+			// Track search with optional channel filter
+			const trackQuery = mention 
+				? `
+					SELECT t.id, t.title, t.description, t.url, t.channel_id,
+					       c.name as channel_name, c.slug as channel_slug
+					FROM tracks t
+					JOIN channels c ON t.channel_id = c.id
+					WHERE c.slug = $2
+					  AND (LOWER(t.title) LIKE $1 
+					       OR LOWER(t.description) LIKE $1
+					       OR LOWER(t.url) LIKE $1)
+					ORDER BY t.title
 				`
-				SELECT t.id, t.title, t.description, t.url, t.channel_id,
-				       c.name as channel_name, c.slug as channel_slug
-				FROM tracks t
-				JOIN channels c ON t.channel_id = c.id
-				WHERE LOWER(t.title) LIKE $1 
-				   OR LOWER(t.description) LIKE $1 
-				   OR LOWER(t.url) LIKE $1
-				ORDER BY t.title
-			`,
-				[query]
-			)
+				: `
+					SELECT t.id, t.title, t.description, t.url, t.channel_id,
+					       c.name as channel_name, c.slug as channel_slug
+					FROM tracks t
+					JOIN channels c ON t.channel_id = c.id
+					WHERE LOWER(t.title) LIKE $1 
+					   OR LOWER(t.description) LIKE $1 
+					   OR LOWER(t.url) LIKE $1
+					ORDER BY t.title
+				`
+
+			const trackParams = mention ? [query, mention] : [query]
+			const trackResults = await pg.query(trackQuery, trackParams)
+
+			// Channel summary with optional filter
+			const summaryQuery = mention
+				? `
+					SELECT c.id, c.name, c.slug, c.description, c.image, COUNT(t.id) as track_count
+					FROM channels c
+					JOIN tracks t ON c.id = t.channel_id
+					WHERE c.slug = $2
+					  AND (LOWER(t.title) LIKE $1 
+					       OR LOWER(t.description) LIKE $1 
+					       OR LOWER(t.url) LIKE $1)
+					GROUP BY c.id, c.name, c.slug, c.description, c.image
+					ORDER BY COUNT(t.id) DESC, c.name
+				`
+				: `
+					SELECT c.id, c.name, c.slug, c.description, c.image, COUNT(t.id) as track_count
+					FROM channels c
+					JOIN tracks t ON c.id = t.channel_id
+					WHERE LOWER(t.title) LIKE $1 
+					   OR LOWER(t.description) LIKE $1 
+					   OR LOWER(t.url) LIKE $1
+					GROUP BY c.id, c.name, c.slug, c.description, c.image
+					ORDER BY COUNT(t.id) DESC, c.name
+				`
+
+			const summaryParams = mention ? [query, mention] : [query]
+			const channelSummaryResults = await pg.query(summaryQuery, summaryParams)
 
 			channels = channelResults.rows
 			tracks = trackResults.rows
+			channelSummary = channelSummaryResults.rows
+			console.log({channelSummary})
 		} catch (error) {
 			console.error('Search error:', error)
 		} finally {
@@ -109,7 +171,7 @@
 	<IconSearch />
 	<input
 		type="search"
-		placeholder="Search channels and tracks..."
+		placeholder="Search channels and tracks... (@slug to scope)"
 		bind:value={searchQuery}
 		oninput={debouncedSearch}
 	/>
@@ -120,6 +182,13 @@
 {/if}
 
 {#if searchQuery && !isLoading}
+	{@const tokens = parseSearchTokens(searchQuery)}
+	{#if tokens.mentions.length > 0}
+		<p><small>Found {tracks.length} tracks from @{tokens.mentions[0]}</small></p>
+	{:else}
+		<p><small>Found {channels.length} channels and {tracks.length} tracks</small></p>
+	{/if}
+	
 	{#if channels.length > 0}
 		<section>
 			<h2>Channels ({channels.length})</h2>
@@ -127,6 +196,20 @@
 				{#each channels as channel}
 					<li>
 						<ChannelCard {channel} />
+					</li>
+				{/each}
+			</ul>
+		</section>
+	{/if}
+
+	{#if channelSummary.length > 0}
+		<section>
+			<h2>Channels with "{searchQuery}" tracks ({channelSummary.length})</h2>
+			<ul class="grid">
+				{#each channelSummary as channel}
+					<li>
+						<ChannelCard channel={{...channel, track_count: channel.track_count}} />
+						&nbsp;&nbsp;@{channel.slug} {channel.track_count} tracks
 					</li>
 				{/each}
 			</ul>
@@ -159,7 +242,7 @@
 		</section>
 	{/if}
 
-	{#if channels.length === 0 && tracks.length === 0}
+	{#if channels.length === 0 && tracks.length === 0 && channelSummary.length === 0}
 		<p>No results found for "{searchQuery}"</p>
 	{/if}
 {/if}
