@@ -4,7 +4,14 @@
 	import {goto} from '$app/navigation'
 	import {IconSearch} from 'obra-icons-svelte'
 	import {pg} from '$lib/db.ts'
-	import {subscribeToAppState, playTrack, playTracks, addToPlaylist} from '$lib/api'
+	import {
+		subscribeToAppState,
+		playTrack,
+		playTracks,
+		addToPlaylist,
+		toggleTheme,
+		toggleQueuePanel
+	} from '$lib/api'
 	import Tracklist from '$lib/components/tracklist.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 
@@ -36,14 +43,14 @@
 		{id: 'toggle-theme', title: 'Toggle Theme', type: 'command', action: toggleTheme},
 		{id: 'toggle-queue', title: 'Toggle Queue Panel', type: 'command', action: toggleQueuePanel}
 	]
-	
+
 	/** Parse search tokens from query */
 	function parseSearchTokens(query) {
 		const mentions = query.match(/@\w+/g) || []
 		const cleanQuery = query.replace(/@\w+/g, '').trim()
 		return {
 			text: cleanQuery,
-			mentions: mentions.map(m => m.slice(1)) // remove @
+			mentions: mentions.map((m) => m.slice(1)) // remove @
 		}
 	}
 
@@ -112,7 +119,7 @@
 			}
 
 			// Track search with optional channel filter
-			const trackQuery = mention 
+			const trackQuery = mention
 				? `
 					SELECT t.id, t.title, t.description, t.url, t.channel_id,
 					       c.name as channel_name, c.slug as channel_slug
@@ -178,7 +185,7 @@
 
 	function handleSubmit(event) {
 		event.preventDefault()
-		
+
 		// Try smart execution first
 		if (executeCommand(searchQuery)) {
 			// Clear search query after successful command execution
@@ -189,7 +196,7 @@
 			channelSummary = []
 			return
 		}
-		
+
 		// Fall back to regular search
 		updateURL()
 	}
@@ -204,38 +211,20 @@
 		goto(newUrl, {replaceState: true})
 	}
 
-	// Command functions
-	function toggleTheme() {
-		const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-		const newTheme = currentTheme === 'light' ? 'dark' : 'light'
-		
-		if (newTheme === 'dark') {
-			document.documentElement.classList.remove('light')
-			document.documentElement.classList.add('dark')
-		} else {
-			document.documentElement.classList.remove('dark')
-			document.documentElement.classList.add('light')
-		}
-		pg.sql`update app_state set theme = ${newTheme} where id = 1`.catch(console.warn)
-	}
-
-	function toggleQueuePanel() {
-		pg.sql`UPDATE app_state SET queue_panel_visible = NOT queue_panel_visible WHERE id = 1`
-	}
-
 	// Smart execution - handle different input types
 	function executeCommand(query) {
 		const trimmed = query.trim().toLowerCase()
-		
+
 		// Check if it's a command (starts with >)
 		if (trimmed.startsWith('>')) {
 			const commandQuery = trimmed.slice(1)
-			const command = commands.find(cmd => 
-				cmd.title.toLowerCase().includes(commandQuery) || 
-				cmd.id === commandQuery ||
-				commandQuery.includes(cmd.id.replace('-', ' '))
+			const command = commands.find(
+				(cmd) =>
+					cmd.title.toLowerCase().includes(commandQuery) ||
+					cmd.id === commandQuery ||
+					commandQuery.includes(cmd.id.replace('-', ' '))
 			)
-			
+
 			if (command) {
 				if (command.type === 'link') {
 					goto(command.target)
@@ -245,20 +234,20 @@
 				return true
 			}
 		}
-		
+
 		// Check if it's a channel mention
 		if (trimmed.startsWith('@')) {
 			const slug = trimmed.slice(1)
 			goto(`/${slug}`)
 			return true
 		}
-		
+
 		// Check if it's a direct page
 		if (trimmed === 'settings') {
 			goto('/settings')
 			return true
 		}
-		
+
 		return false
 	}
 </script>
@@ -286,7 +275,6 @@
 	</datalist>
 </form>
 
-
 {#if isLoading}
 	<p>Searching...</p>
 {/if}
@@ -302,7 +290,7 @@
 	{#if channels.length === 0 && tracks.length === 0 && channelSummary.length === 0}
 		<p>No results found for "{searchQuery}"</p>
 	{/if}
-	
+
 	{#if channels.length > 0}
 		<section>
 			<h2>Channels ({channels.length})</h2>
@@ -323,7 +311,8 @@
 				{#each channelSummary as channel}
 					<li>
 						<ChannelCard channel={{...channel, track_count: channel.track_count}} />
-						&nbsp;&nbsp;@{channel.slug} {channel.track_count} tracks
+						&nbsp;&nbsp;@{channel.slug}
+						{channel.track_count} tracks
 					</li>
 				{/each}
 			</ul>
@@ -335,14 +324,17 @@
 			<header>
 				<h2>Tracks ({tracks.length})</h2>
 				<menu>
-					<button onclick={() => playTracks(tracks.map(t => t.id))}>Play All</button>
-					<button onclick={() => addToPlaylist(tracks.map(t => t.id))}>Add to queue</button>
+					<button onclick={() => playTracks(tracks.map((t) => t.id))}>Play All</button>
+					<button onclick={() => addToPlaylist(tracks.map((t) => t.id))}>Add to queue</button>
 				</menu>
 			</header>
 
 			<ul class="list tracks">
 				{#each tracks as track, index}
-					<li class={track.id === appState.playlist_track ? 'current' : ''} ondblclick={() => playTrack(track.id)}>
+					<li
+						class={track.id === appState.playlist_track ? 'current' : ''}
+						ondblclick={() => playTrack(track.id)}
+					>
 						<span>{index + 1}.</span>
 						<div class="title">{track.title}</div>
 						<div class="description">
@@ -352,11 +344,13 @@
 					</li>
 				{/each}
 			</ul>
-
 		</section>
 	{/if}
 {:else}
-<p>tip: <code>@</code> to search channels, <code>&gt;</code> for commands. press cmd/ctrl+k to come here.</p>
+	<p>
+		tip: <code>@</code> to search channels, <code>&gt;</code> for commands. press cmd/ctrl+k to come
+		here.
+	</p>
 {/if}
 
 <style>

@@ -237,3 +237,22 @@ export async function playTracks(trackIds) {
 	if (!trackIds?.length) return
 	await loadPlaylist(trackIds)
 }
+
+// Command palette functions
+export async function toggleTheme() {
+	const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+	const newTheme = currentTheme === 'light' ? 'dark' : 'light'
+
+	if (newTheme === 'dark') {
+		document.documentElement.classList.remove('light')
+		document.documentElement.classList.add('dark')
+	} else {
+		document.documentElement.classList.remove('dark')
+		document.documentElement.classList.add('light')
+	}
+	await pg.sql`update app_state set theme = ${newTheme} where id = 1`.catch(console.warn)
+}
+
+export async function toggleQueuePanel() {
+	await pg.sql`UPDATE app_state SET queue_panel_visible = NOT queue_panel_visible WHERE id = 1`
+}

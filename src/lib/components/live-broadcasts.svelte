@@ -112,7 +112,10 @@
 	<div class="live-broadcasts">
 		<span>Live radios 🔴 &rarr;</span>
 		{#each activeBroadcasts as broadcast (broadcast.channel_id)}
-			<button class={[{active: broadcast.channel_id === appState.listening_to_channel_id}]} onclick={() => joinBroadcast(broadcast.channel_id)}>
+			<button
+				class={[{active: broadcast.channel_id === appState.listening_to_channel_id}]}
+				onclick={() => joinBroadcast(broadcast.channel_id)}
+			>
 				@{broadcast.channels.slug}
 			</button>
 		{/each}

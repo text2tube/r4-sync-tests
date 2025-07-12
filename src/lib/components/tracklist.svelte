@@ -33,7 +33,10 @@
 
 <ul class="list tracks">
 	{#each tracks as item, index (item.id)}
-		<li class={item.id === appState.playlist_track ? 'current' : ''} ondblclick={() => playTrack(item.id)}>
+		<li
+			class={item.id === appState.playlist_track ? 'current' : ''}
+			ondblclick={() => playTrack(item.id)}
+		>
 			<span>{index + 1}.</span>
 			<div class="title">
 				{item.title}
@@ -46,4 +49,3 @@
 		</li>
 	{/each}
 </ul>
-

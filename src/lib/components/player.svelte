@@ -30,9 +30,9 @@
 
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
-	
+
 	/** @type {string[]} */
-	let activeQueue = $derived(appState.shuffle ? (appState.playlist_tracks_shuffled || []) : trackIds)
+	let activeQueue = $derived(appState.shuffle ? appState.playlist_tracks_shuffled || [] : trackIds)
 
 	/** @type {Track|undefined} */
 	let track = $state()
@@ -70,10 +70,10 @@
 
 	function generateShuffleQueue() {
 		const shuffled = [...trackIds].sort(() => Math.random() - 0.5)
-		
+
 		// If current track exists, put it first in shuffle queue
 		if (track?.id && shuffled.includes(track.id)) {
-			const filtered = shuffled.filter(id => id !== track.id)
+			const filtered = shuffled.filter((id) => id !== track.id)
 			return [track.id, ...filtered]
 		}
 		return shuffled
@@ -81,7 +81,7 @@
 
 	function toggleShuffle() {
 		const newShuffleState = !appState.shuffle
-		
+
 		if (newShuffleState) {
 			// Turning shuffle ON - generate new shuffle queue
 			const shuffledQueue = generateShuffleQueue()
@@ -150,7 +150,11 @@
 
 	<div class="center">
 		<menu>
-			<button onclick={toggleShuffle} aria-pressed={appState.shuffle} title={appState.shuffle ? 'Disable shuffle' : 'Enable shuffle'}>
+			<button
+				onclick={toggleShuffle}
+				aria-pressed={appState.shuffle}
+				title={appState.shuffle ? 'Disable shuffle' : 'Enable shuffle'}
+			>
 				<IconShuffle />
 			</button>
 			<button onclick={previous} title="Go previous track">

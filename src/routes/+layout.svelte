@@ -13,6 +13,7 @@
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
 	import {IconSearch, IconChevronUp, IconChevronDown} from 'obra-icons-svelte'
 	import {setupBroadcastSync, stopBroadcasting, startBroadcasting} from '$lib/broadcast'
+	import {toggleQueuePanel as toggleQueuePanelApi} from '$lib/api'
 	import '@radio4000/components'
 
 	const {children} = $props()
@@ -62,8 +63,7 @@
 	}
 
 	function toggleQueuePanel() {
-		const newVisible = !queuePanelVisible
-		pg.sql`UPDATE app_state SET queue_panel_visible = ${newVisible} WHERE id = 1`
+		toggleQueuePanelApi()
 	}
 
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.

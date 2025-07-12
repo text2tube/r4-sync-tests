@@ -1,5 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
+	import {toggleTheme as toggleThemeApi} from '$lib/api'
 	import {IconSun, IconMoon} from 'obra-icons-svelte'
 
 	let theme = $state()
@@ -29,7 +30,7 @@
 	})
 
 	function toggleTheme() {
-		theme = theme === 'light' ? 'dark' : 'light'
+		toggleThemeApi()
 	}
 </script>
 
