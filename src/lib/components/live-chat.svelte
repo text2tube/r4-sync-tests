@@ -9,9 +9,9 @@
 
 	onMount(() => {
 		username = `user-${Math.random().toString(36).substr(2, 9)}`
-		
+
 		channel = sdk.supabase.channel('global-chat')
-		
+
 		channel
 			.on('broadcast', {event: 'message'}, (payload) => {
 				messages.push(payload.payload)
@@ -31,23 +31,23 @@
 
 	function sendMessage() {
 		if (!message.trim() || !channel) return
-		
+
 		const chatMessage = {
 			text: message.trim(),
 			username,
 			timestamp: new Date().toISOString()
 		}
-		
+
 		// Add your own message locally
 		messages.push(chatMessage)
-		
+
 		// Send to other users
 		channel.send({
 			type: 'broadcast',
 			event: 'message',
 			payload: chatMessage
 		})
-		
+
 		message = ''
 	}
 
@@ -72,7 +72,7 @@
 			<p class="empty">Ephemeral chat</p>
 		{/if}
 	</div>
-	
+
 	<form onsubmit={sendMessage}>
 		<input
 			bind:value={message}
@@ -91,7 +91,7 @@
 		display: flex;
 		flex-direction: column;
 	}
-	
+
 	.messages {
 		flex: 1;
 		overflow-y: auto;
@@ -100,36 +100,36 @@
 		flex-direction: column;
 		gap: 0.5rem;
 	}
-	
+
 	.message {
 		display: flex;
 		gap: 0.5rem;
 	}
-	
+
 	.message time {
 		opacity: 0.5;
 		font-size: 0.8rem;
 		margin-left: auto;
 		flex-shrink: 0;
 	}
-	
+
 	.empty {
 		text-align: center;
 		opacity: 0.5;
 		font-style: italic;
 		margin: auto;
 	}
-	
+
 	form {
 		padding: 0.5rem;
 		display: flex;
 		gap: 0.5rem;
 	}
-	
+
 	input {
 		flex: 1;
 	}
-	
+
 	button:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;

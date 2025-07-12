@@ -46,7 +46,7 @@
 			//{id: 'start-broadcasting', title: 'Start broadcasting', type: 'command', action: startBroadcasting},
 			//{id: 'stop-broadcasting', title: 'Stop broadcasting', type: 'command', action: stopBroadcasting},
 			{id: 'toggle-theme', title: 'Toggle theme', type: 'command', action: toggleTheme},
-			{id: 'toggle-queue', title: 'Toggle queue panel', type: 'command', action: toggleQueuePanel},
+			{id: 'toggle-queue', title: 'Toggle queue panel', type: 'command', action: toggleQueuePanel}
 			//doesnt work
 			//{id: 'clear-player', title: 'Clear player', type: 'command', action: async () => {
 			//await pg.sql`UPDATE app_state SET playlist_track = null, playlist_tracks = null where id = 1`
@@ -360,9 +360,9 @@
 {:else}
 	<p>
 		TIP:
-		<br/> press cmd/ctrl+k to come here.
-		<br/> <code>@</code> to search channels
-		<br/><code>/</code> for commands
+		<br /> press cmd/ctrl+k to come here.
+		<br /> <code>@</code> to search channels
+		<br /><code>/</code> for commands
 	</p>
 {/if}
 

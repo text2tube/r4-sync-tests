@@ -15,7 +15,7 @@
 
 	function calculateBounds() {
 		if (!panel) return {minX: 0, maxX: 0, minY: 0, maxY: 0}
-		
+
 		const visibleEdge = 100
 		const visibleTop = 40
 
@@ -23,20 +23,20 @@
 			minX: -panel.offsetWidth + visibleEdge,
 			maxX: window.innerWidth - visibleEdge,
 			minY: -panel.offsetHeight + visibleTop,
-			maxY: window.innerHeight - visibleTop,
+			maxY: window.innerHeight - visibleTop
 		}
 	}
 
 	function startDrag(event) {
 		if (event.target.closest('button')) return
-		
+
 		isDragging = true
 		const rect = panel.getBoundingClientRect()
 		dragOffset = {
 			x: event.clientX - rect.left,
 			y: event.clientY - rect.top
 		}
-		
+
 		document.addEventListener('mousemove', handleDrag)
 		document.addEventListener('mouseup', stopDrag)
 		event.preventDefault()
@@ -44,14 +44,14 @@
 
 	function handleDrag(event) {
 		if (!isDragging || !panel) return
-		
+
 		const bounds = calculateBounds()
 		let newX = event.clientX - dragOffset.x
 		let newY = event.clientY - dragOffset.y
-		
+
 		newX = Math.max(bounds.minX, Math.min(bounds.maxX, newX))
 		newY = Math.max(bounds.minY, Math.min(bounds.maxY, newY))
-		
+
 		position = {x: newX, y: newY}
 	}
 
@@ -98,7 +98,7 @@
 			{isMinimized ? '□' : '_'}
 		</button>
 	</header>
-	
+
 	{#if !isMinimized}
 		<div class="panel-content">
 			{@render children()}
@@ -121,16 +121,16 @@
 		display: flex;
 		flex-direction: column;
 	}
-	
+
 	.panel.dragging {
 		user-select: none;
 		cursor: grabbing;
 	}
-	
+
 	.panel.minimized {
 		height: auto;
 	}
-	
+
 	header {
 		border-radius: var(--border-radius);
 		border-bottom-left-radius: 0;
@@ -143,11 +143,11 @@
 		align-items: center;
 		user-select: none;
 	}
-	
+
 	header:active {
 		cursor: grabbing;
 	}
-	
+
 	.panel-content {
 		flex: 1;
 		overflow: hidden;
