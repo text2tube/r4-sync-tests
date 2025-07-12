@@ -1,20 +1,18 @@
-<!--
-TODO: Future search features
-- Track-only search toggle
-- Channel mentions: search @channel-name 
-- Hashtag search: #funk #80s across channels
-- Advanced filters (date, duration, etc.)
--->
-
 <script>
 	import {onMount} from 'svelte'
 	import {page} from '$app/stores'
 	import {goto} from '$app/navigation'
 	import {IconSearch} from 'obra-icons-svelte'
 	import {pg} from '$lib/db.ts'
-	import {playTrack} from '$lib/api'
-	import TrackList from '$lib/components/tracklist.svelte'
+	import {subscribeToAppState, playTrack, playTracks, addToPlaylist} from '$lib/api'
+	import Tracklist from '$lib/components/tracklist.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
+
+	/** @type {AppState} */
+	let appState = $state({})
+	subscribeToAppState((state) => {
+		appState = state
+	})
 
 	/** @type {import('$lib/types.ts').Channel[]} */
 	let channels = $state([])
@@ -137,10 +135,17 @@ TODO: Future search features
 
 	{#if tracks.length > 0}
 		<section>
-			<h2>Tracks ({tracks.length})</h2>
+			<header>
+				<h2>Tracks ({tracks.length})</h2>
+				<menu>
+					<button onclick={() => playTracks(tracks.map(t => t.id))}>Play All</button>
+					<button onclick={() => addToPlaylist(tracks.map(t => t.id))}>Add to queue</button>
+				</menu>
+			</header>
+
 			<ul class="list tracks">
 				{#each tracks as track, index}
-					<li ondblclick={() => playTrack(track.id)}>
+					<li class={track.id === appState.playlist_track ? 'current' : ''} ondblclick={() => playTrack(track.id)}>
 						<span>{index + 1}.</span>
 						<div class="title">{track.title}</div>
 						<div class="description">
@@ -150,6 +155,7 @@ TODO: Future search features
 					</li>
 				{/each}
 			</ul>
+
 		</section>
 	{/if}
 
@@ -178,5 +184,20 @@ TODO: Future search features
 	h2 {
 		font-size: var(--font-size-regular);
 		margin: 0.5rem;
+	}
+
+	header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-right: 0.5rem;
+		border-bottom: 1px solid var(--gray-5);
+	}
+
+	menu {
+		display: flex;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0;
 	}
 </style>

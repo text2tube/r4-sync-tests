@@ -116,6 +116,7 @@ $effect(() => {
 - Use existing global styles over new classes
 - CSS custom properties for theming
 - Only create CSS classes when really needed
+- Use semantic elements like header menu instead. it's obvious. and call the button label "Add to queue"
 
 ## Code Style
 

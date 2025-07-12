@@ -223,3 +223,17 @@ export async function getChannelsWithTrackCounts() {
 	`
 	return rows
 }
+
+/** @param {string[]} trackIds */
+export async function addToPlaylist(trackIds) {
+	const {rows} = await pg.sql`SELECT playlist_tracks FROM app_state WHERE id = 1`
+	const currentTracks = rows[0]?.playlist_tracks || []
+	const newTracks = [...currentTracks, ...trackIds]
+	await pg.sql`UPDATE app_state SET playlist_tracks = ${newTracks}`
+}
+
+/** @param {string[]} trackIds */
+export async function playTracks(trackIds) {
+	if (!trackIds?.length) return
+	await loadPlaylist(trackIds)
+}

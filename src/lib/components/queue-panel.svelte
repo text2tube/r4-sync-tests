@@ -11,9 +11,6 @@
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
 
-	/** @type {string|undefined} */
-	let currentTrackId = $derived(appState.playlist_track)
-
 	subscribeToAppState((state) => {
 		appState = state
 	})
@@ -32,7 +29,7 @@
 	{/if}
 	<main class="scroll">
 		{#if trackIds.length > 0}
-			<Tracklist ids={trackIds} currentId={currentTrackId} />
+			<Tracklist ids={trackIds} />
 		{:else}
 			<div class="empty-state">
 				<p>No tracks in queue</p>

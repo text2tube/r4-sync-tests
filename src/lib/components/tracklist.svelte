@@ -1,12 +1,18 @@
 <script>
 	import {pg} from '$lib/db'
-	import {playTrack} from '$lib/api'
+	import {subscribeToAppState, playTrack} from '$lib/api'
 	//import {formatDate} from '$lib/dates'
 
-	const {ids, currentId, footer} = $props()
+	const {ids, footer} = $props()
 
 	/** @type {import('$lib/types').Track[]}*/
 	let tracks = $state([])
+
+	/** @type {AppState} */
+	let appState = $state({})
+	subscribeToAppState((state) => {
+		appState = state
+	})
 
 	$effect(() => {
 		// Turn the list of ids into real tracks.
@@ -27,7 +33,7 @@
 
 <ul class="list tracks">
 	{#each tracks as item, index (item.id)}
-		<li class={item.id === currentId ? 'current' : ''} ondblclick={() => playTrack(item.id)}>
+		<li class={item.id === appState.playlist_track ? 'current' : ''} ondblclick={() => playTrack(item.id)}>
 			<span>{index + 1}.</span>
 			<div class="title">
 				{item.title}

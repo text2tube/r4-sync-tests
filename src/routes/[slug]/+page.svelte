@@ -154,7 +154,7 @@
 		</header>
 		<section>
 			{#if trackIds.length > 0}
-				<Tracklist ids={trackIds} currentId={appState.playlist_track} />
+				<Tracklist ids={trackIds} />
 			{:else}
 				<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
 			{/if}
