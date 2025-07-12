@@ -22,6 +22,24 @@
 				WHERE id = ANY(${broadcastingChannelIds})
 			`
 		}
+
+		// Sync local broadcast state: if user's channel is broadcasting remotely, ensure local state matches
+		const {rows} = await pg.sql`SELECT broadcasting_channel_id, channels FROM app_state WHERE id = 1`
+		const state = rows[0]
+		const userChannelId = state?.channels?.[0]
+		
+		if (userChannelId) {
+			const isUserBroadcasting = broadcastingChannelIds.includes(userChannelId)
+			const hasLocalBroadcastState = !!state?.broadcasting_channel_id
+			
+			if (isUserBroadcasting && !hasLocalBroadcastState) {
+				await pg.sql`UPDATE app_state SET broadcasting_channel_id = ${userChannelId} WHERE id = 1`
+				console.log('synced local broadcast state', {channelId: userChannelId})
+			} else if (!isUserBroadcasting && hasLocalBroadcastState) {
+				await pg.sql`UPDATE app_state SET broadcasting_channel_id = NULL WHERE id = 1`
+				console.log('cleared stale local broadcast state')
+			}
+		}
 	}
 
 	$effect(() => {
