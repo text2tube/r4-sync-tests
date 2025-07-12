@@ -60,7 +60,6 @@
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 		gap: 1rem 0;
-		list-style: none;
 		padding: 0;
 
 		:global(figure) {

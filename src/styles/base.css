@@ -218,3 +218,26 @@ article:not(:has(media-controller[mediapaused])) .play {
 menu {
 	padding: 0;
 }
+
+.list.tracks {
+	li {
+		display: grid;
+		grid-template-columns: 2.5rem auto;
+		padding: 0.5rem 0 0.3rem 0.5rem;
+		line-height: 1.2;
+	}
+	li > span:first-child {
+		grid-row: span 2;
+		color: var(--gray-6);
+		font-size: var(--font-size-regular);
+		text-indent: 0.2em;
+	}
+
+	.title {
+		font-size: var(--font-size-regular);
+	}
+
+	li.current .title {
+		color: var(--color-accent);
+	}
+}

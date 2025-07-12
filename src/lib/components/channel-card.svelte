@@ -41,10 +41,10 @@
 			{/if}
 		</h3>
 		<p>
+			{channel.description}
 			{#if channel.track_count}
 				<small>({channel.track_count})</small>
 			{:else}{/if}
-			&nbsp;
 		</p>
 	</div>
 	<menu hidden>
@@ -62,14 +62,22 @@
 	article {
 		position: relative;
 		display: flex;
-		flex-flow: row wrap;
-		align-items: center;
+		flex-flow: row nowrap;
 		gap: 0.5rem;
 		padding: 0.25rem 0.5rem;
+
+		:global(.list) & {
+			display: grid;
+			grid-template-columns: 4rem auto;
+			align-items: center;
+		}
+
+		:global(.grid) & {
+			display: flex;
+			flex-flow: column nowrap;
+		}
 	}
-	figure {
-		width: 3rem;
-	}
+
 	article :global(figure + button) {
 		position: absolute;
 		left: 0.75rem;
@@ -79,18 +87,23 @@
 		box-shadow: none;
 		transition: 0;
 	}
+
+	/** hide play button unles hovered */
 	:global(li:not(:hover) .IconBtn) {
 		opacity: 0;
 	}
+
 	[data-busy='true'] {
 		cursor: wait;
 	}
+
 	menu {
 		margin-left: auto;
 	}
 	menu:not([hidden]) {
 		display: flex;
 	}
+
 	h3 {
 		font-size: 1rem;
 		font-weight: normal;
@@ -100,10 +113,21 @@
 		margin: 0;
 		line-height: 1.2;
 	}
+	h3 + p {
+		color: var(--gray-10);
+		font-size: var(--font-size-regular);
+	}
+
 	.live-indicator {
 		color: red;
 		font-size: 0.8rem;
 		font-weight: bold;
 		margin-left: 0.5rem;
+	}
+
+
+	/* hide channel description in grid view */
+	:global(.grid) h3 + p {
+		display: none;
 	}
 </style>

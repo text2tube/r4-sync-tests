@@ -13,6 +13,7 @@ TODO: Future search features
 	import {IconSearch} from 'obra-icons-svelte'
 	import {pg} from '$lib/db.ts'
 	import {playTrack} from '$lib/api'
+	import TrackList from '$lib/components/tracklist.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 
 	/** @type {import('$lib/types.ts').Channel[]} */
@@ -137,7 +138,7 @@ TODO: Future search features
 	{#if tracks.length > 0}
 		<section>
 			<h2>Tracks ({tracks.length})</h2>
-			<ul class="list">
+			<ul class="list tracks">
 				{#each tracks as track, index}
 					<li ondblclick={() => playTrack(track.id)}>
 						<span>{index + 1}.</span>

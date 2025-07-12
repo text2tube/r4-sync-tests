@@ -3,7 +3,7 @@
 	import {playTrack} from '$lib/api'
 	//import {formatDate} from '$lib/dates'
 
-	const {ids, currentId} = $props()
+	const {ids, currentId, footer} = $props()
 
 	/** @type {import('$lib/types').Track[]}*/
 	let tracks = $state([])
@@ -35,30 +35,11 @@
 			<div class="description">
 				<small>{item.description}</small>
 			</div>
+			{@render footer?.({track: item})}
 			<!--<p>{formatDate(item.created_at)}</p>-->
 		</li>
 	{/each}
 </ul>
 
 <style>
-	li {
-		display: grid;
-		grid-template-columns: 3rem auto;
-		padding: 0.5rem 0 0.3rem 0;
-		line-height: 1.2;
-	}
-	li > span:first-child {
-		grid-row: span 2;
-		color: var(--gray-6);
-		font-size: var(--font-size-regular);
-		text-indent: 0.2em;
-	}
-
-	.title {
-		font-size: var(--font-size-regular);
-	}
-
-	li.current .title {
-		color: var(--color-accent);
-	}
 </style>
