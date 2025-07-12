@@ -129,9 +129,10 @@
 				{/if}
 			</h2>
 			<h3>{track?.title}</h3>
-			<p>{description}</p>
 		</div>
 	</header>
+
+	<div class="center">
 
 	<menu>
 		<button onclick={toggleShuffle} aria-pressed={appState.shuffle} title="Toggle shuffle">
@@ -156,6 +157,21 @@
 		</div>
 	-->
 	</menu>
+
+	<media-control-bar mediacontroller="r5">
+    <media-time-range mediacontroller="r5"></media-time-range>
+		<media-time-display showduration remaining></media-time-display>
+  </media-control-bar>
+	</div>
+
+	<media-control-bar mediacontroller="r5">
+		<!-- <media-play-button></media-play-button> -->
+		<!-- <media-time-range></media-time-range> -->
+		<!-- <media-playback-rate-button></media-playback-rate-button> -->
+		<!-- <media-fullscreen-button></media-fullscreen-button> -->
+		<media-mute-button mediacontroller="r5"></media-mute-button>
+		<media-volume-range mediacontroller="r5"></media-volume-range>
+	</media-control-bar>
 
 	<YoutubePlayer
 		url={track?.url}
@@ -182,33 +198,38 @@
 	header {
 		display: grid;
 	}
+
+	.center {
+		display: flex;
+		flex-flow: column nowrap;
+	}
+
 	menu {
 		display: flex;
 		margin: auto;
 		padding: 0;
 		place-content: center;
 	}
+
 	h2,
 	h3,
 	p,
 	figure {
 		margin: 0;
 	}
-	h2 {
-		font-weight: 400;
-	}
-	h3 {
+	h2,
+	h3{
 		font-weight: 400;
 	}
 
 	/* Fixed bottom */
-
 	:global(footer:not(:has(input:checked))) {
 		padding-right: 0.5rem;
 	}
 	:global(footer:not(:has(input:checked)) > article) {
 		display: grid;
-		grid-template-columns: 1fr 1fr 1fr;
+		grid-template-columns: 1fr 2fr auto;
+		gap: 0.5rem;
 		/* justify-items: center; */
 
 		header {
@@ -223,11 +244,10 @@
 				line-height: 1;
 			}
 		}
-		menu {
-			gap: 0rem;
+		.center {
 		}
-		header p:last-of-type {
-			display: none;
+		menu {
+			margin-top: 0.5rem;
 		}
 		h2,
 		h3 {
@@ -269,4 +289,19 @@
 		font-weight: bold;
 		margin-left: 0.5rem;
 	}
+
+	media-control-bar {
+		--media-control-height: 2rem;
+		--media-background-color: none;
+		--media-button-icon-width: 1.5rem;
+		--media-button-padding: 0 0.5rem;
+		--media-control-padding: 0.5rem;
+		--media-control-background: none;
+		--media-primary-color: var(--gray-12);
+		--media-text-color: var(--gray-12);
+		--media-icon-color: var(--gray-12);
+		--media-range-track-background: hsla(0, 0%, 0%, 0.2);
+		--media-range-track-background: var(--gray-11);
+	}
+
 </style>
