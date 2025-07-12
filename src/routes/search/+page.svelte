@@ -12,6 +12,7 @@
 		toggleTheme,
 		toggleQueuePanel
 	} from '$lib/api'
+	import {stopBroadcasting, startBroadcasting} from '$lib/broadcast'
 	import Tracklist from '$lib/components/tracklist.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 
@@ -38,11 +39,21 @@
 	let debounceTimer = $state()
 
 	// Command definitions
-	const commands = [
-		{id: 'settings', title: 'Go to Settings', type: 'link', target: '/settings'},
-		{id: 'toggle-theme', title: 'Toggle Theme', type: 'command', action: toggleTheme},
-		{id: 'toggle-queue', title: 'Toggle Queue Panel', type: 'command', action: toggleQueuePanel}
-	]
+	const commands = $derived.by(() => {
+		const list = [
+			//{id: 'add-track', title: 'Add track', type: 'link', target: '/add'},
+			{id: 'settings', title: 'Go to Settings', type: 'link', target: '/settings'},
+			//{id: 'start-broadcasting', title: 'Start broadcasting', type: 'command', action: startBroadcasting},
+			//{id: 'stop-broadcasting', title: 'Stop broadcasting', type: 'command', action: stopBroadcasting},
+			{id: 'toggle-theme', title: 'Toggle theme', type: 'command', action: toggleTheme},
+			{id: 'toggle-queue', title: 'Toggle queue panel', type: 'command', action: toggleQueuePanel},
+			//doesnt work
+			//{id: 'clear-player', title: 'Clear player', type: 'command', action: async () => {
+			//await pg.sql`UPDATE app_state SET playlist_track = null, playlist_tracks = null where id = 1`
+			//}}
+		]
+		return list
+	})
 
 	/** Parse search tokens from query */
 	function parseSearchTokens(query) {
@@ -216,7 +227,7 @@
 		const trimmed = query.trim().toLowerCase()
 
 		// Check if it's a command (starts with >)
-		if (trimmed.startsWith('>')) {
+		if (trimmed.startsWith('/')) {
 			const commandQuery = trimmed.slice(1)
 			const command = commands.find(
 				(cmd) =>
@@ -267,7 +278,7 @@
 	/>
 	<datalist id="command-suggestions">
 		{#each commands as command}
-			<option value=">{command.id}">>{command.title}</option>
+			<option value="/{command.id}">/{command.title}</option>
 		{/each}
 		{#each allChannels as channel}
 			<option value="@{channel.slug}">@{channel.slug} - {channel.name}</option>
@@ -348,8 +359,10 @@
 	{/if}
 {:else}
 	<p>
-		tip: <code>@</code> to search channels, <code>&gt;</code> for commands. press cmd/ctrl+k to come
-		here.
+		TIP:
+		<br/> press cmd/ctrl+k to come here.
+		<br/> <code>@</code> to search channels
+		<br/><code>/</code> for commands
 	</p>
 {/if}
 

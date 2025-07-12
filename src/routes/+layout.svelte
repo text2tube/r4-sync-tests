@@ -89,7 +89,7 @@
 				<TestCounter />
 			{/if}
 		</a>
-		<a href="/search" class="btn" title="cmd/ctrl+k"><IconSearch /></a>
+		<a href="/search" class="btn" title="cmd/ctrl+k"><IconSearch size="16" /></a>
 
 		<div class="row right">
 			{#if !preloading}
