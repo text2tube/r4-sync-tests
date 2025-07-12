@@ -11,23 +11,6 @@
 	async function doubleclick(event) {
 		event.currentTarget?.querySelector('button')?.click()
 	}
-
-	// Just for testing. Shouldn't be visible in the UI.
-	async function maybePull() {
-		await pg.sql`update channels set busy = true where slug = ${channel.slug}`
-		if (await needsUpdate(channel.slug)) await pullTracks(channel.slug)
-		await pg.sql`update channels set busy = false where slug = ${channel.slug}`
-	}
-
-	// Just for testing
-	let deleting = $state(false)
-	async function deleteTracks() {
-		deleting = true
-		await pg.sql`DELETE FROM tracks WHERE channel_id = ${channel.id}`
-		await pg.sql`update channels set tracks_outdated = ${true} where id = ${channel.id}`
-		console.log('Deleted tracks')
-		deleting = false
-	}
 </script>
 
 <article ondblclick={doubleclick} data-busy={channel.busy}>
@@ -47,15 +30,6 @@
 			{:else}{/if}
 		</p>
 	</div>
-	<menu hidden>
-		<button data-loading={channel.busy} onclick={maybePull}
-			>{#if channel.busy}Pulling...{:else}Pull{/if}</button
-		>
-		{#if channel.tracks_outdated}{:else}{/if}
-		<button data-loading={deleting} title="Just for testing" onclick={() => deleteTracks()}>
-			{#if deleting}Deleting...{:else}Delete tracks{/if}
-		</button>
-	</menu>
 </article>
 
 <style>
@@ -75,6 +49,10 @@
 		:global(.grid) & {
 			display: flex;
 			flex-flow: column nowrap;
+			/* hide channel description in grid view */
+			h3 + p {
+				display: none;
+			}
 		}
 	}
 
@@ -127,11 +105,5 @@
 		font-size: 0.8rem;
 		font-weight: bold;
 		margin-left: 0.5rem;
-	}
-
-
-	/* hide channel description in grid view */
-	:global(.grid) h3 + p {
-		display: none;
 	}
 </style>

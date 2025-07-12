@@ -15,7 +15,6 @@
 </script>
 
 <button
-	class="IconBtn"
 	data-loading={loading}
 	disabled={loading}
 	onclick={play}

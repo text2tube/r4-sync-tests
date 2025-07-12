@@ -20,8 +20,6 @@
 	async function updateChannelBroadcastStatus(broadcasts) {
 		const broadcastingChannelIds = broadcasts.map((b) => b.channel_id)
 
-		console.log(broadcastingChannelIds)
-
 		// Reset all channels to not broadcasting
 		await pg.sql`UPDATE channels SET broadcasting = false`
 

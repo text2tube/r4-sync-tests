@@ -23,6 +23,7 @@
 	let title = $state('')
 	let image = $state('')
 	let description = $state('')
+	let slug = $state('')
 
 	/** @type {AppState} */
 	let appState = $state({})
@@ -68,6 +69,7 @@
 			title = result.channel.name
 			image = result.channel.image
 			description = result.channel.description
+			slug = result.channel.slug
 		}
 	}
 
@@ -107,7 +109,6 @@
 		} else {
 			console.warn('Unhandled player error', code)
 		}
-		//autoplay = true
 	}
 
 	function handleEndTrack() {
@@ -123,7 +124,7 @@
 		</figure>
 		<div>
 			<h2>
-				{title}
+				<a href={`/${slug}`}>{title}</a>
 				{#if isListeningToBroadcast}
 					<span class="broadcast-indicator">🔴 LIVE</span>
 				{/if}
@@ -219,6 +220,7 @@
 	:global(footer:not(:has(input:checked))) {
 		padding-right: 0.5rem;
 	}
+
 	:global(footer:not(:has(input:checked)) > article) {
 		display: grid;
 		grid-template-columns: 1fr 2fr auto;
@@ -232,7 +234,7 @@
 
 			div {
 				display: flex;
-				flex-flow: row wrap;
+				flex-flow: column wrap;
 				gap: 0.25rem;
 				line-height: 1;
 			}

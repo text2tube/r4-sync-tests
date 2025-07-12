@@ -7,6 +7,7 @@
 	import {pullChannel} from '$lib/sync'
 	import {subscribeToAppState} from '$lib/api'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
+	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
 	// import fuzzysort from 'fuzzysort'
 
@@ -149,7 +150,10 @@
 	<article>
 		<header>
 			<ChannelAvatar id={channel.image} alt={channel.name} />
-			<h1>{channel.name}</h1>
+			<h1>
+				{channel.name}
+				<ButtonPlay {channel} />
+			</h1>
 			<p>{channel.description}</p>
 		</header>
 		<section>
