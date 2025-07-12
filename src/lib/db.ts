@@ -7,7 +7,7 @@ import migration02sql from './migrations/02-add_queue_panel_visibility.sql?raw'
 import migration03sql from './migrations/03-add_broadcasts_table.sql?raw'
 
 // This will limit the amount of channels pulled.
-export const debugLimit = 10
+export const debugLimit = 20
 
 const migrations = [
 	{name: '01-create_tables', sql: migrationsql},

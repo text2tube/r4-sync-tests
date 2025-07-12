@@ -9,7 +9,7 @@ button,
 	font-weight: 500;
 	line-height: normal;
 	transition-property: border, background-color, color, opacity;
-	transition-duration: 150ms;
+	transition-duration: 100ms;
 	user-select: none;
 	position: relative;
 	border-radius: var(--border-radius);

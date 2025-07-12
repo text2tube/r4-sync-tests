@@ -155,10 +155,10 @@ figure {
 	padding: 0;
 	list-style: none;
 }
-.list > li {
+.list > * {
 	border-bottom: 1px solid var(--gray-4);
 }
-.list > li:hover {
+.list > *:hover {
 	background: var(--gray-2);
 }
 

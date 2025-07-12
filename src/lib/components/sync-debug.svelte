@@ -70,7 +70,7 @@
 	{#if channels.length === 0}
 		<p>No channels found. Run sync to populate.</p>
 	{:else}
-		<section class="channel-list">
+		<section class="list">
 			{#each channels as channel (channel.id)}
 				<article>
 					<div>
@@ -113,25 +113,18 @@
 		margin: 1rem 0.5rem;
 	}
 
-	.channel-list {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		margin: 2rem 0;
-
+	.list {
 		article {
 			display: flex;
-			flex-direction: column;
-			gap: 0rem;
+			align-items: center;
+			padding: 0.2rem 0;
 		}
-
 		p,
 		menu {
 			margin: 0;
 		}
-
-		p {
-			margin: 0.2rem 0 0.5rem;
+		menu {
+			margin-left: auto;
 		}
 	}
 </style>
