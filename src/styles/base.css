@@ -51,43 +51,8 @@ body {
 	/*scrollbar-color: var(--white) var(--black);*/
 }
 
-/* WAIT LETS JUST TRY IT */
-a,
-blockquote,
-body,
-code,
-dd,
-div,
-dl,
-dt,
-embed,
-fieldset,
-footer,
-form,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-header,
-html,
-img,
-legend,
-li,
-ol,
-p,
-pre,
-section,
-table,
-td,
-th,
-ul {
-	/* user-select: none; */
-}
-
 @media (prefers-reduced-motion: reduce) {
-	html {
+	:root {
 		scroll-behavior: auto;
 	}
 }

@@ -1,7 +1,10 @@
 <script>
-	import {IconWifiOff} from 'obra-icons-svelte'
+	import {IconWifi, IconWifiOff} from 'obra-icons-svelte'
 
 	let online = $state(navigator.onLine)
+
+	$inspect({online})
+
 	$effect(() => {
 		window.addEventListener('offline', () => {
 			online = false
@@ -14,8 +17,8 @@
 
 <div data-online={online}>
 	{#if online}
-		<!-- <IconWifi /> -->
-		<!-- <p>Online</p> -->
+		<IconWifi />
+		<p>Online</p>
 	{:else}
 		<IconWifiOff />
 		<p>Offline</p>

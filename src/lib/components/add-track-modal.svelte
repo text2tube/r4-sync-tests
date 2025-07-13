@@ -1,6 +1,7 @@
 <script>
 	import {pg} from '$lib/db'
 	import Modal from '$lib/components/modal.svelte'
+	import {IconAdd} from 'obra-icons-svelte'
 
 	let showModal = $state(false)
 	let channelId = $state()
@@ -27,9 +28,13 @@
 <svelte:window onkeydown={handleKeyDown} />
 
 {#if channelId}
-	<button onclick={() => (showModal = true)}>Add track</button>
+	<button onclick={() => (showModal = true)}>
+		<IconAdd /> Track
+	</button>
 {:else}
-	<a class="btn" href="/login">Add track</a>
+	<a class="btn" href="/login">
+		<IconAdd /> Track
+	</a>
 {/if}
 
 <Modal bind:showModal>
