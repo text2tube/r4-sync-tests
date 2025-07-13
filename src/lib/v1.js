@@ -11,9 +11,7 @@ export async function pullV1Channels() {
 	// remove duplicates (e.g. channels already in the database, be it from v2 or whatever)
 	const {rows} = await pg.sql`select slug from channels`
 	// we only want channels with images and at least _some_ tracks
-	const channels = items.filter(
-		(item) => !rows.some((r) => r.slug === item.slug) && item.image && item.track_count > 9
-	)
+	const channels = items.filter((item) => !rows.some((r) => r.slug === item.slug) && item.image && item.track_count > 9)
 
 	// console.log('Pulling v1 channels and tracks', channels)
 
@@ -30,7 +28,7 @@ export async function pullV1Channels() {
 				}
 				const {rows} = await tx.sql`select id from channels where slug = ${item.slug}`
 				// console.log('Pulled channel. Now tracks...', item.slug, rows[0].id, item.firebase_id)
-				await pullV1Tracks(rows[0].id, item.firebase_id, tx)
+				await pullV1Tracks(rows[0].id, item.firebase_id, pg)
 			}
 		})
 	} catch (err) {
@@ -46,8 +44,7 @@ export async function pullV1Channels() {
  * @param {typeof pg} [pg]
  */
 export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
-	const {rows: existingTracks} =
-		await pg.sql`select firebase_id from tracks where channel_id = ${channelId}`
+	const {rows: existingTracks} = await pg.sql`select firebase_id from tracks where channel_id = ${channelId}`
 	const v1Tracks = await findV1TracksByChannel(channelFirebaseId)
 	const tracks = v1Tracks.map((track) => ({
 		firebase_id: track.id,
@@ -57,7 +54,7 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 		description: track.body || '',
 		discogs_url: track.discogsUrl || '',
 		created_at: new Date(track.created).toISOString(),
-		updated_at: new Date(track.updated || track.created).toISOString()
+		updated_at: new Date(track.updated || track.created).toISOString(),
 	}))
 	const x = tracks.filter((t) => !existingTracks.some((x) => x.firebase_id === t.firebase_id))
 	for (const item of x) {

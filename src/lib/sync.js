@@ -69,7 +69,7 @@ export async function pullTracks(slug) {
 
 		// if v1 pull like this instead
 		if (channel.firebase_id) {
-			return await pullV1Tracks(channel.id, channel.firebase_id)
+			return await pullV1Tracks(channel.id, channel.firebase_id, pg)
 		}
 
 		// Pull tracks
@@ -96,7 +96,7 @@ export async function pullTracks(slug) {
           description = EXCLUDED.description,
           discogs_url = EXCLUDED.discogs_url,
           updated_at = EXCLUDED.updated_at
-      `
+      `,
 			)
 			await Promise.all(inserts)
 			console.log('Pulled tracks', tracks?.length)
@@ -149,15 +149,27 @@ export async function needsUpdate(slug) {
 	try {
 		// Get channel ID for remote query
 		const {
-			rows: [channel]
+			rows: [channel],
 		} = await pg.sql`select * from channels where slug = ${slug}`
 
 		const {id, firebase_id} = channel
 
 		if (!id) throw new Error(`Channel not found: ${slug}`)
 
+		// Get latest local track update
+		const {rows: localRows} = await pg.sql`
+      select updated_at
+      from tracks
+      where channel_id = ${id}
+      order by updated_at desc
+      limit 1
+    `
+		const localLatest = localRows[0]
+
 		if (firebase_id) {
 			// v1 channels dont need updating because it is in read-only state since before this project
+			// @todo fetch tracks from v1 and pull to local??
+			console.log('v1 channel', localLatest)
 			return false
 		}
 
@@ -171,15 +183,6 @@ export async function needsUpdate(slug) {
 			.single()
 		if (remoteError) throw remoteError
 
-		// Get latest local track update
-		const {rows: localRows} = await pg.sql`
-      select updated_at
-      from tracks
-      where channel_id = ${id}
-      order by updated_at desc
-      limit 1
-    `
-		const localLatest = localRows[0]
 		if (!localLatest) return true
 
 		// If never synced, needs update
@@ -344,9 +347,7 @@ export async function syncTracks({skipUpdateCheck = false} = {}) {
 		// Filter to only channels that need updates
 		channelsToSync = allChannels.filter((ch) => needsUpdateSet.has(ch.id))
 
-		console.log(
-			`📊 Smart check result: ${needsUpdateSet.size}/${allChannels.length} channels need updates`
-		)
+		console.log(`📊 Smart check result: ${needsUpdateSet.size}/${allChannels.length} channels need updates`)
 	}
 
 	if (channelsToSync.length === 0) {
@@ -411,7 +412,7 @@ export async function dryRun({skipUpdateCheck = false} = {}) {
 			needsSync: 0,
 			upToDate: 0,
 			channels: [],
-			wouldSync: []
+			wouldSync: [],
 		}
 	}
 
@@ -434,9 +435,9 @@ export async function dryRun({skipUpdateCheck = false} = {}) {
 			slug: ch.slug,
 			name: ch.name,
 			lastSynced: ch.tracks_synced_at,
-			needsSync: channelsNeedingSync.some((sync) => sync.id === ch.id)
+			needsSync: channelsNeedingSync.some((sync) => sync.id === ch.id),
 		})),
-		wouldSync: channelsNeedingSync.map((ch) => ({slug: ch.slug, name: ch.name}))
+		wouldSync: channelsNeedingSync.map((ch) => ({slug: ch.slug, name: ch.name})),
 	}
 
 	console.log(`📊 Sync Analysis (${skipUpdateCheck ? 'skip checks' : 'smart'} mode):`)

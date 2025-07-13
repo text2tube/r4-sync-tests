@@ -16,7 +16,7 @@
 
 	// Load channels with track counts
 	$effect(() => {
-		const liveQuery = pg.live.incrementalQuery('select * from channels', [], 'id', (results) => {
+		const liveQuery = pg.live.incrementalQuery('select * from channels order by updated_at desc', [], 'id', (results) => {
 			channels = results.rows
 		})
 		return () => {

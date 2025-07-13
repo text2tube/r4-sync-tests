@@ -69,7 +69,7 @@
 			if (!search) {
 				// Load all tracks if no search query
 				const {rows} = await pg.query(
-					`SELECT id FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC`,
+					'SELECT id FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
 					[channel.id]
 				)
 				trackIds = rows.map((row) => row.id)
