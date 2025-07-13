@@ -169,7 +169,7 @@ export async function needsUpdate(slug) {
 		if (firebase_id) {
 			// v1 channels dont need updating because it is in read-only state since before this project
 			// @todo fetch tracks from v1 and pull to local??
-			console.log('v1 channel', localLatest)
+			console.log('v1 channel do we want to fetch tracks?', localLatest)
 			return false
 		}
 
@@ -207,6 +207,8 @@ export async function needsUpdate(slug) {
  */
 export async function needsUpdateBatch(channelIds) {
 	if (!channelIds.length) return new Set()
+
+	console.log(`🔍 needsUpdateBatch: Checking ${channelIds.length} channels for updates`)
 
 	try {
 		// Get all channel data we need
@@ -255,33 +257,44 @@ export async function needsUpdateBatch(channelIds) {
 		const needsUpdateSet = new Set()
 		const toleranceMs = 20 * 1000
 
+		console.log(`🔍 needsUpdateBatch: Processing ${v2Channels.length} v2 channels for sync check`)
+
 		for (const channel of v2Channels) {
-			const {id, tracks_synced_at} = channel
+			const {id, slug, tracks_synced_at} = channel
 
 			// If never synced, needs update
 			if (!tracks_synced_at) {
+				console.log(`📝 Channel ${slug} (${id}): tracks_synced_at = null -> NEEDS UPDATE`)
 				needsUpdateSet.add(id)
 				continue
 			}
 
 			// If no local tracks, needs update
 			if (!localLatestMap.has(id)) {
+				console.log(`📝 Channel ${slug} (${id}): no local tracks -> NEEDS UPDATE`)
 				needsUpdateSet.add(id)
 				continue
 			}
 
 			// If no remote tracks, skip
-			if (!remoteLatestMap.has(id)) continue
+			if (!remoteLatestMap.has(id)) {
+				console.log(`📝 Channel ${slug} (${id}): no remote tracks -> SKIP`)
+				continue
+			}
 
 			// Compare timestamps
 			const remoteMs = new Date(remoteLatestMap.get(id)).setMilliseconds(0)
 			const localMs = new Date(localLatestMap.get(id)).setMilliseconds(0)
 
 			if (remoteMs - localMs > toleranceMs) {
+				console.log(`📝 Channel ${slug} (${id}): timestamp diff ${remoteMs - localMs}ms > ${toleranceMs}ms -> NEEDS UPDATE`)
 				needsUpdateSet.add(id)
+			} else {
+				console.log(`📝 Channel ${slug} (${id}): up to date (diff: ${remoteMs - localMs}ms)`)
 			}
 		}
 
+		console.log(`🔍 needsUpdateBatch: Final result - ${needsUpdateSet.size} channels need updates:`, Array.from(needsUpdateSet))
 		return needsUpdateSet
 	} catch (error) {
 		console.error('Error in batch needs update check', error)
@@ -293,7 +306,7 @@ export async function needsUpdateBatch(channelIds) {
 /**
  * Complete sync: channels + tracks. Sequential and resumable.
  * @param {Object} options
- * @param {boolean} [options.skipUpdateCheck=false] - Skip smart update checks and sync all channels
+ * @param {boolean} [options.skipUpdateCheck=false] - Skip update checks and sync all channels
  */
 export async function sync({skipUpdateCheck = false} = {}) {
 	console.time('sync')
@@ -302,18 +315,22 @@ export async function sync({skipUpdateCheck = false} = {}) {
 	await pullChannels()
 
 	// Step 2: Pull v1 channels in parallel (they don't need individual track sync)
-	await pullV1Channels()
+	try {
+		await pullV1Channels()
+	} catch (err) {
+		console.log(err)
+	}
 
-	// Step 3: Smart track sync for v2 channels (or skip checks if requested)
+	// Step 3: Track sync for v2 channels (or skip checks if requested)
 	await syncTracks({skipUpdateCheck})
 
 	console.timeEnd('sync')
 }
 
 /**
- * Smart track sync for v2 channels that need it
+ * Track sync for v2 channels that need it
  * @param {Object} options
- * @param {boolean} [options.skipUpdateCheck=false] - Skip intelligent needsUpdate checks and sync all channels
+ * @param {boolean} [options.skipUpdateCheck=false] - Skip needsUpdate checks and sync all channels
  */
 export async function syncTracks({skipUpdateCheck = false} = {}) {
 	let channelsToSync
@@ -346,9 +363,10 @@ export async function syncTracks({skipUpdateCheck = false} = {}) {
 
 		// Filter to only channels that need updates
 		channelsToSync = allChannels.filter((ch) => needsUpdateSet.has(ch.id))
+		console.log(`🔄 syncTracks: channelsToSync result - ${channelsToSync.length} channels:`, channelsToSync.map(ch => `${ch.name} (${ch.slug})`))
 
 		console.log(
-			`📊 Smart check result: ${needsUpdateSet.size}/${allChannels.length} channels need updates`
+			`📊 Check result: ${needsUpdateSet.size}/${allChannels.length} channels need updates`
 		)
 	}
 
@@ -373,7 +391,7 @@ export async function syncTracks({skipUpdateCheck = false} = {}) {
 }
 
 /**
- * Smart sync for a single channel - only pulls tracks if channel needs updating
+ * Sync for a single channel - only pulls tracks if channel needs updating
  * @param {string} slug - Channel slug
  * @param {Object} options
  * @param {boolean} [options.skipUpdateCheck=false] - Skip update check and always pull
@@ -399,7 +417,7 @@ export async function syncChannel(slug, {skipUpdateCheck = false} = {}) {
  * @returns {Promise<Object>} Analysis of what would be synced
  */
 export async function dryRun({skipUpdateCheck = false} = {}) {
-	console.log(`🔍 Analyzing sync (${skipUpdateCheck ? 'skip checks' : 'smart'} mode)...`)
+	console.log(`🔍 Analyzing sync (${skipUpdateCheck ? 'skip checks' : 'check mode'} mode)...`)
 
 	// Get all v2 channels
 	const {rows: allChannels} = await pg.query(`
@@ -442,10 +460,10 @@ export async function dryRun({skipUpdateCheck = false} = {}) {
 		wouldSync: channelsNeedingSync.map((ch) => ({slug: ch.slug, name: ch.name}))
 	}
 
-	console.log(`📊 Sync Analysis (${skipUpdateCheck ? 'skip checks' : 'smart'} mode):`)
-	console.log(`  • Total v2 channels: ${analysis.total}`)
-	console.log(`  • Need sync: ${analysis.needsSync}`)
-	console.log(`  • Up to date: ${analysis.upToDate}`)
+	console.log(`Sync Analysis (${skipUpdateCheck ? 'skip checks' : 'check'} mode):`)
+	console.log(`• Total v2 channels: ${analysis.total}`)
+	console.log(`• Need sync: ${analysis.needsSync}`)
+	console.log(`• Up to date: ${analysis.upToDate}`)
 
 	if (analysis.needsSync > 0) {
 		console.log(`  • Would sync: ${analysis.wouldSync.map((ch) => ch.slug).join(', ')}`)

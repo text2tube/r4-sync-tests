@@ -1,9 +1,8 @@
 import {describe, test, expect, beforeEach, vi} from 'vitest'
 import {PGlite} from '@electric-sql/pglite'
-import {needsUpdate, batchNeedsUpdate, sequentialTrackSync, analyzeSync} from './sync.js'
+import {needsUpdate, needsUpdateBatch, syncTracks, dryRun} from './sync.js'
 import {sdk} from '@radio4000/sdk'
 
-// Import migrations directly
 import migrationsql from './migrations/01-create_tables.sql?raw'
 import migration02sql from './migrations/02-add_queue_panel_visibility.sql?raw'
 import migration03sql from './migrations/03-add_broadcasts_table.sql?raw'
@@ -49,7 +48,6 @@ describe('Production Sync Performance: Real API Testing', () => {
 		pg = await PGlite.create('memory://')
 		await migrate(pg)
 
-		// Mock the production pg import to use our test database
 		const syncModule = await import('./sync.js')
 		originalPg = syncModule.pg
 		vi.doMock('$lib/db', () => ({
@@ -59,7 +57,6 @@ describe('Production Sync Performance: Real API Testing', () => {
 	})
 
 	afterEach(() => {
-		// Restore original pg
 		if (originalPg) {
 			vi.doMock('$lib/db', () => ({
 				pg: originalPg,
@@ -73,19 +70,15 @@ describe('Production Sync Performance: Real API Testing', () => {
 		return `${(ms / 1000).toFixed(2)}s`
 	}
 
-	test('Production API: Smart vs Skip Update Check Performance', async () => {
-		console.log('\n🏭 Production API Performance Test (20 channels)\n')
+	test('Production API: Update Check vs Skip Check Performance', async () => {
+		console.log('Testing 20 channels performance')
 
-		// Get fresh channels from Radio4000
-		console.log('📥 Fetching 25 real channels from Radio4000...')
 		const {data: realChannels, error} = await sdk.channels.readChannels(25)
 		expect(error).toBeNull()
 		expect(realChannels).toBeDefined()
 		expect(realChannels.length).toBeGreaterThanOrEqual(20)
 
-		// Use 20 channels for testing
 		const testChannels = realChannels.slice(0, 20)
-		console.log(`💾 Setting up ${testChannels.length} channels locally...`)
 
 		for (const channel of testChannels) {
 			await pg.sql`
@@ -99,14 +92,7 @@ describe('Production Sync Performance: Real API Testing', () => {
 		}
 
 		const {rows: dbChannels} = await pg.query('SELECT id, slug FROM channels ORDER BY slug')
-		console.log(
-			`🔧 Testing with ${dbChannels.length} channels: ${dbChannels
-				.slice(0, 3)
-				.map((c) => c.slug)
-				.join(', ')}${dbChannels.length > 3 ? '...' : ''}`
-		)
 
-		// Strategy 1: Individual needsUpdate calls (production function)
 		console.log('\n🔄 Strategy 1: Individual needsUpdate calls')
 		const individualStart = performance.now()
 
@@ -121,17 +107,15 @@ describe('Production Sync Performance: Real API Testing', () => {
 		const individualTotal = performance.now() - individualStart
 		console.log(`  💫 Total Individual Time: ${formatDuration(individualTotal)}`)
 
-		// Strategy 2: Production batchNeedsUpdate call
-		console.log('\n⚡ Strategy 2: Production batchNeedsUpdate call')
+		console.log('\n⚡ Strategy 2: Production needsUpdateBatch call')
 		const batchStart = performance.now()
 
 		const channelIds = dbChannels.map((c) => c.id)
-		const needsUpdateSet = await batchNeedsUpdate(channelIds)
+		const needsUpdateSet = await needsUpdateBatch(channelIds)
 
 		const batchTotal = performance.now() - batchStart
 		console.log(`  💫 Total Batch Time: ${formatDuration(batchTotal)}`)
 
-		// Verify results match
 		console.log('\n🔍 Result Verification:')
 		let matchCount = 0
 		let mismatchDetails = []
@@ -162,7 +146,6 @@ describe('Production Sync Performance: Real API Testing', () => {
 			})
 		}
 
-		// Performance Analysis
 		console.log('\n📊 Performance Analysis:')
 		const speedup = (individualTotal / batchTotal).toFixed(2)
 		const timeSaved = individualTotal - batchTotal
@@ -175,20 +158,17 @@ describe('Production Sync Performance: Real API Testing', () => {
 			`  • Per-channel avg: Individual ${formatDuration(individualTotal / dbChannels.length)} vs Batch ${formatDuration(batchTotal / dbChannels.length)}`
 		)
 
-		// Assertions
 		expect(matchCount).toBe(dbChannels.length)
 		expect(batchTotal).toBeLessThan(individualTotal)
 		expect(parseFloat(speedup)).toBeGreaterThan(1.5)
 	}, 60000)
 
-	test('Production API: analyzeSync dry run functionality', async () => {
-		console.log('\n🔍 Production analyzeSync Testing\n')
+	test('Production API: dryRun functionality', async () => {
+		console.log('\n🔍 Production dryRun Testing\n')
 
-		// Get real channels
 		const {data: realChannels} = await sdk.channels.readChannels(10)
 		expect(realChannels).toBeDefined()
 
-		// Setup mix of channel states - some synced, some not
 		console.log('🔧 Setting up mixed channel states...')
 		for (const [i, channel] of realChannels.slice(0, 6).entries()) {
 			const tracksSyncedAt = i < 3 ? new Date().toISOString() : null
@@ -203,34 +183,32 @@ describe('Production Sync Performance: Real API Testing', () => {
 			`
 		}
 
-		// Test smart mode analysis
-		console.log('\n🧠 Testing smart mode analysis...')
-		const smartAnalysis = await analyzeSync({skipUpdateCheck: false})
+		// Test with update checks
+		console.log('\n🔍 Testing with update checks...')
+		const checkAnalysis = await dryRun({skipUpdateCheck: false})
 
-		console.log('\n⏭️  Testing skip update check mode...')
-		const skipAnalysis = await analyzeSync({skipUpdateCheck: true})
+		console.log('\n⏭️  Testing skip check mode...')
+		const skipAnalysis = await dryRun({skipUpdateCheck: true})
 
-		// Verify analysis results
 		console.log('\n📊 Analysis Comparison:')
 		console.log(
-			`  • Smart mode would sync: ${smartAnalysis.needsSync}/${smartAnalysis.total} channels`
+			`  • Check mode would sync: ${checkAnalysis.needsSync}/${checkAnalysis.total} channels`
 		)
 		console.log(
 			`  • Skip mode would sync: ${skipAnalysis.needsSync}/${skipAnalysis.total} channels`
 		)
-		console.log(`  • Channels up to date: ${smartAnalysis.upToDate}`)
+		console.log(`  • Channels up to date: ${checkAnalysis.upToDate}`)
 
-		expect(smartAnalysis.total).toBe(6)
+		expect(checkAnalysis.total).toBe(6)
 		expect(skipAnalysis.total).toBe(6)
-		expect(skipAnalysis.needsSync).toBe(6) // Skip mode syncs everything
-		expect(smartAnalysis.needsSync).toBeLessThanOrEqual(skipAnalysis.needsSync) // Smart mode should sync fewer or equal
-		expect(smartAnalysis.upToDate).toBeGreaterThanOrEqual(0)
+		expect(skipAnalysis.needsSync).toBe(6)
+		expect(checkAnalysis.needsSync).toBeLessThanOrEqual(skipAnalysis.needsSync)
+		expect(checkAnalysis.upToDate).toBeGreaterThanOrEqual(0)
 	}, 30000)
 
-	test('Production API: sequentialTrackSync performance comparison', async () => {
-		console.log('\n🔄 Production sequentialTrackSync Performance\n')
+	test('Production API: syncTracks performance comparison', async () => {
+		console.log('\n🔄 Production syncTracks Performance\n')
 
-		// Get real channels for testing
 		const {data: realChannels} = await sdk.channels.readChannels(15)
 		expect(realChannels).toBeDefined()
 
@@ -238,9 +216,8 @@ describe('Production Sync Performance: Real API Testing', () => {
 		const results = {}
 
 		for (const size of testSizes) {
-			console.log(`\n🧪 Testing sequentialTrackSync with ${size} channels...`)
+			console.log(`\n🧪 Testing syncTracks with ${size} channels...`)
 
-			// Reset and setup channels for this test size
 			await pg.exec('DELETE FROM channels')
 
 			for (const channel of realChannels.slice(0, size)) {
@@ -254,40 +231,36 @@ describe('Production Sync Performance: Real API Testing', () => {
 				`
 			}
 
-			// Time smart mode (default behavior)
-			console.log('  🧠 Testing smart mode (default)...')
-			const smartStart = performance.now()
-			await sequentialTrackSync({skipUpdateCheck: false})
-			const smartTime = performance.now() - smartStart
+			console.log('  🔍 Testing with update checks (default)...')
+			const checkStart = performance.now()
+			await syncTracks({skipUpdateCheck: false})
+			const checkTime = performance.now() - checkStart
 
 			// Note: We can't time skipUpdateCheck mode because it would actually
 			// try to pull all tracks from the network, which would be very slow
-			// and hit the real API. The smart mode test verifies the batch logic works.
+			// and hit the real API. The check mode test verifies the batch logic works.
 
-			results[size] = {smart: smartTime}
+			results[size] = {check: checkTime}
 
-			console.log(`  • Smart mode: ${formatDuration(smartTime)}`)
+			console.log(`  • Check mode: ${formatDuration(checkTime)}`)
 			console.log(`  • Used batch needsUpdate optimization: ✅`)
 		}
 
-		console.log('\n📈 Smart Mode Performance Summary:')
-		console.log('  Size | Smart Mode Time')
+		console.log('\n📈 Check Mode Performance Summary:')
+		console.log('  Size | Check Mode Time')
 		console.log('  -----|----------------')
 		testSizes.forEach((size) => {
-			const {smart} = results[size]
-			const smartStr = formatDuration(smart).padEnd(15)
-			console.log(`  ${size.toString().padEnd(4)} | ${smartStr}`)
+			const {check} = results[size]
+			const checkStr = formatDuration(check).padEnd(15)
+			console.log(`  ${size.toString().padEnd(4)} | ${checkStr}`)
 		})
 
-		// The main assertion is that the function completes without error
-		// and uses the batch optimization internally
-		expect(results[15].smart).toBeGreaterThan(0)
+		expect(results[15].check).toBeGreaterThan(0)
 	}, 60000)
 
 	test('Single Record: Individual vs Batch needsUpdate overhead', async () => {
 		console.log('\n🔍 Single Record Performance (Production API)\n')
 
-		// Get one real channel
 		const {data: realChannels} = await sdk.channels.readChannels(5)
 		expect(realChannels).toBeDefined()
 
@@ -303,7 +276,6 @@ describe('Production Sync Performance: Real API Testing', () => {
 
 		console.log(`🔧 Testing single channel: ${testChannel.slug}`)
 
-		// Run 10 iterations for statistical significance
 		const iterations = 10
 		const individualTimes = []
 		const batchTimes = []
@@ -311,11 +283,9 @@ describe('Production Sync Performance: Real API Testing', () => {
 
 		console.log(`\n⏱️  Running ${iterations} iterations for statistical accuracy...`)
 
-		// Warm up (exclude from measurements)
 		await needsUpdate(testChannel.slug)
-		await batchNeedsUpdate([testChannel.id])
+		await needsUpdateBatch([testChannel.id])
 
-		// Individual approach measurements
 		for (let i = 0; i < iterations; i++) {
 			const start = performance.now()
 			lastIndividualResult = await needsUpdate(testChannel.slug)
@@ -323,16 +293,14 @@ describe('Production Sync Performance: Real API Testing', () => {
 			individualTimes.push(time)
 		}
 
-		// Batch approach measurements
 		for (let i = 0; i < iterations; i++) {
 			const start = performance.now()
-			const batchSet = await batchNeedsUpdate([testChannel.id])
+			const batchSet = await needsUpdateBatch([testChannel.id])
 			lastBatchResult = batchSet.has(testChannel.id)
 			const time = performance.now() - start
 			batchTimes.push(time)
 		}
 
-		// Statistical analysis
 		const avgIndividual = individualTimes.reduce((a, b) => a + b, 0) / iterations
 		const avgBatch = batchTimes.reduce((a, b) => a + b, 0) / iterations
 		const minIndividual = Math.min(...individualTimes)

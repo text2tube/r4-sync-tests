@@ -1,6 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
-	import {pullTracks} from '$lib/sync'
+	import {pullTracks, dryRun} from '$lib/sync'
 
 	/** @type {import('$lib/types').Channel[]} */
 	let channels = $state([])
@@ -71,6 +71,8 @@
 
 <section>
 	<h3>Sync debugger ({channels.length} channels)</h3>
+
+	<button onclick={dryRun}>Dry run</button>
 
 	{#if channels.length === 0}{:else}
 		<section class="list">

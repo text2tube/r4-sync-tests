@@ -39,7 +39,10 @@
 	async function handleSync() {
 		syncing = true
 		try {
+			console.log('hadlesync')
 			await sync()
+		} catch (err) {
+			console.error(err)
 		} finally {
 			syncing = false
 		}

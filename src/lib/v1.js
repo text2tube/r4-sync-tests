@@ -15,7 +15,7 @@ export async function pullV1Channels() {
 		(item) => !rows.some((r) => r.slug === item.slug) && item.image && item.track_count > 9
 	)
 
-	// console.log('Pulling v1 channels and tracks', channels)
+	console.log('Pulling v1 channels and tracks', channels)
 
 	try {
 		await pg.transaction(async (tx) => {
@@ -30,7 +30,7 @@ export async function pullV1Channels() {
 				}
 				const {rows} = await tx.sql`select id from channels where slug = ${item.slug}`
 				// console.log('Pulled channel. Now tracks...', item.slug, rows[0].id, item.firebase_id)
-				await pullV1Tracks(rows[0].id, item.firebase_id, pg)
+				await pullV1Tracks(rows[0].id, item.firebase_id, tx)
 			}
 		})
 	} catch (err) {
