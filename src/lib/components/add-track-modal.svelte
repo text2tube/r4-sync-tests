@@ -29,11 +29,11 @@
 
 {#if channelId}
 	<button onclick={() => (showModal = true)}>
-		<IconAdd /> Track
+		<IconAdd size={20} /> Track
 	</button>
 {:else}
 	<a class="btn" href="/login">
-		<IconAdd /> Track
+		<IconAdd size={20} /> Track
 	</a>
 {/if}
 

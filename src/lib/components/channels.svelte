@@ -31,8 +31,8 @@
 </script>
 
 <menu>
-	<button onclick={() => setDisplay('list')}><IconUnorderedList /> List</button>
-	<button onclick={() => setDisplay('grid')}><IconGrid /> Grid</button>
+	<button titl="View as list" class:active={display === 'list'} onclick={() => setDisplay('list')}><IconUnorderedList /></button>
+	<button title="View as grid" class:active={display === 'grid'} onclick={() => setDisplay('grid')}><IconGrid /></button>
 </menu>
 
 <ul class={display}>
@@ -47,17 +47,14 @@
 	menu {
 		top: 0;
 		z-index: 1;
-		padding: 0 0.5rem;
 		display: flex;
-		gap: 0.5rem;
-		margin: 1rem 0 0.6rem;
-		> * {
-			margin: 0;
-		}
+		justify-content: flex-end;
+		gap: 0.25rem;
+		margin: 0.5rem;
 	}
 
 	menu :global(svg) {
-		width: 1.25em;
+		width: var(--font-size-large);
 		margin-right: 0.2em;
 	}
 </style>

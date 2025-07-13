@@ -3,12 +3,13 @@
 	import {subscribeToAppState, playTrack} from '$lib/api'
 	//import {formatDate} from '$lib/dates'
 
+	/** @type {{ids: string[], footer: (props: {track: import('$lib/types').Track}) => any}} */
 	const {ids, footer} = $props()
 
 	/** @type {import('$lib/types').Track[]}*/
 	let tracks = $state([])
 
-	/** @type {AppState} */
+	/** @type {import('$lib/types').AppState} */
 	let appState = $state({})
 	subscribeToAppState((state) => {
 		appState = state

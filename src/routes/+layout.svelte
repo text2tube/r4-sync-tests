@@ -96,23 +96,23 @@
 				<TestCounter />
 			{/if}
 		</a>
-		<a href="/search" class="btn" title="cmd/ctrl+k"><IconSearch size={16} /></a>
+		<a href="/search" class="btn" title="cmd/ctrl+k"><IconSearch size={20} /></a>
 
 		<div class="row right">
 			{#if !preloading}
-				<LiveBroadcasts />
+				<AddTrackModal />
 				<BroadcastControls {appState} />
+				<LiveBroadcasts />
 			{/if}
 			<!-- <a href="/playground/syncthing">Syncthing</a> -->
 			<!--<InternetIndicator />-->
 			{#if !preloading}
-				<AddTrackModal />
 				<button onclick={toggleQueuePanel}>Queue</button>
 				<button onclick={toggleChatPanel}>Chat</button>
 				<ThemeToggle />
 			{/if}
 			<a href="/settings" class="btn">
-				<IconSettings />
+				<IconSettings size={20} />
 			</a>
 		</div>
 	</header>
@@ -193,6 +193,10 @@
 			font-size: var(--font-size-small);
 			line-height: 2rem;
 			text-decoration: none;
+		}
+
+		:global(.live-broadcasts) {
+			margin-right: 0.5rem;
 		}
 	}
 

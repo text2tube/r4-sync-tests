@@ -110,7 +110,7 @@
 
 {#if activeBroadcasts.length > 0}
 	<div class="live-broadcasts">
-		<span>Live radios 🔴 &rarr;</span>
+		<span>🔴 Live &rarr;</span>
 		{#each activeBroadcasts as broadcast (broadcast.channel_id)}
 			{@const isActive = broadcast.channel_id === appState.listening_to_channel_id}
 			<button
