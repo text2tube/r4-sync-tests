@@ -12,8 +12,6 @@ export async function load({params, url}) {
 	const {rows} = await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])
 	let channel = rows[0]
 
-	console.log('channel', channel)
-
 	// If not found locally, pull from SDK
 	try {
 		if (!channel) {

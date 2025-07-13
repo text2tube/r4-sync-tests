@@ -1,6 +1,6 @@
 <script>
 	import {onMount} from 'svelte'
-	import {page} from '$app/stores'
+	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
 	import {IconSearch} from 'obra-icons-svelte'
 	import fuzzysort from 'fuzzysort'
@@ -86,7 +86,7 @@
 	}
 
 	onMount(() => {
-		const urlSearch = $page.url.searchParams.get('search')
+		const urlSearch = page.url.searchParams.get('search')
 		if (urlSearch) {
 			searchQuery = urlSearch
 			performSearch()

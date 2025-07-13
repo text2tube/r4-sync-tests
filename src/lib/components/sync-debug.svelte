@@ -94,15 +94,15 @@
 					</div>
 
 					<menu>
-						<button onclick={() => pullTracks(channel.slug)}>Pull tracks</button>
+						<button onclick={() => pullTracks(channel.slug)}>&darr; Pull tracks</button>
 						<button
 							onclick={() => deleteTracks(channel.id, channel.name)}
 							disabled={channel.track_count === 0}
 						>
-							Delete tracks
+							&times; Delete tracks
 						</button>
 						<button onclick={() => deleteChannel(channel.id, channel.name)} class="danger">
-							Delete channel
+							&times; Delete channel
 						</button>
 					</menu>
 				</article>

@@ -1,6 +1,6 @@
 <script>
 	import {goto} from '$app/navigation'
-	import {page} from '$app/stores'
+	import {page} from '$app/state'
 	import {IconSearch} from 'obra-icons-svelte'
 
 	let {search = '', order = 'created', dir = 'desc', onSearchChange, onOrderChange} = $props()
@@ -33,7 +33,7 @@
 		if (dir !== 'desc') params.set('dir', dir)
 
 		const queryString = params.toString()
-		const newUrl = `${$page.url.pathname}${queryString ? `?${queryString}` : ''}`
+		const newUrl = `${page.url.pathname}${queryString ? `?${queryString}` : ''}`
 		goto(newUrl, {replaceState: true})
 	}
 </script>

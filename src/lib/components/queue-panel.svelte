@@ -46,6 +46,9 @@
 		height: 100%;
 		background: light-dark(var(--gray-1), var(--gray-2));
 		border-left: 1px solid var(--gray-5);
+
+		/* perf trick! */
+		contain: layout size;
 	}
 
 	header {

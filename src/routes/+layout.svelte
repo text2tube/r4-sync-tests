@@ -14,20 +14,24 @@
 	import DraggablePanel from '$lib/components/draggable-panel.svelte'
 	import {IconSearch, IconChevronUp, IconChevronDown, IconSettings} from 'obra-icons-svelte'
 	import {setupBroadcastSync, stopBroadcasting, startBroadcasting} from '$lib/broadcast'
-	import {toggleQueuePanel as toggleQueuePanelApi} from '$lib/api'
+	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
 	import '@radio4000/components'
 
 	const {data, children} = $props()
 
-	// This is true until the database is initialized.
-	let preloading = $derived(data.preloading)
-
-	/** @type {import('$lib/types').AppState} */
-	let appState = $state({})
-	let queuePanelVisible = $state(false)
 	let chatPanelVisible = $state(false)
 	/** @type {HTMLInputElement|undefined} */
 	let playerLayoutCheckbox = $state()
+
+	/** @type {import('$lib/types').AppState} */
+	let appState = $state({})
+
+	// true until the database is initialized.
+	const preloading = $derived(data.preloading)
+
+	subscribeToAppState((state) => {
+		appState = state
+	})
 
 	/**
 	 * Close the player overlay, if open, on escape key press.
@@ -47,9 +51,6 @@
 		}
 	}
 
-	function toggleQueuePanel() {
-		toggleQueuePanelApi()
-	}
 
 	function toggleChatPanel() {
 		chatPanelVisible = !chatPanelVisible
@@ -81,14 +82,14 @@
 		<a href="/search" class="btn" title="cmd/ctrl+k"><IconSearch size={20} /></a>
 
 		<div class="row right">
-			{#if !preloading}
+			{#if appState}
 				<AddTrackModal />
 				<BroadcastControls {appState} />
 				<LiveBroadcasts />
 			{/if}
 			<!-- <a href="/playground/syncthing">Syncthing</a> -->
 			<!--<InternetIndicator />-->
-			{#if !preloading}
+			{#if appState}
 				<button onclick={toggleQueuePanel}>Queue</button>
 				<button onclick={toggleChatPanel}>Chat</button>
 				<ThemeToggle />
@@ -110,7 +111,7 @@
 			{/if}
 		</main>
 
-		{#if !preloading && queuePanelVisible}
+		{#if appState?.queue_panel_visible}
 			<QueuePanel />
 		{/if}
 	</div>

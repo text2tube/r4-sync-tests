@@ -47,6 +47,7 @@ export interface AppState {
 	shuffle?: boolean
 	broadcasting_channel_id?: string
 	listening_to_channel_id?: string
+	queue_panel_visible?: boolean
 }
 
 export interface Broadcast {
