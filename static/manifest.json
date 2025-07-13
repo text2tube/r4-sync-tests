@@ -1,24 +1,30 @@
 {
+	"id": "radio4000.com",
 	"name": "Radio5000",
 	"short_name": "R5",
+	"orientation": "portrait",
+	"start_url": "/",
 	"icons": [
 		{
 			"src": "favicon.png",
-			"sizes": "128x128",
-			"type": "image/png"
-		},
-		{
-			"src": "favicon.png",
-			"sizes": "270x270",
-			"type": "image/png"
-		},
-		{
-			"src": "favicon.png",
-			"sizes": "558x558",
+			"sizes": "512x512",
 			"type": "image/png"
 		}
 	],
 	"theme_color": "#ffffff",
 	"background_color": "#ffffff",
-	"display": "standalone"
+	"display": "standalone",
+	"display_override": "minimal-ui",
+	"screenshots": [
+		{
+			"src": "/screenshot-phone.webp",
+			"sizes": "750x1334",
+			"form_factor": "narrow"
+		},
+		{
+			"src": "/screenshot-wide.webp",
+			"sizes": "2360x1640",
+			"form_factor": "wide"
+		}
+	]
 }
