@@ -162,7 +162,7 @@ export async function readBroadcastsWithChannel() {
 
 // App State Management Functions
 
-/** @param {any} callback */
+/** @param {(state: import('$lib/types').AppState) => void} callback */
 export async function subscribeToAppState(callback) {
 	return pg.live.query('SELECT * FROM app_state WHERE id = 1', [], (res) => {
 		callback(res.rows[0] || {})
@@ -186,7 +186,6 @@ export async function getTrackWithChannel(trackId) {
  * @param {string} orderBy
  * @param {string} direction
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function searchChannelTracks(
 	channelId,
 	searchTerm = '',

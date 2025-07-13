@@ -29,6 +29,8 @@ export type Track = {
 	discogs_url?: string
 	// custom ones
 	busy: boolean
+	// sometimes we join and add this to the track
+	channel_slug?: string
 }
 
 export interface AppState {

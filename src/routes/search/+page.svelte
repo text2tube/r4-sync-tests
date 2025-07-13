@@ -3,7 +3,7 @@
 	import {page} from '$app/stores'
 	import {goto} from '$app/navigation'
 	import {IconSearch} from 'obra-icons-svelte'
-	import {pg} from '$lib/db.ts'
+	import {pg} from '$lib/db'
 	import {
 		subscribeToAppState,
 		playTrack,
@@ -12,11 +12,9 @@
 		toggleTheme,
 		toggleQueuePanel
 	} from '$lib/api'
-	import {stopBroadcasting, startBroadcasting} from '$lib/broadcast'
-	import Tracklist from '$lib/components/tracklist.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 
-	/** @type {AppState} */
+	/** @type {import('$lib/types.ts').AppState} */
 	let appState = $state({})
 	subscribeToAppState((state) => {
 		appState = state
@@ -38,9 +36,11 @@
 	let isLoading = $state(false)
 	let debounceTimer = $state()
 
-	// Command definitions
+	/** @typedef {{id: string, title: string, type: 'link' | 'command', target?: string, action?: () => void}} Command */
+
 	const commands = $derived.by(() => {
-		const list = [
+		/** @type {Command[]} */
+		return [
 			//{id: 'add-track', title: 'Add track', type: 'link', target: '/add'},
 			{id: 'settings', title: 'Go to Settings', type: 'link', target: '/settings'},
 			//{id: 'start-broadcasting', title: 'Start broadcasting', type: 'command', action: startBroadcasting},
@@ -52,10 +52,9 @@
 			//await pg.sql`UPDATE app_state SET playlist_track = null, playlist_tracks = null where id = 1`
 			//}}
 		]
-		return list
 	})
 
-	/** Parse search tokens from query */
+	/** Parse search tokens from query @param {string} query */
 	function parseSearchTokens(query) {
 		const mentions = query.match(/@\w+/g) || []
 		const cleanQuery = query.replace(/@\w+/g, '').trim()

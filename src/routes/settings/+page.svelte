@@ -25,14 +25,6 @@
 		}
 	)
 
-	// /** @type {import('$lib/types').AppState}*/
-	// let appState = $state({})
-
-	// Listen to app state updates and update UI.
-	// pg.live.query(`select * from app_state where id = 1`, [], (res) => {
-	// 	appState = res.rows[0]
-	// })
-
 	async function handleTotalSync() {
 		totalSyncing = true
 		try {

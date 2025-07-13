@@ -1,15 +1,17 @@
 <script>
 	import {pg} from '$lib/db'
+	import {needsUpdate, pullTracks} from '$lib/sync'
 	import ButtonPlay from './button-play.svelte'
 	import ChannelAvatar from './channel-avatar.svelte'
-	import {needsUpdate, pullTracks} from '$lib/sync'
 
 	/** @type {{channel: import('$lib/types').Channel}}*/
 	let {channel} = $props()
 
 	/** @param {MouseEvent} event */
-	async function doubleclick(event) {
-		event.currentTarget?.querySelector('button')?.click()
+	async function doubleclick({currentTarget}) {
+		if (currentTarget instanceof HTMLElement) {
+			currentTarget.querySelector('button')?.click()
+		}
 	}
 </script>
 
@@ -67,23 +69,16 @@
 		width: 2.5rem;
 		border: 0;
 		box-shadow: none;
-		transition: 0;
+		transition: none;
 	}
 
 	/** hide play button unles hovered */
-	:global(li:not(:hover) .IconBtn) {
+	article:not(article:hover) :global(figure + button) {
 		opacity: 0;
 	}
 
 	[data-busy='true'] {
 		cursor: wait;
-	}
-
-	menu {
-		margin-left: auto;
-	}
-	menu:not([hidden]) {
-		display: flex;
 	}
 
 	h3 {

@@ -206,11 +206,11 @@ export async function batchNeedsUpdate(channelIds) {
 
 		// Get latest remote update per channel
 		const remoteLatestMap = new Map()
-		remoteUpdates?.forEach((update) => {
+		for (const update of remoteUpdates || []) {
 			if (!remoteLatestMap.has(update.channel_id)) {
 				remoteLatestMap.set(update.channel_id, update.updated_at)
 			}
-		})
+		}
 
 		// Get all local latest updates in one query
 		const {rows: localUpdates} = await pg.sql`
@@ -221,9 +221,9 @@ export async function batchNeedsUpdate(channelIds) {
 		`
 
 		const localLatestMap = new Map()
-		localUpdates.forEach((update) => {
+		for (const update of localUpdates) {
 			localLatestMap.set(update.channel_id, update.updated_at)
-		})
+		}
 
 		// Determine which channels need updates
 		const needsUpdateSet = new Set()

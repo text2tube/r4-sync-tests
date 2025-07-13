@@ -59,7 +59,7 @@
 				// Focus the search input after navigation
 				setTimeout(() => {
 					const searchInput = document.querySelector('input[type="search"]')
-					if (searchInput) searchInput.focus()
+					if (searchInput instanceof HTMLInputElement) searchInput.focus()
 				}, 0)
 			})
 		}
@@ -96,7 +96,7 @@
 				<TestCounter />
 			{/if}
 		</a>
-		<a href="/search" class="btn" title="cmd/ctrl+k"><IconSearch size="16" /></a>
+		<a href="/search" class="btn" title="cmd/ctrl+k"><IconSearch size={16} /></a>
 
 		<div class="row right">
 			{#if !preloading}
@@ -196,20 +196,12 @@
 
 	main {
 		/* space for fixed, bottom player */
-		padding-bottom: 10rem;
+		padding-bottom: 12rem;
 	}
 
-	.queue-aside {
-	}
-
-	/* Mobile: hide aside */
 	@media (max-width: 768px) {
 		.content {
 			grid-template-columns: 1fr;
-		}
-
-		.queue-aside {
-			display: none;
 		}
 	}
 
