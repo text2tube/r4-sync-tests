@@ -15,8 +15,13 @@
 	})
 
 	// Load channels with track counts
-	getChannelsWithTrackCounts().then((data) => {
-		channels = data
+	$effect(() => {
+		const liveQuery = pg.live.incrementalQuery('select * from channels', [], 'id', (results) => {
+			channels = results.rows
+		})
+		return () => {
+			liveQuery.then(({unsubscribe}) => unsubscribe())
+		}
 	})
 
 	async function setDisplay(value) {

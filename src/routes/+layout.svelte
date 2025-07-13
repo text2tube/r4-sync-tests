@@ -25,7 +25,7 @@
 
 	/** @type {import('$lib/types').AppState} */
 	let appState = $state({})
-	let queuePanelVisible = $state(true)
+	let queuePanelVisible = $state(false)
 	let chatPanelVisible = $state(false)
 	/** @type {HTMLInputElement|undefined} */
 	let playerLayoutCheckbox = $state()

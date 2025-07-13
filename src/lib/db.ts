@@ -2,6 +2,7 @@ import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
 import {sdk} from '@radio4000/sdk'
 import {browser} from '$app/environment'
+
 import migrationsql from './migrations/01-create_tables.sql?raw'
 import migration02sql from './migrations/02-add_queue_panel_visibility.sql?raw'
 import migration03sql from './migrations/03-add_broadcasts_table.sql?raw'
@@ -34,6 +35,18 @@ export const pg = await PGlite.create(pgLiteOptions)
 if (browser) window.r5 = {pg, sdk}
 
 export async function dropAllTables() {
+	console.log('Starting database reset...')
+
+	// Clear tables first to trigger live queries
+	console.log('Deleting tracks...')
+	await pg.sql`DELETE FROM tracks;`
+	console.log('Deleting channels...')
+	await pg.sql`DELETE FROM channels;`
+	console.log('Deleting app_state...')
+	await pg.sql`DELETE FROM app_state;`
+
+	console.log('Dropping tables...')
+	// Then drop them
 	await pg.sql`drop table if exists app_state CASCADE;`
 	await pg.sql`drop table if exists tracks CASCADE;`
 	await pg.sql`drop table if exists channels CASCADE;`

@@ -6,28 +6,34 @@
 	let channels = $state([])
 
 	// Live query for channels with track counts
-	pg.live.query(
-		`
-		SELECT 
-			c.*,
-			COUNT(t.id) as track_count
-		FROM channels c
-		LEFT JOIN tracks t ON c.id = t.channel_id
-		GROUP BY c.id
-		ORDER BY c.name
-	`,
-		[],
-		(result) => {
-			channels = result.rows
+	$effect(() => {
+		const liveQuery = pg.live.query(
+			`
+			SELECT 
+				c.*,
+				COUNT(t.id) as track_count
+			FROM channels c
+			LEFT JOIN tracks t ON c.id = t.channel_id
+			GROUP BY c.id
+			ORDER BY c.name
+		`,
+			[],
+			(result) => {
+				channels = result.rows
+			}
+		)
+
+		// Cleanup function - unsubscribe when effect re-runs or component unmounts
+		return () => {
+			liveQuery.then(({unsubscribe}) => unsubscribe())
 		}
-	)
+	})
 
 	/**
 	 * @param {string} id
 	 * @param {string} name
 	 */
 	async function deleteChannel(id, name) {
-		if (!confirm(`Delete channel "${name}" and all its tracks?`)) return
 		await pg.sql`DELETE FROM channels WHERE id = ${id}`
 	}
 
@@ -36,7 +42,6 @@
 	 * @param {string} name
 	 */
 	async function deleteTracks(id, name) {
-		if (!confirm(`Delete all tracks for "${name}"?`)) return
 		await pg.sql`DELETE FROM tracks WHERE channel_id = ${id}`
 		await pg.sql`UPDATE channels SET tracks_synced_at = NULL WHERE id = ${id}`
 	}
@@ -65,11 +70,9 @@
 </script>
 
 <section>
-	<h3>Sync Debug ({channels.length} channels)</h3>
+	<h3>Sync debugger ({channels.length} channels)</h3>
 
-	{#if channels.length === 0}
-		<p>No channels found. Run sync to populate.</p>
-	{:else}
+	{#if channels.length === 0}{:else}
 		<section class="list">
 			{#each channels as channel (channel.id)}
 				<article>

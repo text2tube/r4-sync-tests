@@ -10,20 +10,32 @@
 	let syncProgress = $state({synced: 0, total: 0})
 
 	// Live query for sync progress
-	pg.live.query(
-		`
-		SELECT 
-			COUNT(*) FILTER (WHERE tracks_synced_at IS NOT NULL AND firebase_id IS NULL) as synced,
-			COUNT(*) FILTER (WHERE firebase_id IS NULL) as total
-		FROM channels
-	`,
-		[],
-		(result) => {
-			if (result.rows[0]) {
-				syncProgress = result.rows[0]
+	$effect(() => {
+		const liveQuery = pg.live.query(
+			`
+			SELECT 
+				COUNT(*) FILTER (WHERE tracks_synced_at IS NOT NULL AND firebase_id IS NULL) as synced,
+				COUNT(*) FILTER (WHERE firebase_id IS NULL) as total
+			FROM channels
+		`,
+			[],
+			(result) => {
+				console.log('syncProgress', result)
+				if (result.rows[0]) {
+					const row = result.rows[0]
+					syncProgress = {
+						synced: Number(row.synced),
+						total: Number(row.total)
+					}
+				}
 			}
+		)
+
+		// Cleanup function - unsubscribe when effect re-runs or component unmounts
+		return () => {
+			liveQuery.then(({unsubscribe}) => unsubscribe())
 		}
-	)
+	})
 
 	async function handleTotalSync() {
 		totalSyncing = true
@@ -38,11 +50,15 @@
 		resetting = true
 		try {
 			await initDb(true)
-			// Force page reload to refresh all state
-			window.location.reload()
+			console.log('Database reset')
 		} catch (error) {
 			console.error('Database reset failed:', error)
+		} finally {
 			resetting = false
+			// Live queries don't recover well from table drops, so reload, and without a timeout it's too fast :/
+			setTimeout(() => {
+				window.location.reload()
+			}, 100)
 		}
 	}
 

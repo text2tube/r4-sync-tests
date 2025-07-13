@@ -8,8 +8,9 @@
 	let syncing = $state(false)
 
 	// Query channel count on load
-	pg.query(`SELECT COUNT(*) as count FROM channels`).then((result) => {
+	pg.live.query('SELECT COUNT(*) as count FROM channels', [], (result) => {
 		channelCount = result.rows[0]?.count || 0
+		console.log('channelCount', channelCount)
 	})
 
 	async function pullRadios() {
