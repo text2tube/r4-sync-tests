@@ -1,6 +1,5 @@
 <script>
 	import '../styles/style.css'
-	import {initDb, pg} from '$lib/db'
 	import {goto} from '$app/navigation'
 	import Player from '$lib/components/player.svelte'
 	import QueuePanel from '$lib/components/queue-panel.svelte'
@@ -18,10 +17,10 @@
 	import {toggleQueuePanel as toggleQueuePanelApi} from '$lib/api'
 	import '@radio4000/components'
 
-	const {children} = $props()
+	const {data, children} = $props()
 
 	// This is true until the database is initialized.
-	let preloading = $state(true)
+	let preloading = $derived(data.preloading)
 
 	/** @type {import('$lib/types').AppState} */
 	let appState = $state({})
@@ -29,23 +28,6 @@
 	let chatPanelVisible = $state(false)
 	/** @type {HTMLInputElement|undefined} */
 	let playerLayoutCheckbox = $state()
-
-	$effect(() => {
-		initDb()
-			.then(() => {
-				preloading = false
-				pg.live.query('SELECT * FROM app_state WHERE id = 1', [], async (res) => {
-					const state = res.rows[0]
-					queuePanelVisible = state?.queue_panel_visible ?? false
-					appState = state || {}
-				})
-				setupBroadcastSync()
-			})
-			.catch((err) => {
-				console.error('Failed to initialize database:', err)
-				preloading = false
-			})
-	})
 
 	/**
 	 * Close the player overlay, if open, on escape key press.

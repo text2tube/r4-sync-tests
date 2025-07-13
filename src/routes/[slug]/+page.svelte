@@ -1,25 +1,22 @@
 <script>
 	import {onMount} from 'svelte'
-	import {page} from '$app/stores'
+	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
 	import {IconSearch} from 'obra-icons-svelte'
 	import {pg} from '$lib/db'
-	import {pullChannel} from '$lib/sync'
 	import {subscribeToAppState} from '$lib/api'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
-	// import fuzzysort from 'fuzzysort'
 
 	/** @type {{data: {slug: string, search: string, order: string, dir: string}}} */
 	let {data} = $props()
 
 	/** @type {import('$lib/types').Channel|null} */
-	let channel = $state(null)
+	let channel = $state(data.channel)
+
 	/** @type {string[]} */
 	let trackIds = $state([])
-	let loading = $state(true)
-	let error = $state(null)
 	let searchQuery = $state(data.search || '')
 	let isSearching = $state(false)
 	let debounceTimer = $state()
@@ -29,30 +26,6 @@
 	subscribeToAppState((state) => {
 		appState = state
 	})
-
-	async function loadChannel() {
-		loading = true
-		error = null
-
-		console.log('channel', data.slug)
-
-		try {
-			// Check local database first
-			const {rows} = await pg.query('SELECT * FROM channels WHERE slug = $1', [data.slug])
-			channel = rows[0]
-
-			// If not found locally, pull from SDK
-			if (!channel) channel = await pullChannel(data.slug)
-
-			// Load tracks for this channel
-			if (channel) await performSearch()
-		} catch (err) {
-			console.error('Error fetching channel:', err)
-			error = err
-		} finally {
-			loading = false
-		}
-	}
 
 	function debouncedSearch() {
 		clearTimeout(debounceTimer)
@@ -113,19 +86,12 @@
 	}
 
 	onMount(() => {
-		const urlSearch = $page.url.searchParams.get('search')
+		const urlSearch = page.url.searchParams.get('search')
 		if (urlSearch) {
 			searchQuery = urlSearch
-			if (channel) {
-				performSearch()
-			}
 		}
-	})
-
-	// Load channel when slug changes
-	$effect(() => {
-		if (data.slug) {
-			loadChannel()
+		if (channel) {
+			performSearch()
 		}
 	})
 </script>
@@ -142,11 +108,7 @@
 	</form>
 </header>
 
-{#if loading}
-	<p>Loading...</p>
-{:else if error}
-	<p>Error loading channel: {error.message}</p>
-{:else if channel}
+{#if channel}
 	<article>
 		<header>
 			<ChannelAvatar id={channel.image} alt={channel.name} />
@@ -165,7 +127,7 @@
 		</section>
 	</article>
 {:else}
-	<p>Channel not found</p>
+	<p>Channel error</p>
 {/if}
 
 <style>
