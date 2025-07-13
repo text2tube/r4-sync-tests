@@ -129,7 +129,7 @@
 			<input type="checkbox" name="playerLayout" bind:this={playerLayoutCheckbox} />
 		</label>
 		{#if !preloading}
-			<Player />
+			<Player {appState} />
 		{/if}
 	</footer>
 </div>

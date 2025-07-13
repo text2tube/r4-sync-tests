@@ -16,7 +16,6 @@ export async function load({params, url}) {
 	try {
 		if (!channel) {
 			channel = await pullChannel(slug)
-			console.log('channel after pull', channel)
 		}
 	} catch (err) {
 		console.error('Error pulling channel:', err)
@@ -24,7 +23,6 @@ export async function load({params, url}) {
 	}
 
 	await syncChannel(slug)
-	console.log('channel after sync', channel)
 
 	return {
 		channel,

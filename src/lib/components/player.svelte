@@ -7,7 +7,8 @@
 		IconPreviousFill,
 		IconNextFill,
 		IconPause,
-		IconPlayFill
+		IconPlayFill,
+		IconEject
 		// IconVolume1Fill,
 		// IconVolume2Fill,
 		// IconVolumeOffFill
@@ -19,7 +20,7 @@
 	/** @typedef {import('$lib/types').AppState} AppState */
 
 	/** @type {import('$lib/types').AppState} */
-	let appState = $state({})
+	let {appState} = $props()
 
 	let autoplay = $state(false)
 
@@ -52,7 +53,6 @@
 			console.log('playlist_track changed -> autoplay=true')
 			autoplay = true
 		}
-		appState = state
 	})
 
 	/** @param {string} tid} */
@@ -130,6 +130,20 @@
 		console.log('Player ended')
 		next()
 	}
+
+	function eject() {
+		yt?.pause()
+		image = null
+		title = null
+		slug = null
+		track = null
+		pg.sql`UPDATE app_state SET 
+			playlist_tracks = ${[]}, 
+			playlist_track = null, 
+			playlist_tracks_shuffled = ${[]},
+			shuffle = false
+			WHERE id = 1`
+	}
 </script>
 
 <article>
@@ -150,6 +164,9 @@
 
 	<div class="center">
 		<menu>
+			<button onclick={eject} title="Clear queue and stop playback">
+				<IconEject />
+			</button>
 			<button
 				onclick={toggleShuffle}
 				aria-pressed={appState.shuffle}
