@@ -30,22 +30,17 @@ const pgLiteOptions = {
 export const pg = await PGlite.create(pgLiteOptions)
 
 export async function dropAllTables() {
-	console.log('Starting database reset...')
-
-	// Clear tables first to trigger live queries
-	console.log('Deleting tracks...')
-	await pg.sql`DELETE FROM tracks;`
-	console.log('Deleting channels...')
-	await pg.sql`DELETE FROM channels;`
-	console.log('Deleting app_state...')
+	console.log('Dropping all tables')
+	// Clear tables
 	await pg.sql`DELETE FROM app_state;`
-
-	console.log('Dropping tables...')
+	await pg.sql`DELETE FROM tracks;`
+	await pg.sql`DELETE FROM channels;`
 	// Then drop them
 	await pg.sql`drop table if exists app_state CASCADE;`
 	await pg.sql`drop table if exists tracks CASCADE;`
 	await pg.sql`drop table if exists channels CASCADE;`
 	await pg.sql`drop table if exists migrations CASCADE;`
+
 	console.log('Dropped all tables')
 }
 
@@ -82,19 +77,22 @@ export async function migrate(pg: PGlite) {
 	const appliedMigrationNames = result.rows.map((x) => x.name)
 
 	// Debug: Check what tables actually exist
-	// const [tablesResult] = await pg.exec(`
-	// 	SELECT table_name
-	// 	FROM information_schema.tables
-	// 	WHERE table_schema = 'public'
-	// 	AND table_type = 'BASE TABLE'
-	// `)
-	// console.log('🔍 Existing tables:', tablesResult.rows.map(r => r.table_name))
-	// console.log('📝 Applied migrations:', appliedMigrationNames)
+	const [tablesResult] = await pg.exec(`
+		SELECT table_name
+		FROM information_schema.tables
+		WHERE table_schema = 'public'
+		AND table_type = 'BASE TABLE'
+	`)
+	console.log('Applied migrations', appliedMigrationNames)
+	console.log(
+		'Local tables',
+		tablesResult.rows.map((r) => r.table_name)
+	)
 
 	// Apply new migrations
 	for (const migration of migrations) {
 		if (appliedMigrationNames.includes(migration.name)) {
-			console.log(`Migration already applied: ${migration.name}`)
+			// console.log(`Migration already applied: ${migration.name}`)
 		} else {
 			try {
 				await pg.exec(migration.sql)

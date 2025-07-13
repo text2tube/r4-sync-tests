@@ -1,11 +1,11 @@
 <script>
 	import {initDb, pg, exportDb} from '$lib/db'
-	import {totalSync} from '$lib/sync'
+	import {sync} from '$lib/sync'
 	import {sdk} from '@radio4000/sdk'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
 	import SyncDebug from '$lib/components/sync-debug.svelte'
 
-	let totalSyncing = $state(false)
+	let syncing = $state(false)
 	let resetting = $state(false)
 	let syncProgress = $state({synced: 0, total: 0})
 
@@ -20,7 +20,6 @@
 		`,
 			[],
 			(result) => {
-				console.log('syncProgress', result)
 				if (result.rows[0]) {
 					const row = result.rows[0]
 					syncProgress = {
@@ -37,12 +36,12 @@
 		}
 	})
 
-	async function handleTotalSync() {
-		totalSyncing = true
+	async function handleSync() {
+		syncing = true
 		try {
-			await totalSync()
+			await sync()
 		} finally {
-			totalSyncing = false
+			syncing = false
 		}
 	}
 
@@ -51,14 +50,14 @@
 		try {
 			await initDb(true)
 			console.log('Database reset')
+			// Live queries don't recover well from table drops, so reload, and without a timeout it's too fast :/
+			setTimeout(() => {
+				// window.location.reload()
+			}, 1000)
 		} catch (error) {
 			console.error('Database reset failed:', error)
 		} finally {
 			resetting = false
-			// Live queries don't recover well from table drops, so reload, and without a timeout it's too fast :/
-			setTimeout(() => {
-				window.location.reload()
-			}, 100)
 		}
 	}
 
@@ -73,16 +72,14 @@
 		<button onclick={resetDatabase} data-loading={resetting} disabled={resetting}>
 			{#if resetting}Resetting...{:else}Reset local database{/if}
 		</button>
-		<button onclick={handleTotalSync} data-loading={totalSyncing} disabled={totalSyncing}>
-			{#if totalSyncing}
+		<button onclick={handleSync} data-loading={syncing} disabled={syncing}>
+			{#if syncing}
 				Syncing ({syncProgress.synced}/{syncProgress.total})
 			{:else}
-				Pull channels {syncProgress.total > 0
-					? `(${syncProgress.synced}/${syncProgress.total} synced)`
-					: ''}
+				Sync {syncProgress.total > 0 ? `(${syncProgress.synced}/${syncProgress.total} synced)` : ''}
 			{/if}
 		</button>
-		<button disabled>Import local database</button>
+		<!-- <button disabled>Import local database</button> -->
 		<button onclick={exportDb}>Export local database</button>
 	</menu>
 

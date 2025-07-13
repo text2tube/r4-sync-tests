@@ -1,13 +1,18 @@
 <script>
 	import {page} from '$app/state'
-	//import {initDb} from '$lib/db'
+
+	$inspect(page)
 </script>
 
-<p>An error happened.</p>
+<article>
+	<p>An error happened.</p>
+	<h1>{page.status}: {page.error?.message || 'Unknown error'}</h1>
+	<p><a href={window.location.href}>Reload app</a></p>
+	<p><a href="/settings">Go to settings to reset the application.</a></p>
+</article>
 
-<h1>{$page.status}: {$page.error.message}</h1>
-
-<menu>
-	<a href={window.location.href}>Reload app</a>
-	<!--<button onclick={() => initDb(true)}>Reset app (deletes all data)</button>-->
-</menu>
+<style>
+	article {
+		margin: 0 0.5rem;
+	}
+</style>

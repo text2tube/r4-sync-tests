@@ -3,7 +3,30 @@ import {sdk} from '@radio4000/sdk'
 import {pullV1Tracks, pullV1Channels} from '$lib/v1'
 
 /**
- * Pull channel metadata from Radio4000 into local database. Does not touch tracks.
+ * SYNC ARCHITECTURE:
+ *
+We have a remote PostgreSQL database on Supabase. This is the source of truth.
+We have a local PostgreSQL database in the browser via PGLite. We pull data from the remote into this.
+Write are done remote. Most reads are local, with on-demand pulling (syncing) in many cases.
+
+```js
+// Main API
+await sync() // Complete sync
+await syncChannel('my-channel') // Single channel sync
+
+// Status & preview
+await needsUpdate('slug') // Check one channel
+await needsUpdateBatch(['ids']) // Check multiple channels
+await dryRun() // Preview what would sync
+
+// Low-level
+await pullChannels() // Always pull N channels
+await pullTracks('slug') // Always pull tracks
+await pullChannel('slug') // Always pull one channel
+*/
+
+/**
+ * Always pull channel metadata from Radio4000 into local database. Does not touch tracks.
  * @param {Object} options
  * @param {number} [options.limit=15] - Number of channels to pull
  */
@@ -28,7 +51,7 @@ export async function pullChannels({limit = debugLimit} = {}) {
       `
 		}
 	})
-	console.log('Pulled v2 channels', channels?.length)
+	console.log('Pulled channels', channels?.length)
 }
 
 /**
@@ -76,7 +99,7 @@ export async function pullTracks(slug) {
       `
 			)
 			await Promise.all(inserts)
-			console.log('Pulled v2 tracks', tracks?.length)
+			console.log('Pulled tracks', tracks?.length)
 		})
 		// Mark as successfully synced
 		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP where slug = ${slug}`
@@ -179,7 +202,7 @@ export async function needsUpdate(slug) {
  * @param {string[]} channelIds - Array of channel IDs to check
  * @returns {Promise<Set<string>>} Set of channel IDs that need updates
  */
-export async function batchNeedsUpdate(channelIds) {
+export async function needsUpdateBatch(channelIds) {
 	if (!channelIds.length) return new Set()
 
 	try {
@@ -266,51 +289,164 @@ export async function batchNeedsUpdate(channelIds) {
 
 /**
  * Complete sync: channels + tracks. Sequential and resumable.
- * Uses the same logic as totalSync but as a reusable function.
+ * @param {Object} options
+ * @param {boolean} [options.skipUpdateCheck=false] - Skip smart update checks and sync all channels
  */
-export async function totalSync() {
-	console.time('totalSync')
+export async function sync({skipUpdateCheck = false} = {}) {
+	console.time('sync')
 
-	// Step 1: Pull channel metadata (lightweight)
+	// Step 1: Pull channel metadata (lightweight, always do this)
 	await pullChannels()
 
 	// Step 2: Pull v1 channels in parallel (they don't need individual track sync)
 	await pullV1Channels()
 
-	// Step 3: Sequential track sync for v2 channels
-	await sequentialTrackSync()
+	// Step 3: Smart track sync for v2 channels (or skip checks if requested)
+	await syncTracks({skipUpdateCheck})
 
-	console.timeEnd('totalSync')
+	console.timeEnd('sync')
 }
 
 /**
- * Sequential track sync for v2 channels that need it
+ * Smart track sync for v2 channels that need it
+ * @param {Object} options
+ * @param {boolean} [options.skipUpdateCheck=false] - Skip intelligent needsUpdate checks and sync all channels
  */
-export async function sequentialTrackSync() {
-	// Get channels that need track sync
-	const {rows: channels} = await pg.query(`
-		SELECT slug, name FROM channels 
-		WHERE firebase_id IS NULL 
-		AND tracks_synced_at IS NULL
-		ORDER BY name
-	`)
+export async function syncTracks({skipUpdateCheck = false} = {}) {
+	let channelsToSync
 
-	if (channels.length === 0) {
-		console.log('All channels already synced')
+	if (skipUpdateCheck) {
+		// Skip update checks: sync all v2 channels regardless of update status
+		console.log('Skipping update checks: syncing all v2 channels')
+		const {rows} = await pg.query(`
+			SELECT id, slug, name FROM channels 
+			WHERE firebase_id IS NULL 
+			ORDER BY name
+		`)
+		channelsToSync = rows
+	} else {
+		console.log('checking which channels need updates...')
+		const {rows: allChannels} = await pg.query(`
+			SELECT id, slug, name FROM channels 
+			WHERE firebase_id IS NULL 
+			ORDER BY name
+		`)
+
+		if (allChannels.length === 0) {
+			console.log('No v2 channels found')
+			return
+		}
+
+		// Use batch logic to determine which need updates
+		const channelIds = allChannels.map((ch) => ch.id)
+		const needsUpdateSet = await needsUpdateBatch(channelIds)
+
+		// Filter to only channels that need updates
+		channelsToSync = allChannels.filter((ch) => needsUpdateSet.has(ch.id))
+
+		console.log(
+			`📊 Smart check result: ${needsUpdateSet.size}/${allChannels.length} channels need updates`
+		)
+	}
+
+	if (channelsToSync.length === 0) {
+		console.log('✅ All channels up to date')
 		return
 	}
 
-	console.log(`Starting sequential track sync for ${channels.length} channels`)
+	console.log(`🔄 Syncing tracks for ${channelsToSync.length} channels`)
 
-	for (const channel of channels) {
+	for (const channel of channelsToSync) {
 		try {
-			console.log(`Syncing tracks for: ${channel.name}`)
+			console.log(`  • Syncing tracks for: ${channel.name}`)
 			await pullTracks(channel.slug)
 		} catch (error) {
-			console.error(`Failed to sync tracks for ${channel.name}:`, error)
+			console.error(`  ❌ Failed to sync tracks for ${channel.name}:`, error)
 			// Continue to next channel - error handling is in pullTracks
 		}
 	}
 
-	console.log('Sequential track sync completed')
+	console.log('✅ Completed track sync')
+}
+
+/**
+ * Smart sync for a single channel - only pulls tracks if channel needs updating
+ * @param {string} slug - Channel slug
+ * @param {Object} options
+ * @param {boolean} [options.skipUpdateCheck=false] - Skip update check and always pull
+ * @returns {Promise<boolean>} - True if tracks were pulled, false if skipped
+ */
+export async function syncChannel(slug, {skipUpdateCheck = false} = {}) {
+	if (!skipUpdateCheck) {
+		const needs = await needsUpdate(slug)
+		if (!needs) {
+			console.log(`⏭️  Skipping ${slug} - already up to date`)
+			return false
+		}
+	}
+
+	await pullTracks(slug)
+	return true
+}
+
+/**
+ * Dry run - check what would be synced without actually syncing
+ * @param {Object} options
+ * @param {boolean} [options.skipUpdateCheck=false] - Check behavior when skipping update checks
+ * @returns {Promise<Object>} Analysis of what would be synced
+ */
+export async function dryRun({skipUpdateCheck = false} = {}) {
+	console.log(`🔍 Analyzing sync (${skipUpdateCheck ? 'skip checks' : 'smart'} mode)...`)
+
+	// Get all v2 channels
+	const {rows: allChannels} = await pg.query(`
+		SELECT id, slug, name, tracks_synced_at FROM channels 
+		WHERE firebase_id IS NULL 
+		ORDER BY name
+	`)
+
+	if (allChannels.length === 0) {
+		return {
+			total: 0,
+			needsSync: 0,
+			upToDate: 0,
+			channels: [],
+			wouldSync: []
+		}
+	}
+
+	let channelsNeedingSync = []
+
+	if (skipUpdateCheck) {
+		channelsNeedingSync = allChannels
+	} else {
+		// Use batch logic for efficiency
+		const channelIds = allChannels.map((ch) => ch.id)
+		const needsUpdateSet = await needsUpdateBatch(channelIds)
+		channelsNeedingSync = allChannels.filter((ch) => needsUpdateSet.has(ch.id))
+	}
+
+	const analysis = {
+		total: allChannels.length,
+		needsSync: channelsNeedingSync.length,
+		upToDate: allChannels.length - channelsNeedingSync.length,
+		channels: allChannels.map((ch) => ({
+			slug: ch.slug,
+			name: ch.name,
+			lastSynced: ch.tracks_synced_at,
+			needsSync: channelsNeedingSync.some((sync) => sync.id === ch.id)
+		})),
+		wouldSync: channelsNeedingSync.map((ch) => ({slug: ch.slug, name: ch.name}))
+	}
+
+	console.log(`📊 Sync Analysis (${skipUpdateCheck ? 'skip checks' : 'smart'} mode):`)
+	console.log(`  • Total v2 channels: ${analysis.total}`)
+	console.log(`  • Need sync: ${analysis.needsSync}`)
+	console.log(`  • Up to date: ${analysis.upToDate}`)
+
+	if (analysis.needsSync > 0) {
+		console.log(`  • Would sync: ${analysis.wouldSync.map((ch) => ch.slug).join(', ')}`)
+	}
+
+	return analysis
 }

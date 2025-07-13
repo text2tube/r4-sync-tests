@@ -183,15 +183,8 @@ export async function getTrackWithChannel(trackId) {
 /**
  * @param {string} channelId
  * @param {string} searchTerm
- * @param {string} orderBy
- * @param {string} direction
  */
-export async function searchChannelTracks(
-	channelId,
-	searchTerm = '',
-	orderBy = 'created_at',
-	direction = 'desc'
-) {
+export async function searchChannelTracks(channelId, searchTerm = '') {
 	const query =
 		'SELECT id, title, description, created_at, updated_at FROM tracks WHERE channel_id = $1'
 	const {rows} = await pg.query(query, [channelId])

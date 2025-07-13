@@ -1,7 +1,7 @@
 <script>
 	import Channels from '$lib/components/channels.svelte'
 	import {pg} from '$lib/db'
-	import {totalSync} from '$lib/sync'
+	import {sync} from '$lib/sync'
 	import {IconCloudDownloadAlt} from 'obra-icons-svelte'
 
 	let channelCount = $state(0)
@@ -10,13 +10,12 @@
 	// Query channel count on load
 	pg.live.query('SELECT COUNT(*) as count FROM channels', [], (result) => {
 		channelCount = result.rows[0]?.count || 0
-		console.log('channelCount', channelCount)
 	})
 
 	async function pullRadios() {
 		syncing = true
 		try {
-			await totalSync()
+			await sync()
 		} finally {
 			syncing = false
 		}
