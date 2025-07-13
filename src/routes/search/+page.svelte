@@ -32,25 +32,25 @@
 
 	/** @type {import('$lib/types.ts').Channel[]} */
 	let allChannels = $state([])
-	
+
 	// Fuzzy filtered channels for @mention autocomplete
 	let filteredChannels = $derived.by(() => {
 		if (!searchQuery.includes('@')) return allChannels
-		
+
 		// Extract the @mention query part
 		const atIndex = searchQuery.lastIndexOf('@')
 		const mentionQuery = searchQuery.slice(atIndex + 1)
-		
+
 		if (mentionQuery.length < 1) return allChannels
-		
+
 		// Use fuzzysort to search both slug and name
 		const results = fuzzysort.go(mentionQuery, allChannels, {
 			keys: ['slug', 'name'],
 			limit: 10,
 			threshold: 0.1
 		})
-		
-		return results.map(result => result.obj)
+
+		return results.map((result) => result.obj)
 	})
 
 	let searchQuery = $state('')

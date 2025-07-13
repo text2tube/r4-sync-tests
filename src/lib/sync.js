@@ -96,7 +96,7 @@ export async function pullTracks(slug) {
           description = EXCLUDED.description,
           discogs_url = EXCLUDED.discogs_url,
           updated_at = EXCLUDED.updated_at
-      `,
+      `
 			)
 			await Promise.all(inserts)
 			console.log('Pulled tracks', tracks?.length)
@@ -149,7 +149,7 @@ export async function needsUpdate(slug) {
 	try {
 		// Get channel ID for remote query
 		const {
-			rows: [channel],
+			rows: [channel]
 		} = await pg.sql`select * from channels where slug = ${slug}`
 
 		const {id, firebase_id} = channel
@@ -347,7 +347,9 @@ export async function syncTracks({skipUpdateCheck = false} = {}) {
 		// Filter to only channels that need updates
 		channelsToSync = allChannels.filter((ch) => needsUpdateSet.has(ch.id))
 
-		console.log(`📊 Smart check result: ${needsUpdateSet.size}/${allChannels.length} channels need updates`)
+		console.log(
+			`📊 Smart check result: ${needsUpdateSet.size}/${allChannels.length} channels need updates`
+		)
 	}
 
 	if (channelsToSync.length === 0) {
@@ -412,7 +414,7 @@ export async function dryRun({skipUpdateCheck = false} = {}) {
 			needsSync: 0,
 			upToDate: 0,
 			channels: [],
-			wouldSync: [],
+			wouldSync: []
 		}
 	}
 
@@ -435,9 +437,9 @@ export async function dryRun({skipUpdateCheck = false} = {}) {
 			slug: ch.slug,
 			name: ch.name,
 			lastSynced: ch.tracks_synced_at,
-			needsSync: channelsNeedingSync.some((sync) => sync.id === ch.id),
+			needsSync: channelsNeedingSync.some((sync) => sync.id === ch.id)
 		})),
-		wouldSync: channelsNeedingSync.map((ch) => ({slug: ch.slug, name: ch.name})),
+		wouldSync: channelsNeedingSync.map((ch) => ({slug: ch.slug, name: ch.name}))
 	}
 
 	console.log(`📊 Sync Analysis (${skipUpdateCheck ? 'skip checks' : 'smart'} mode):`)

@@ -16,9 +16,14 @@
 
 	// Load channels with track counts
 	$effect(() => {
-		const liveQuery = pg.live.incrementalQuery('select * from channels order by updated_at desc', [], 'id', (results) => {
-			channels = results.rows
-		})
+		const liveQuery = pg.live.incrementalQuery(
+			'select * from channels order by updated_at desc',
+			[],
+			'id',
+			(results) => {
+				channels = results.rows
+			}
+		)
 		return () => {
 			liveQuery.then(({unsubscribe}) => unsubscribe())
 		}
@@ -31,8 +36,12 @@
 </script>
 
 <menu>
-	<button titl="View as list" class:active={display === 'list'} onclick={() => setDisplay('list')}><IconUnorderedList /></button>
-	<button title="View as grid" class:active={display === 'grid'} onclick={() => setDisplay('grid')}><IconGrid /></button>
+	<button titl="View as list" class:active={display === 'list'} onclick={() => setDisplay('list')}
+		><IconUnorderedList /></button
+	>
+	<button title="View as grid" class:active={display === 'grid'} onclick={() => setDisplay('grid')}
+		><IconGrid /></button
+	>
 </menu>
 
 <ul class={display}>
