@@ -48,7 +48,10 @@ export interface AppState {
 	broadcasting_channel_id?: string
 	listening_to_channel_id?: string
 	queue_panel_visible?: boolean
+	key_bindings?: Record<string, string>
 }
+
+export type KeyBindingsConfig = Record<string, string>
 
 export interface Broadcast {
 	channel_id: string

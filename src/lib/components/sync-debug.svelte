@@ -70,9 +70,9 @@
 </script>
 
 <section>
-	<h3>Sync debugger ({channels.length} channels)</h3>
-
+	<h3>Sync status ({channels.length} channels)
 	<button onclick={dryRun}>Dry run</button>
+	</h3>
 
 	{#if channels.length === 0}{:else}
 		<section class="list">
@@ -114,10 +114,6 @@
 </section>
 
 <style>
-	section {
-		margin: 1rem 0.5rem;
-	}
-
 	.list {
 		article {
 			display: flex;

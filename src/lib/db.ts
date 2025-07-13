@@ -5,15 +5,17 @@ import migrationsql from './migrations/01-create_tables.sql?raw'
 import migration02sql from './migrations/02-add_queue_panel_visibility.sql?raw'
 import migration03sql from './migrations/03-add_broadcasts_table.sql?raw'
 import migration04sql from './migrations/04-add_shuffle_queue.sql?raw'
+import migration05sql from './migrations/05-add_shortcuts.sql?raw'
 
 // This will limit the amount of channels pulled.
-export const debugLimit = 50
+export const debugLimit = 20
 
 const migrations = [
 	{name: '01-create_tables', sql: migrationsql},
 	{name: '02-add_queue_panel_visibility', sql: migration02sql},
 	{name: '03-add_broadcast_fields', sql: migration03sql},
-	{name: '04-add_shuffle_queue', sql: migration04sql}
+	{name: '04-add_shuffle_queue', sql: migration04sql},
+	{name: '05-add_shortcuts', sql: migration05sql}
 ]
 
 const persist = true

@@ -85,18 +85,16 @@ a:link,
 a:visited {
 	color: var(--gray-12);
 }
-a:hover {
-	/* color: var(--color-accent-light1); */
-}
-a:active,
-a:focus {
-}
 
 input,
 button,
 textarea,
 select {
 	font: inherit;
+}
+
+select {
+	font-size: var(--font-size-regular);
 }
 
 hr {
@@ -147,10 +145,6 @@ r4-track-create {
 		&[hidden] {
 			display: none;
 		}
-	}
-	legend,
-	label {
-		/* color: var(--gray-12); */
 	}
 }
 

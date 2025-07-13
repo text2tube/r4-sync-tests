@@ -19,7 +19,7 @@
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').AppState} AppState */
 
-	/** @type {import('$lib/types').AppState} */
+	/** @type {{appState: AppState}} */
 	let {appState} = $props()
 
 	let autoplay = $state(false)
@@ -275,8 +275,6 @@
 				line-height: 1;
 			}
 		}
-		.center {
-		}
 		menu {
 			margin-top: 0.5rem;
 		}
@@ -297,10 +295,6 @@
 		}
 		figure {
 			margin-bottom: 2vh;
-		}
-		header p:last-of-type {
-			margin-top: 1rem;
-			max-width: 80ch;
 		}
 		menu {
 			padding: 0;

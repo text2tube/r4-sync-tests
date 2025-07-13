@@ -2,6 +2,7 @@ import {pg} from '$lib/db'
 import {needsUpdate, pullTracks, pullChannel} from '$lib/sync'
 import {sdk} from '@radio4000/sdk'
 import {leaveBroadcast} from '$lib/broadcast'
+import {goto} from '$app/navigation'
 
 /** @typedef {object} User
  * @prop {string} id
@@ -247,4 +248,34 @@ export async function toggleTheme() {
 
 export async function toggleQueuePanel() {
 	await pg.sql`UPDATE app_state SET queue_panel_visible = NOT queue_panel_visible WHERE id = 1`
+}
+
+// Shortcut actions
+export function closePlayerOverlay() {
+	const playerCheckbox = document.querySelector('input[name="playerLayout"]')
+	if (playerCheckbox instanceof HTMLInputElement && playerCheckbox.checked) {
+		playerCheckbox.click()
+	}
+}
+
+export function openSearch() {
+	goto('/search').then(() => {
+		// Focus the search input after navigation
+		setTimeout(() => {
+			const searchInput = document.querySelector('input[type="search"]')
+			if (searchInput instanceof HTMLInputElement) searchInput.focus()
+		}, 0)
+	})
+}
+
+export function togglePlayPause() {
+	const ytPlayer = document.querySelector('youtube-video')
+	if (ytPlayer) {
+		// YouTube video element has paused property
+		if (ytPlayer.paused) {
+			ytPlayer.play()
+		} else {
+			ytPlayer.pause()
+		}
+	}
 }

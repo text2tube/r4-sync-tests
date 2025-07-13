@@ -1,0 +1,225 @@
+<script>
+	import {
+		saveKeyBindings,
+		loadKeyBindings,
+		DEFAULT_KEY_BINDINGS,
+		initializeKeyboardShortcuts
+	} from '$lib/shortcuts'
+	import {IconDelete} from 'obra-icons-svelte'
+
+	const uid = $props.id()
+
+	/** @type {import('$lib/types').KeyBindingsConfig} */
+	let keyBindings = $state({})
+	let editing = $state(false)
+
+	// Get available actions for dropdown - filter to only shortcut actions
+	const shortcutActions = [
+		'closePlayerOverlay',
+		'openSearch',
+		'togglePlayPause',
+		'toggleQueuePanel',
+		'toggleTheme'
+	]
+	const availableActions = shortcutActions.map((name) => ({
+		name,
+		label: name.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())
+	}))
+
+	// Load key bindings on mount
+	$effect(() => {
+		loadKeyBindings().then((result) => {
+			keyBindings = result
+		})
+	})
+
+	// Auto-save when key bindings change
+	$effect(() => {
+		if (Object.keys(keyBindings).length > 0) {
+			saveKeyBindings(keyBindings)
+		}
+	})
+
+	async function handleDone() {
+		await saveKeyBindings(keyBindings)
+		editing = false
+		// Reload to apply new key bindings
+		// window.location.reload()
+		initializeKeyboardShortcuts()
+	}
+
+	function addKeyBinding() {
+		const newKey = ''
+		keyBindings[newKey] = 'togglePlayPause'
+		keyBindings = {...keyBindings}
+	}
+
+	/**
+	 * @param {string} key
+	 */
+	function removeKeyBinding(key) {
+		delete keyBindings[key]
+		keyBindings = {...keyBindings}
+	}
+
+	/**
+	 * @param {string} oldKey
+	 * @param {string} newKey
+	 */
+	function updateKeyBindingKey(oldKey, newKey) {
+		if (oldKey !== newKey) {
+			const action = keyBindings[oldKey]
+			delete keyBindings[oldKey]
+			keyBindings[newKey] = action
+			keyBindings = {...keyBindings}
+		}
+	}
+
+	/**
+	 * @param {string} key
+	 * @param {string} action
+	 */
+	function updateKeyBindingAction(key, action) {
+		keyBindings[key] = action
+		keyBindings = {...keyBindings}
+	}
+
+	function resetToDefaults() {
+		keyBindings = structuredClone(DEFAULT_KEY_BINDINGS)
+	}
+</script>
+
+<section>
+	<header>
+		<h3>Keyboard shortcuts</h3>
+		{#if !editing}
+			<button onclick={() => (editing = true)}>Edit shortcuts</button>
+		{:else}
+			<button onclick={handleDone}>Done</button>
+		{/if}
+	</header>
+
+	{#if !editing}
+		<dl>
+			{#each Object.entries(keyBindings) as [key, action]}
+				<div>
+					<dt><kbd>{key || 'unset'}</kbd></dt>
+					<dd>{action.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</dd>
+				</div>
+			{/each}
+		</dl>
+	{:else}
+		<form onsubmit={handleDone}>
+			{#each Object.entries(keyBindings) as [key, action]}
+				<div>
+					<label for={`${uid}-key`}>Key</label>
+					<input
+						type="text"
+						value={key}
+						placeholder="e.g. k, $mod+k, Escape"
+						onchange={(e) =>
+							updateKeyBindingKey(key, /** @type {HTMLInputElement} */ (e.target).value)}
+						id={`${uid}-key`}
+					/>
+					<label for={`${uid}-action`}>&rarr;</label>
+					<select
+						value={action}
+						onchange={(e) =>
+							updateKeyBindingAction(key, /** @type {HTMLSelectElement} */ (e.target).value)}
+						id={`${uid}-action`}
+					>
+						{#each availableActions as { name, label }}
+							<option value={name}>{label}</option>
+						{/each}
+					</select>
+					<button type="button" onclick={() => removeKeyBinding(key)}>
+						<IconDelete size={20} />
+					</button>
+				</div>
+			{/each}
+
+			<button type="button" onclick={addKeyBinding}>+ Add shortcut</button>
+
+			<footer>
+				<button type="button" onclick={resetToDefaults}>Reset to defaults</button>
+			</footer>
+		</form>
+
+		<p>
+			Key reference, use <a
+				href="https://jamiebuilds.github.io/tinykeys/"
+				target="_blank"
+				rel="noopener noreferrer">tinykeys syntax</a
+			>. Examples: <code>k</code>, <code>$mod+k</code>, <code>Escape</code>, <code>ArrowUp</code>
+		</p>
+	{/if}
+</section>
+
+<style>
+	section {
+		margin: 1rem 0;
+	}
+
+	header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.5rem;
+		/* padding-bottom: 0.5rem; */
+		/* border-bottom: 1px solid var(--gray-5); */
+	}
+
+	dl {
+		margin: 0;
+		display: grid;
+		gap: 0.5rem;
+	}
+
+	dl > div {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 1rem;
+		align-items: center;
+	}
+
+	dt,
+	dd {
+		margin: 0;
+	}
+
+	kbd {
+		background: var(--gray-3);
+		border: 1px solid var(--gray-5);
+		border-radius: var(--border-radius);
+		padding: 0.25rem 0.5rem;
+		font-family: monospace;
+		min-width: 3rem;
+		text-align: center;
+	}
+
+	input[type='text'] {
+		width: 7rem;
+	}
+
+	footer {
+		display: flex;
+		gap: 0.5rem;
+		margin-top: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--gray-5);
+	}
+
+	details {
+		margin-top: 1rem;
+		padding-top: 0.5rem;
+		border-top: 1px solid var(--gray-5);
+	}
+
+	code {
+		background: var(--gray-3);
+		padding: 0.125rem 0.25rem;
+		border-radius: 3px;
+		font-family: monospace;
+		font-size: 0.9em;
+	}
+</style>

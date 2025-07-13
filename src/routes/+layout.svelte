@@ -18,9 +18,8 @@
 		IconSettings,
 		IconSidebarFillRight
 	} from 'obra-icons-svelte'
-	import {setupBroadcastSync, stopBroadcasting, startBroadcasting} from '$lib/broadcast'
 	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
-	import {handleKeyDown} from '$lib/shortcuts'
+	import {initializeKeyboardShortcuts} from '$lib/shortcuts'
 	import '@radio4000/components'
 
 	const {data, children} = $props()
@@ -39,6 +38,19 @@
 		appState = state
 	})
 
+	// Initialize keyboard shortcuts
+	$effect(() => {
+		if (!preloading) {
+			let cleanup = () => {}
+			initializeKeyboardShortcuts().then((cleanupFn) => {
+				cleanup = cleanupFn
+			})
+
+			// Cleanup on effect teardown
+			return cleanup
+		}
+	})
+
 	function toggleChatPanel() {
 		chatPanelVisible = !chatPanelVisible
 	}
@@ -52,8 +64,6 @@
 	// 	})
 	// })
 </script>
-
-<svelte:window onkeydown={handleKeyDown} />
 
 <AuthListener />
 

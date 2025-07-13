@@ -287,14 +287,19 @@ export async function needsUpdateBatch(channelIds) {
 			const localMs = new Date(localLatestMap.get(id)).setMilliseconds(0)
 
 			if (remoteMs - localMs > toleranceMs) {
-				console.log(`📝 Channel ${slug} (${id}): timestamp diff ${remoteMs - localMs}ms > ${toleranceMs}ms -> NEEDS UPDATE`)
+				console.log(
+					`📝 Channel ${slug} (${id}): timestamp diff ${remoteMs - localMs}ms > ${toleranceMs}ms -> NEEDS UPDATE`
+				)
 				needsUpdateSet.add(id)
 			} else {
 				console.log(`📝 Channel ${slug} (${id}): up to date (diff: ${remoteMs - localMs}ms)`)
 			}
 		}
 
-		console.log(`🔍 needsUpdateBatch: Final result - ${needsUpdateSet.size} channels need updates:`, Array.from(needsUpdateSet))
+		console.log(
+			`🔍 needsUpdateBatch: Final result - ${needsUpdateSet.size} channels need updates:`,
+			Array.from(needsUpdateSet)
+		)
 		return needsUpdateSet
 	} catch (error) {
 		console.error('Error in batch needs update check', error)
@@ -363,7 +368,10 @@ export async function syncTracks({skipUpdateCheck = false} = {}) {
 
 		// Filter to only channels that need updates
 		channelsToSync = allChannels.filter((ch) => needsUpdateSet.has(ch.id))
-		console.log(`🔄 syncTracks: channelsToSync result - ${channelsToSync.length} channels:`, channelsToSync.map(ch => `${ch.name} (${ch.slug})`))
+		console.log(
+			`🔄 syncTracks: channelsToSync result - ${channelsToSync.length} channels:`,
+			channelsToSync.map((ch) => `${ch.name} (${ch.slug})`)
+		)
 
 		console.log(
 			`📊 Check result: ${needsUpdateSet.size}/${allChannels.length} channels need updates`

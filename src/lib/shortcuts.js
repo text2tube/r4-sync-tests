@@ -1,107 +1,80 @@
-import {goto} from '$app/navigation'
+import {createKeybindingsHandler} from 'tinykeys'
+import {pg} from './db'
+import * as api from './api.js'
 
-/** @typedef {object} Shortcut
- * @prop {string} key - The key to listen for
- * @prop {boolean} [meta] - Requires meta/cmd key
- * @prop {boolean} [ctrl] - Requires ctrl key
- * @prop {boolean} [shift] - Requires shift key
- * @prop {boolean} [alt] - Requires alt key
- * @prop {string} description - Description of what the shortcut does
- * @prop {(event: KeyboardEvent) => void} handler - Handler function
+/** @type {import('./types.js').KeyBindingsConfig} */
+export const DEFAULT_KEY_BINDINGS = {
+	Escape: 'closePlayerOverlay',
+	'$mod+k': 'openSearch',
+	k: 'togglePlayPause',
+	j: 'toggleQueuePanel'
+}
+
+/**
+ * Load key bindings from database
+ * @returns {Promise<import('./types.js').KeyBindingsConfig>} key bindings configuration
  */
+export async function loadKeyBindings() {
+	try {
+		const {rows} = await pg.sql`SELECT shortcuts FROM app_state WHERE id = 1`
+		return rows[0]?.shortcuts || DEFAULT_KEY_BINDINGS
+	} catch (error) {
+		console.error('Error loading key bindings, using defaults:', error)
+		return DEFAULT_KEY_BINDINGS
+	}
+}
 
-/** @type {Shortcut[]} */
-const shortcuts = [
-	{
-		key: 'Escape',
-		description: 'Close player overlay',
-		handler: () => {
-			const playerCheckbox = document.querySelector('input[name="playerLayout"]')
-			if (playerCheckbox instanceof HTMLInputElement && playerCheckbox.checked) {
-				playerCheckbox.click()
-			}
-		}
-	},
-	{
-		key: 'k',
-		meta: true,
-		ctrl: true, // Allow both cmd+k and ctrl+k
-		description: 'Open search',
-		handler: (event) => {
-			event.preventDefault()
-			goto('/search').then(() => {
-				// Focus the search input after navigation
-				setTimeout(() => {
-					const searchInput = document.querySelector('input[type="search"]')
-					if (searchInput instanceof HTMLInputElement) searchInput.focus()
-				}, 0)
-			})
-		}
-	},
-	{
-		key: 'k',
-		description: 'Toggle play/pause',
-		handler: () => {
-			const ytPlayer = document.querySelector('youtube-video')
-			if (ytPlayer) {
-				// YouTube video element has paused property
-				if (ytPlayer.paused) {
-					ytPlayer.play()
-				} else {
-					ytPlayer.pause()
+/**
+ * Save key bindings to database
+ * @param {import('./types.js').KeyBindingsConfig} keyBindings - key bindings configuration to save
+ */
+export async function saveKeyBindings(keyBindings) {
+	await pg.sql`UPDATE app_state SET shortcuts = ${keyBindings} WHERE id = 1`
+}
+
+/**
+ * Initialize keyboard shortcuts from database and attach to window
+ */
+export async function initializeKeyboardShortcuts() {
+	try {
+		const keyBindingsConfig = await loadKeyBindings()
+
+		// Build tinykeys bindings from config
+		/** @type {Record<string, (event: KeyboardEvent) => void>} */
+		const bindings = {}
+
+		for (const [key, actionName] of Object.entries(keyBindingsConfig)) {
+			/** @type {Function | undefined} */
+			const actionFn = /** @type {any} */ (api)[actionName]
+			if (actionFn) {
+				bindings[key] = (event) => {
+					// Skip if user is typing in an input field
+					if (
+						event.target instanceof HTMLInputElement ||
+						event.target instanceof HTMLTextAreaElement ||
+						event.target instanceof HTMLSelectElement
+					) {
+						return
+					}
+					actionFn(event)
 				}
+			} else {
+				console.warn(`Action '${actionName}' not found for key binding '${key}'`)
 			}
 		}
-	}
-]
 
-/**
- * Checks if a keyboard event matches a shortcut
- * @param {KeyboardEvent} event
- * @param {Shortcut} shortcut
- * @returns {boolean}
- */
-function matchesShortcut(event, shortcut) {
-	if (event.key !== shortcut.key) return false
+		console.log('Key bindings loaded:', {keyBindingsConfig, bindings})
 
-	// For meta/ctrl shortcuts, check if either meta OR ctrl is required
-	// and the event has the corresponding modifier
-	if (shortcut.meta || shortcut.ctrl) {
-		if (!(event.metaKey || event.ctrlKey)) return false
-	}
+		// Create handler and attach to window
+		const handler = createKeybindingsHandler(bindings)
+		window.addEventListener('keydown', handler)
 
-	if (shortcut.shift && !event.shiftKey) return false
-	if (shortcut.alt && !event.altKey) return false
-
-	return true
-}
-
-/**
- * Main keyboard event handler
- * @param {KeyboardEvent} event
- */
-export function handleKeyDown(event) {
-	// Skip if user is typing in an input field
-	if (
-		event.target instanceof HTMLInputElement ||
-		event.target instanceof HTMLTextAreaElement ||
-		event.target instanceof HTMLSelectElement
-	) {
-		return
-	}
-
-	for (const shortcut of shortcuts) {
-		if (matchesShortcut(event, shortcut)) {
-			shortcut.handler(event)
-			return
+		// Return cleanup function
+		return () => {
+			window.removeEventListener('keydown', handler)
 		}
+	} catch (error) {
+		console.error('Failed to initialize keyboard shortcuts:', error)
+		return () => {}
 	}
-}
-
-/**
- * Get all shortcuts for documentation/help
- * @returns {Shortcut[]}
- */
-export function getShortcuts() {
-	return shortcuts
 }
