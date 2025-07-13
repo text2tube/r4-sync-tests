@@ -12,7 +12,7 @@
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
 	import LiveChat from '$lib/components/live-chat.svelte'
 	import DraggablePanel from '$lib/components/draggable-panel.svelte'
-	import {IconSearch, IconChevronUp, IconChevronDown, IconSettings} from 'obra-icons-svelte'
+	import {IconSearch, IconChevronUp, IconChevronDown, IconSettings, IconSidebarFillRight} from 'obra-icons-svelte'
 	import {setupBroadcastSync, stopBroadcasting, startBroadcasting} from '$lib/broadcast'
 	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
 	import '@radio4000/components'
@@ -90,7 +90,9 @@
 			<!-- <a href="/playground/syncthing">Syncthing</a> -->
 			<!--<InternetIndicator />-->
 			{#if appState}
-				<button onclick={toggleQueuePanel}>Queue</button>
+				<button onclick={toggleQueuePanel} class="btn">
+					<IconSidebarFillRight size={20} />
+				</button>
 				<button onclick={toggleChatPanel}>Chat</button>
 				<ThemeToggle />
 			{/if}
