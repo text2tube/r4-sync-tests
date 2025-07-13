@@ -3,6 +3,7 @@
 	import {page} from '$app/stores'
 	import {goto} from '$app/navigation'
 	import {IconSearch} from 'obra-icons-svelte'
+	import fuzzysort from 'fuzzysort'
 	import {pg} from '$lib/db'
 	import {
 		subscribeToAppState,
@@ -31,6 +32,26 @@
 
 	/** @type {import('$lib/types.ts').Channel[]} */
 	let allChannels = $state([])
+	
+	// Fuzzy filtered channels for @mention autocomplete
+	let filteredChannels = $derived.by(() => {
+		if (!searchQuery.includes('@')) return allChannels
+		
+		// Extract the @mention query part
+		const atIndex = searchQuery.lastIndexOf('@')
+		const mentionQuery = searchQuery.slice(atIndex + 1)
+		
+		if (mentionQuery.length < 1) return allChannels
+		
+		// Use fuzzysort to search both slug and name
+		const results = fuzzysort.go(mentionQuery, allChannels, {
+			keys: ['slug', 'name'],
+			limit: 10,
+			threshold: 0.1
+		})
+		
+		return results.map(result => result.obj)
+	})
 
 	let searchQuery = $state('')
 	let isLoading = $state(false)
@@ -279,7 +300,7 @@
 		{#each commands as command}
 			<option value="/{command.id}">/{command.title}</option>
 		{/each}
-		{#each allChannels as channel}
+		{#each filteredChannels as channel}
 			<option value="@{channel.slug}">@{channel.slug} - {channel.name}</option>
 		{/each}
 	</datalist>
