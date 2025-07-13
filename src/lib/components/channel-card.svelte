@@ -59,7 +59,7 @@
 	}
 
 	figure {
-		max-width: 25vw;
+		max-width: 50vw;
 	}
 
 	article :global(figure + button) {

@@ -304,6 +304,13 @@
 			<option value="@{channel.slug}">@{channel.slug} - {channel.name}</option>
 		{/each}
 	</datalist>
+
+	<menu>
+		<button type="button" onclick={() => playTracks(tracks.map((t) => t.id))}>Play all</button>
+		<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}
+			>Add to queue</button
+		>
+	</menu>
 </form>
 
 {#if isLoading}
@@ -354,10 +361,6 @@
 		<section>
 			<header>
 				<h2>Tracks ({tracks.length})</h2>
-				<menu>
-					<button onclick={() => playTracks(tracks.map((t) => t.id))}>Play All</button>
-					<button onclick={() => addToPlaylist(tracks.map((t) => t.id))}>Add to queue</button>
-				</menu>
 			</header>
 
 			<ul class="list tracks">
@@ -388,6 +391,9 @@
 
 <style>
 	form {
+		position: sticky;
+		top: 0.5rem;
+		z-index: 10;
 		display: flex;
 		gap: 1rem;
 		margin: 0.5rem 0.5rem 2rem;

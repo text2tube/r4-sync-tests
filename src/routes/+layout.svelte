@@ -11,7 +11,13 @@
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
 	import LiveChat from '$lib/components/live-chat.svelte'
 	import DraggablePanel from '$lib/components/draggable-panel.svelte'
-	import {IconSearch, IconChevronUp, IconChevronDown, IconSettings, IconSidebarFillRight} from 'obra-icons-svelte'
+	import {
+		IconSearch,
+		IconChevronUp,
+		IconChevronDown,
+		IconSettings,
+		IconSidebarFillRight
+	} from 'obra-icons-svelte'
 	import {setupBroadcastSync, stopBroadcasting, startBroadcasting} from '$lib/broadcast'
 	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
 	import {handleKeyDown} from '$lib/shortcuts'
@@ -32,8 +38,6 @@
 	subscribeToAppState((state) => {
 		appState = state
 	})
-
-
 
 	function toggleChatPanel() {
 		chatPanelVisible = !chatPanelVisible

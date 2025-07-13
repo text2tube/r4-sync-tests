@@ -35,7 +35,7 @@
 	}
 </script>
 
-<aside class="queue-aside">
+<aside>
 	{#if trackIds.length > 0}
 		<header>
 			<span class="count">{trackIds.length} tracks queued</span>
@@ -78,6 +78,7 @@
 
 	main {
 		flex: 1;
+		padding-bottom: 12rem;
 	}
 
 	.empty-state {
