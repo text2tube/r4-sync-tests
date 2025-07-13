@@ -7,7 +7,7 @@ import migration03sql from './migrations/03-add_broadcasts_table.sql?raw'
 import migration04sql from './migrations/04-add_shuffle_queue.sql?raw'
 
 // This will limit the amount of channels pulled.
-export const debugLimit = 20
+export const debugLimit = 50
 
 const migrations = [
 	{name: '01-create_tables', sql: migrationsql},
