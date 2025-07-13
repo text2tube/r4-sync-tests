@@ -1,19 +1,13 @@
 <script>
 	import {pg} from '$lib/db'
-	import {subscribeToAppState} from '$lib/api'
 	import Tracklist from './tracklist.svelte'
 
 	/** @typedef {import('$lib/types').AppState} AppState */
 
-	/** @type {AppState} */
-	let appState = $state({})
+	const {appState} = $props()
 
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
-
-	subscribeToAppState((state) => {
-		appState = state
-	})
 
 	function clearQueue() {
 		pg.sql`UPDATE app_state SET playlist_tracks = ARRAY[]::UUID[], playlist_track = NULL WHERE id = 1`

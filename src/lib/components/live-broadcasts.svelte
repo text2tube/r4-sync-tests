@@ -2,13 +2,9 @@
 	import {sdk} from '@radio4000/sdk'
 	import {pg} from '$lib/db'
 	import {joinBroadcast, leaveBroadcast} from '$lib/broadcast'
-	import {subscribeToAppState, readBroadcastsWithChannel} from '$lib/api'
+	import {readBroadcastsWithChannel} from '$lib/api'
 
-	/** @type {import('$lib/types').AppState} */
-	let appState = $state({})
-	subscribeToAppState((state) => {
-		appState = state
-	})
+	const {appState} = $props()
 
 	/** @type {import('$lib/types').BroadcastWithChannel[]} */
 	let activeBroadcasts = $state([])

@@ -4,7 +4,6 @@
 	import {goto} from '$app/navigation'
 	import {IconSearch} from 'obra-icons-svelte'
 	import {pg} from '$lib/db'
-	import {subscribeToAppState} from '$lib/api'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
@@ -20,12 +19,6 @@
 	let searchQuery = $state(data.search || '')
 	let isSearching = $state(false)
 	let debounceTimer = $state()
-
-	/** @type {import('$lib/types').AppState} */
-	let appState = $state({})
-	subscribeToAppState((state) => {
-		appState = state
-	})
 
 	function debouncedSearch() {
 		clearTimeout(debounceTimer)

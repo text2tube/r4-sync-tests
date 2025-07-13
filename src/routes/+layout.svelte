@@ -85,7 +85,7 @@
 			{#if appState}
 				<AddTrackModal />
 				<BroadcastControls {appState} />
-				<LiveBroadcasts />
+				<LiveBroadcasts {appState} />
 			{/if}
 			<!-- <a href="/playground/syncthing">Syncthing</a> -->
 			<!--<InternetIndicator />-->
@@ -112,7 +112,7 @@
 		</main>
 
 		{#if appState?.queue_panel_visible}
-			<QueuePanel />
+			<QueuePanel {appState} />
 		{/if}
 	</div>
 

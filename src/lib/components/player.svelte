@@ -18,15 +18,15 @@
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').AppState} AppState */
 
+	/** @type {import('$lib/types').AppState} */
+	let appState = $state({})
+
 	let autoplay = $state(false)
 
 	let title = $state('')
 	let image = $state('')
 	let description = $state('')
 	let slug = $state('')
-
-	/** @type {AppState} */
-	let appState = $state({})
 
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
