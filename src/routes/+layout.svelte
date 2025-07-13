@@ -1,6 +1,5 @@
 <script>
 	import '../styles/style.css'
-	import {goto} from '$app/navigation'
 	import Player from '$lib/components/player.svelte'
 	import QueuePanel from '$lib/components/queue-panel.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
@@ -15,6 +14,7 @@
 	import {IconSearch, IconChevronUp, IconChevronDown, IconSettings, IconSidebarFillRight} from 'obra-icons-svelte'
 	import {setupBroadcastSync, stopBroadcasting, startBroadcasting} from '$lib/broadcast'
 	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
+	import {handleKeyDown} from '$lib/shortcuts'
 	import '@radio4000/components'
 
 	const {data, children} = $props()
@@ -33,23 +33,6 @@
 		appState = state
 	})
 
-	/**
-	 * Close the player overlay, if open, on escape key press.
-	 * Open command palette on Cmd+K.
-	 * @param {KeyboardEvent} event */
-	function handleKeyDown(event) {
-		if (event.key === 'Escape' && playerLayoutCheckbox?.checked) playerLayoutCheckbox.click()
-		if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
-			event.preventDefault()
-			goto('/search').then(() => {
-				// Focus the search input after navigation
-				setTimeout(() => {
-					const searchInput = document.querySelector('input[type="search"]')
-					if (searchInput instanceof HTMLInputElement) searchInput.focus()
-				}, 0)
-			})
-		}
-	}
 
 
 	function toggleChatPanel() {

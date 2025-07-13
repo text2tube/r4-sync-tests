@@ -3,8 +3,8 @@
 	import {subscribeToAppState, playTrack} from '$lib/api'
 	//import {formatDate} from '$lib/dates'
 
-	/** @type {{ids: string[], footer: (props: {track: import('$lib/types').Track}) => any}} */
-	const {ids, footer} = $props()
+	/** @type {{tracks?: import('$lib/types').Track[], ids?: string[], footer?: (props: {track: import('$lib/types').Track}) => any}} */
+	const {tracks: tracksProp, ids, footer} = $props()
 
 	/** @type {import('$lib/types').Track[]}*/
 	let tracks = $state([])
@@ -16,6 +16,16 @@
 	})
 
 	$effect(() => {
+		if (tracksProp) {
+			tracks = tracksProp
+			return
+		}
+		
+		if (!ids || ids.length === 0) {
+			tracks = []
+			return
+		}
+
 		// Turn the list of ids into real tracks.
 		pg.live.incrementalQuery(
 			`
@@ -33,7 +43,7 @@
 </script>
 
 <ul class="list tracks">
-	{#each tracks as item, index (item.id)}
+	{#each tracks as item, index (index)}
 		<li
 			class={item.id === appState.playlist_track ? 'current' : ''}
 			ondblclick={() => playTrack(item.id)}

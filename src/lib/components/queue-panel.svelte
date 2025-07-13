@@ -9,6 +9,27 @@
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
 
+	/** @type {import('$lib/types').Track[]} */
+	let queueTracks = $state([])
+
+	$effect(() => {
+		if (trackIds.length === 0) {
+			queueTracks = []
+			return
+		}
+
+		const uniqueIds = [...new Set(trackIds)]
+		pg.live.incrementalQuery(
+			`SELECT * FROM tracks WHERE id IN (select unnest($1::uuid[]))`,
+			[uniqueIds],
+			'id',
+			(res) => {
+				const trackMap = new Map(res.rows.map((track) => [track.id, track]))
+				queueTracks = trackIds.map((id) => trackMap.get(id)).filter(Boolean)
+			}
+		)
+	})
+
 	function clearQueue() {
 		pg.sql`UPDATE app_state SET playlist_tracks = ARRAY[]::UUID[], playlist_track = NULL WHERE id = 1`
 	}
@@ -23,7 +44,7 @@
 	{/if}
 	<main class="scroll">
 		{#if trackIds.length > 0}
-			<Tracklist ids={trackIds} />
+			<Tracklist tracks={queueTracks} />
 		{:else}
 			<div class="empty-state">
 				<p>No tracks in queue</p>
