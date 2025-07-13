@@ -1,7 +1,5 @@
 import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
-import {sdk} from '@radio4000/sdk'
-import {browser} from '$app/environment'
 
 import migrationsql from './migrations/01-create_tables.sql?raw'
 import migration02sql from './migrations/02-add_queue_panel_visibility.sql?raw'
@@ -30,9 +28,6 @@ const pgLiteOptions = {
 }
 
 export const pg = await PGlite.create(pgLiteOptions)
-
-// @ts-expect-error just for debugging
-if (browser) window.r5 = {pg, sdk}
 
 export async function dropAllTables() {
 	console.log('Starting database reset...')
@@ -99,7 +94,7 @@ export async function migrate(pg: PGlite) {
 	// Apply new migrations
 	for (const migration of migrations) {
 		if (appliedMigrationNames.includes(migration.name)) {
-			console.log(`Skipping already applied migration: ${migration.name}`)
+			console.log(`Migration already applied: ${migration.name}`)
 		} else {
 			try {
 				await pg.exec(migration.sql)
