@@ -4,6 +4,7 @@
 	import {goto} from '$app/navigation'
 	import {IconSearch} from 'obra-icons-svelte'
 	import {pg} from '$lib/db'
+	import {playTracks, addToPlaylist} from '$lib/api'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
@@ -113,6 +114,15 @@
 		</header>
 		<section>
 			{#if trackIds.length > 0}
+				{#if searchQuery}
+					<header>
+						<h2>Tracks ({trackIds.length})</h2>
+						<menu>
+							<button onclick={() => playTracks(trackIds)}>Play All</button>
+							<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
+						</menu>
+					</header>
+				{/if}
 				<Tracklist ids={trackIds} />
 			{:else}
 				<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
@@ -175,5 +185,25 @@
 
 	section {
 		clear: both;
+	}
+
+	section header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-right: 0.5rem;
+		border-bottom: 1px solid var(--gray-5);
+	}
+
+	section h2 {
+		font-size: var(--font-size-regular);
+		margin: 0.5rem;
+	}
+
+	section menu {
+		display: flex;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0;
 	}
 </style>
