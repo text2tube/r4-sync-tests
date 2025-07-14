@@ -1,7 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
 	import Tracklist from './tracklist.svelte'
-	import {getPlayHistory} from '$lib/api'
 
 	/** @typedef {import('$lib/types').AppState} AppState */
 
@@ -84,7 +83,7 @@
 			{#if playHistory.length > 0}
 				<ul class="list tracks">
 					{#each playHistory as entry, index}
-						<li ondblclick={() => playTrack(entry.id)}>
+						<li ondblclick={() => playTrack(entry.id, null, 'user_click')}>
 							<span>{index + 1}.</span>
 							<div class="title">{entry.title}</div>
 							<div class="description">

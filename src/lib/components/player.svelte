@@ -97,14 +97,17 @@
 		if (!track?.id) return
 		const idx = activeQueue.indexOf(track.id)
 		const prev = activeQueue[idx - 1]
-		if (prev) playTrack(prev, reason)
+		if (prev) playTrack(prev, reason, reason)
 	}
 
 	function next(reason) {
 		if (!track?.id) return
 		const idx = activeQueue.indexOf(track.id)
 		const next = activeQueue[idx + 1]
-		if (next) playTrack(next, reason)
+		if (next) {
+			const startReason = (reason === 'track_completed' || reason === 'youtube_error') ? 'auto_next' : reason
+			playTrack(next, reason, startReason)
+		}
 	}
 
 	function play() {

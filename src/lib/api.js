@@ -28,43 +28,24 @@ export async function checkUser() {
 	}
 }
 
-/** @param {string} id @param {string|null} [reason] */
-export async function playTrack(id, reason = null) {
-	// End previous track if any
+/** @param {string} id @param {string|null} [endReason] @param {string|null} [startReason] */
+export async function playTrack(id, endReason = null, startReason = null) {
+	// Get current track
 	const {rows} = await pg.sql`SELECT playlist_track FROM app_state WHERE id = 1`
 	const currentTrack = rows[0]?.playlist_track
-	if (currentTrack && currentTrack !== id) {
-		await pg.sql`
-			UPDATE play_history
-			SET ended_at = CURRENT_TIMESTAMP,
-				ms_played = EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - started_at)) * 1000,
-				reason_end = ${reason}
-			WHERE track_id = ${currentTrack} AND ended_at IS NULL
-		`
+	
+	// Handle history if reasons provided
+	if (endReason || startReason) {
+		await addPlayHistory({
+			currentTrack,
+			newTrack: id,
+			endReason,
+			startReason
+		})
 	}
-
-	// Determine start reason for new track
-	let startReason = null
-	if (reason === 'user_next' || reason === 'user_prev' || reason === 'user_click') {
-		startReason = reason
-	} else if (reason === 'track_completed' || reason === 'youtube_error') {
-		startReason = 'auto_next'
-	} else {
-		startReason = reason // playlist_load, broadcast_sync, etc.
-	}
-
-	// Start new track
+	
+	// Set new track
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
-	await addPlayHistory({
-		track_id: id,
-		started_at: new Date().toISOString(),
-		ended_at: null,
-		ms_played: 0,
-		reason_start: startReason,
-		reason_end: null,
-		shuffle: false,
-		skipped: false
-	})
 }
 
 /** @param {import('$lib/types').Channel} channel */
@@ -160,7 +141,7 @@ export async function syncToBroadcast(broadcast) {
 		return false
 	}
 
-	await playTrack(track_id, 'broadcast_sync')
+	await playTrack(track_id, null, 'broadcast_sync')
 	console.log('synced to broadcast', {trackId: track_id})
 	return true
 }
@@ -170,7 +151,7 @@ async function loadPlaylist(ids, index = 0) {
 	console.log('loadPlaylist', ids?.length, ids[index])
 	if (!ids || !ids[index]) throw new Error('uhoh loadplaylist missing stuff')
 	await pg.sql`UPDATE app_state SET playlist_tracks = ${ids}`
-	await playTrack(ids[index], 'playlist_load')
+	await playTrack(ids[index], null, 'playlist_load')
 }
 
 /** @returns {Promise<import('$lib/types').BroadcastWithChannel[]>} */
@@ -309,24 +290,38 @@ export function togglePlayPause() {
 	}
 }
 
-/** @returns {Promise<import('$lib/types').PlayHistory[]>} */
-export async function getPlayHistory() {
-	const {rows} = await pg.sql`
-		SELECT * FROM play_history
-		ORDER BY started_at DESC
-	`
-	return rows
-}
-
-/** @param {import('$lib/types').PlayHistory} playData */
-export async function addPlayHistory(playData) {
-	await pg.sql`
-		INSERT INTO play_history (
-			track_id, started_at, ended_at, ms_played,
-			reason_start, reason_end, shuffle, skipped
-		) VALUES (
-			${playData.track_id}, ${playData.started_at}, ${playData.ended_at}, ${playData.ms_played},
-			${playData.reason_start}, ${playData.reason_end}, ${playData.shuffle}, ${playData.skipped}
-		)
-	`
+/** @param {object} data @param {string|null} data.currentTrack @param {string} data.newTrack @param {string|null} data.endReason @param {string|null} data.startReason */
+export async function addPlayHistory({currentTrack, newTrack, endReason, startReason}) {
+	// Get current shuffle state
+	const {rows} = await pg.sql`SELECT shuffle FROM app_state WHERE id = 1`
+	const shuffleState = rows[0]?.shuffle || false
+	
+	// End current track if switching tracks
+	if (currentTrack && currentTrack !== newTrack && endReason) {
+		// Get actual playback time from media controller
+		const mediaController = document.querySelector('media-controller#r5')
+		const actualPlayTime = mediaController?.getAttribute('mediacurrenttime') 
+		const msPlayed = actualPlayTime ? Math.round(parseFloat(actualPlayTime) * 1000) : 0
+		
+		await pg.sql`
+			UPDATE play_history
+			SET ended_at = CURRENT_TIMESTAMP,
+				ms_played = ${msPlayed},
+				reason_end = ${endReason}
+			WHERE track_id = ${currentTrack} AND ended_at IS NULL
+		`
+	}
+	
+	// Start new track if reason provided
+	if (startReason) {
+		await pg.sql`
+			INSERT INTO play_history (
+				track_id, started_at, ended_at, ms_played,
+				reason_start, reason_end, shuffle, skipped
+			) VALUES (
+				${newTrack}, CURRENT_TIMESTAMP, NULL, 0,
+				${startReason}, NULL, ${shuffleState}, FALSE
+			)
+		`
+	}
 }

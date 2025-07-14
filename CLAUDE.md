@@ -13,10 +13,11 @@ SvelteKit + Svelte 5 runes, PGlite (client-side postgres), @radio4000/sdk, jsdoc
 ## File Organization
 
 ```
-/src/lib/db.ts           -- local db, schema
-/src/lib/migrations/     -- sql migration files
-/src/lib/api.js          -- reusable data operations
-/src/lib/sync.js         -- local/remote data synchronization
+/src/lib/db.ts         -- local db, schema
+/src/lib/migrations/   -- sql migration files
+/src/lib/api.js        -- reusable data operations
+/src/lib/sync.js       -- local/remote data synchronization
+/docs 				   -- more documentation
 ```
 
 ## Database and state
