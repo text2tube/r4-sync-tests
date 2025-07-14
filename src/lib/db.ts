@@ -20,16 +20,25 @@ const migrations = [
 
 const persist = true
 const dbUrl = persist ? 'idb://radio4000test2' : 'memory://'
-const pgLiteOptions = {
-	// debug: 1,
-	dataDir: dbUrl,
-	relaxedDurability: true,
-	extensions: {
-		live
+
+let _pg: PGlite | null = null
+
+async function createPg(): Promise<PGlite> {
+	if (!_pg) {
+		_pg = await PGlite.create({
+			// debug: 1,
+			dataDir: dbUrl,
+			relaxedDurability: true,
+			extensions: {
+				live
+			}
+		})
 	}
+	return _pg
 }
 
-export const pg = await PGlite.create(pgLiteOptions)
+// This will be null until initDb() is called
+export let pg: PGlite = null as any
 
 export async function dropAllTables() {
 	console.log('Dropping all tables')
@@ -48,8 +57,16 @@ export async function dropAllTables() {
 
 export async function initDb(reset = false) {
 	console.time('Initialized database')
+
+	// Create the database instance and assign to pg
+	pg = await createPg()
+
+	// Reset if requested
 	if (reset) await dropAllTables()
-	await migrate(pg)
+
+	// Run migrations
+	await migrate()
+
 	console.timeEnd('Initialized database')
 }
 
@@ -65,7 +82,7 @@ export async function exportDb() {
 }
 
 /** Runs a list of SQL migrations on the database */
-export async function migrate(pg: PGlite) {
+export async function migrate() {
 	// Create migrations table if it doesn't exist
 	await pg.exec(`
 		create table if not exists migrations (
@@ -85,7 +102,7 @@ export async function migrate(pg: PGlite) {
 		WHERE table_schema = 'public'
 		AND table_type = 'BASE TABLE'
 	`)
-	console.log('Applied migrations', appliedMigrationNames)
+	console.log('Migrations already applied', appliedMigrationNames)
 	console.log(
 		'Local tables',
 		tablesResult.rows.map((r) => r.table_name)
@@ -94,7 +111,7 @@ export async function migrate(pg: PGlite) {
 	// Apply new migrations
 	for (const migration of migrations) {
 		if (appliedMigrationNames.includes(migration.name)) {
-			// console.log(`Migration already applied: ${migration.name}`)
+			// already applied
 		} else {
 			try {
 				await pg.exec(migration.sql)
@@ -102,7 +119,7 @@ export async function migrate(pg: PGlite) {
 				console.log(`Applied migration: ${migration.name}`)
 			} catch (err) {
 				console.error('Failed migration', err, migration, appliedMigrationNames)
-				throw err // Re-throw to stop the process
+				throw err
 			}
 		}
 	}
