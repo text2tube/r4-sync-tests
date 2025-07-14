@@ -209,12 +209,6 @@
 		border-top: 1px solid var(--gray-5);
 	}
 
-	details {
-		margin-top: 1rem;
-		padding-top: 0.5rem;
-		border-top: 1px solid var(--gray-5);
-	}
-
 	code {
 		background: var(--gray-3);
 		padding: 0.125rem 0.25rem;

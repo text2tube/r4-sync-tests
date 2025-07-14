@@ -425,7 +425,7 @@ export async function syncChannel(slug, {skipUpdateCheck = false} = {}) {
  * @returns {Promise<Object>} Analysis of what would be synced
  */
 export async function dryRun({skipUpdateCheck = false} = {}) {
-	console.log(`🔍 Analyzing sync (${skipUpdateCheck ? 'skip checks' : 'check mode'} mode)...`)
+	let analysis
 
 	// Get all v2 channels
 	const {rows: allChannels} = await pg.query(`
@@ -435,7 +435,7 @@ export async function dryRun({skipUpdateCheck = false} = {}) {
 	`)
 
 	if (allChannels.length === 0) {
-		return {
+		analysis = {
 			total: 0,
 			needsSync: 0,
 			upToDate: 0,
@@ -455,7 +455,7 @@ export async function dryRun({skipUpdateCheck = false} = {}) {
 		channelsNeedingSync = allChannels.filter((ch) => needsUpdateSet.has(ch.id))
 	}
 
-	const analysis = {
+	analysis = {
 		total: allChannels.length,
 		needsSync: channelsNeedingSync.length,
 		upToDate: allChannels.length - channelsNeedingSync.length,
@@ -468,11 +468,10 @@ export async function dryRun({skipUpdateCheck = false} = {}) {
 		wouldSync: channelsNeedingSync.map((ch) => ({slug: ch.slug, name: ch.name}))
 	}
 
-	console.log(`Sync Analysis (${skipUpdateCheck ? 'skip checks' : 'check'} mode):`)
-	console.log(`• Total v2 channels: ${analysis.total}`)
-	console.log(`• Need sync: ${analysis.needsSync}`)
-	console.log(`• Up to date: ${analysis.upToDate}`)
-
+	console.log(
+		`Dry run sync analysis (${skipUpdateCheck ? 'skip checks' : 'check'} mode):`,
+		analysis
+	)
 	if (analysis.needsSync > 0) {
 		console.log(`  • Would sync: ${analysis.wouldSync.map((ch) => ch.slug).join(', ')}`)
 	}

@@ -70,8 +70,9 @@
 </script>
 
 <section>
-	<h3>Sync status ({channels.length} channels)
-	<button onclick={dryRun}>Dry run</button>
+	<h3>
+		Sync status ({channels.length} channels)
+		<button onclick={dryRun}>Dry run</button>
 	</h3>
 
 	{#if channels.length === 0}{:else}

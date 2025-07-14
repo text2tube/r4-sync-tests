@@ -94,13 +94,13 @@
 	<p>All application state interact directly with the local database.</p>
 
 	<hr />
-		<ShortcutsEditor />
-		<hr />
-		<PgliteRepl />
-		<hr />
-		<SyncDebug />
-		<hr />
-		<h3>Account <button onclick={logout}>Logout</button> </h3>
+	<ShortcutsEditor />
+	<hr />
+	<PgliteRepl />
+	<hr />
+	<SyncDebug />
+	<hr />
+	<h3>Account <button onclick={logout}>Logout</button></h3>
 </article>
 
 <style>
