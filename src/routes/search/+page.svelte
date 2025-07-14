@@ -266,8 +266,8 @@
 			}
 		}
 
-		// Check if it's a channel mention
-		if (trimmed.startsWith('@')) {
+		// Check if it's a bare channel mention (no additional text after @channel)
+		if (trimmed.startsWith('@') && !trimmed.includes(' ')) {
 			const slug = trimmed.slice(1)
 			goto(`/${slug}`)
 			return true
