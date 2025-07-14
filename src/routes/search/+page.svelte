@@ -331,7 +331,7 @@
 
 	{#if channels.length > 0}
 		<section>
-			<h2>Channels ({channels.length})</h2>
+			<h2>{channels.length} Channels</h2>
 			<ul class="grid">
 				{#each channels as channel}
 					<li>
@@ -344,13 +344,11 @@
 
 	{#if channelSummary.length > 0}
 		<section>
-			<h2>Channels with "{searchQuery}" tracks ({channelSummary.length})</h2>
-			<ul class="grid">
+			<h2>{channelSummary.length} Channels with tracks <em>"{searchQuery}"</em></h2>
+			<ul class="list">
 				{#each channelSummary as channel}
 					<li>
 						<ChannelCard channel={{...channel, track_count: channel.track_count}} />
-						&nbsp;&nbsp;@{channel.slug}
-						{channel.track_count} tracks
 					</li>
 				{/each}
 			</ul>
