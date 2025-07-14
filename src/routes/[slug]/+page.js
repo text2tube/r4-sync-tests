@@ -1,13 +1,15 @@
 import {syncChannel, pullChannel} from '$lib/sync'
-import {pg} from '$lib/db'
+import {pg, initDb} from '$lib/db'
 import {error} from '@sveltejs/kit'
 
 /** @type {import('./$types').PageLoad} */
-export async function load({params, url}) {
+export async function load({parent, locals, params, url}) {
 	const {slug} = params
 	const search = url.searchParams.get('search') || ''
 	const order = url.searchParams.get('order') || 'created'
 	const dir = url.searchParams.get('dir') || 'desc'
+
+	await parent()
 
 	const {rows} = await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])
 	let channel = rows[0]
