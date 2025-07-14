@@ -31,8 +31,14 @@ await pullChannel('slug') // Always pull one channel
  * @param {number} [options.limit=15] - Number of channels to pull
  */
 export async function pullChannels({limit = debugLimit} = {}) {
-	const {data: channels, error} = await sdk.channels.readChannels(limit)
+	// Use the channels_with_tracks view to get only channels that have tracks
+	const {data: channels, error} = await sdk.supabase
+		.from('channels_with_tracks')
+		.select('*')
+		.order('updated_at', {ascending: false})
+		.limit(limit)
 	if (error) throw error
+	
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {
 			await tx.sql`
