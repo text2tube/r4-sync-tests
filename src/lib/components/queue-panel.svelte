@@ -1,16 +1,22 @@
 <script>
 	import {pg} from '$lib/db'
 	import Tracklist from './tracklist.svelte'
+	import {getPlayHistory} from '$lib/api'
 
 	/** @typedef {import('$lib/types').AppState} AppState */
 
 	const {appState} = $props()
+
+	let view = $state('queue') // 'queue' or 'history'
 
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
 
 	/** @type {import('$lib/types').Track[]} */
 	let queueTracks = $state([])
+
+	/** @type {(import('$lib/types').Track & import('$lib/types').PlayHistory)[]} */
+	let playHistory = $state([])
 
 	$effect(() => {
 		if (trackIds.length === 0) {
@@ -30,26 +36,74 @@
 		)
 	})
 
+	$effect(() => {
+		pg.live.query(
+			`SELECT t.*, h.started_at, h.ended_at, h.ms_played, h.reason_start, h.reason_end, h.skipped 
+			 FROM play_history h 
+			 JOIN tracks t ON h.track_id = t.id 
+			 ORDER BY h.started_at ASC LIMIT 50`,
+			[],
+			(res) => {
+				playHistory = res.rows
+			}
+		)
+	})
+
 	function clearQueue() {
 		pg.sql`UPDATE app_state SET playlist_tracks = ARRAY[]::UUID[], playlist_track = NULL WHERE id = 1`
+	}
+
+	function clearHistory() {
+		pg.sql`DELETE FROM play_history`
 	}
 </script>
 
 <aside>
-	{#if trackIds.length > 0}
-		<header>
-			<span class="count">{trackIds.length} tracks queued</span>
+	<header>
+		<div class="view-buttons">
+			<button onclick={() => view = 'queue'} class:active={view === 'queue'}>Queue</button>
+			<button onclick={() => view = 'history'} class:active={view === 'history'}>History</button>
+		</div>
+		{#if view === 'queue' && trackIds.length > 0}
 			<button onclick={clearQueue}>Clear</button>
-		</header>
-	{/if}
+		{:else if view === 'history' && playHistory.length > 0}
+			<button onclick={clearHistory} title="Clear playlist history">Clear</button>
+		{/if}
+	</header>
 	<main class="scroll">
-		{#if trackIds.length > 0}
-			<Tracklist tracks={queueTracks} />
+		{#if view === 'queue'}
+			{#if trackIds.length > 0}
+				<Tracklist tracks={queueTracks} />
+			{:else}
+				<div class="empty-state">
+					<p>No tracks in queue</p>
+					<p><small>Select a channel to start playing</small></p>
+				</div>
+			{/if}
 		{:else}
-			<div class="empty-state">
-				<p>No tracks in queue</p>
-				<p><small>Select a channel to start playing</small></p>
-			</div>
+			{#if playHistory.length > 0}
+				<ul class="list tracks">
+					{#each playHistory as entry, index}
+						<li ondblclick={() => playTrack(entry.id)}>
+							<span>{index + 1}.</span>
+							<div class="title">{entry.title}</div>
+							<div class="description">
+								<small>
+									{new Date(entry.started_at).toLocaleTimeString()}
+									{#if entry.reason_start}• {entry.reason_start}{/if}
+									{#if entry.reason_end}→ {entry.reason_end}{/if}
+									{#if entry.ms_played}• {Math.round(entry.ms_played / 1000)}s{/if}
+								</small>
+							</div>
+						</li>
+					{/each}
+				</ul>
+			{:else}
+				<div class="empty-state">
+					<p>No play history</p>
+					<p><small>Start playing tracks to see history</small></p>
+				</div>
+			{/if}
 		{/if}
 	</main>
 </aside>
@@ -74,6 +128,15 @@
 		border-bottom: 1px solid var(--gray-5);
 		background: light-dark(var(--gray-2), var(--gray-3));
 		font-size: var(--font-size-regular);
+	}
+
+	.view-buttons {
+		display: flex;
+		gap: 0.25rem;
+	}
+
+	.view-buttons button.active {
+		background: var(--gray-4);
 	}
 
 	main {

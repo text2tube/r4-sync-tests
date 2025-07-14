@@ -28,9 +28,43 @@ export async function checkUser() {
 	}
 }
 
-/** @param {string} id */
-export async function playTrack(id) {
+/** @param {string} id @param {string|null} [reason] */
+export async function playTrack(id, reason = null) {
+	// End previous track if any
+	const {rows} = await pg.sql`SELECT playlist_track FROM app_state WHERE id = 1`
+	const currentTrack = rows[0]?.playlist_track
+	if (currentTrack && currentTrack !== id) {
+		await pg.sql`
+			UPDATE play_history
+			SET ended_at = CURRENT_TIMESTAMP,
+				ms_played = EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - started_at)) * 1000,
+				reason_end = ${reason}
+			WHERE track_id = ${currentTrack} AND ended_at IS NULL
+		`
+	}
+
+	// Determine start reason for new track
+	let startReason = null
+	if (reason === 'user_next' || reason === 'user_prev' || reason === 'user_click') {
+		startReason = reason
+	} else if (reason === 'track_completed' || reason === 'youtube_error') {
+		startReason = 'auto_next'
+	} else {
+		startReason = reason // playlist_load, broadcast_sync, etc.
+	}
+
+	// Start new track
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
+	await addPlayHistory({
+		track_id: id,
+		started_at: new Date().toISOString(),
+		ended_at: null,
+		ms_played: 0,
+		reason_start: startReason,
+		reason_end: null,
+		shuffle: false,
+		skipped: false
+	})
 }
 
 /** @param {import('$lib/types').Channel} channel */
@@ -126,7 +160,7 @@ export async function syncToBroadcast(broadcast) {
 		return false
 	}
 
-	await playTrack(track_id)
+	await playTrack(track_id, 'broadcast_sync')
 	console.log('synced to broadcast', {trackId: track_id})
 	return true
 }
@@ -135,11 +169,8 @@ export async function syncToBroadcast(broadcast) {
 async function loadPlaylist(ids, index = 0) {
 	console.log('loadPlaylist', ids?.length, ids[index])
 	if (!ids || !ids[index]) throw new Error('uhoh loadplaylist missing stuff')
-	await pg.sql`
-    UPDATE app_state SET
-			playlist_tracks = ${ids},
-			playlist_track = ${ids[index]}
-  `
+	await pg.sql`UPDATE app_state SET playlist_tracks = ${ids}`
+	await playTrack(ids[index], 'playlist_load')
 }
 
 /** @returns {Promise<import('$lib/types').BroadcastWithChannel[]>} */

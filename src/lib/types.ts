@@ -119,8 +119,8 @@ export interface PlayHistory {
 	started_at: string
 	ended_at?: string
 	ms_played: number
-	reason_start?: keyof typeof PlayReasonStart
-	reason_end?: keyof typeof PlayReasonEnd
+	reason_start?: string
+	reason_end?: string
 	shuffle: boolean
 	skipped: boolean
 }
