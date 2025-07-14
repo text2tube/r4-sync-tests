@@ -151,9 +151,11 @@
 		grid-template-columns: 1fr minmax(400px, 25vw);
 	}
 
-	header,
-	footer {
-		background: light-dark(var(--gray-2), var(--gray-3));
+	.layout {
+		header,
+		footer {
+			background: light-dark(var(--gray-2), var(--gray-3));
+		}
 	}
 
 	.row {
@@ -163,9 +165,9 @@
 		gap: 0.2rem;
 	}
 
-	header {
+	.layout header {
 		padding: 0.5rem;
-		border-bottom: 1px solid var(--gray-5);
+		/* border-bottom: 1px solid var(--gray-5); */
 
 		.right {
 			margin-left: auto;
@@ -202,7 +204,11 @@
 		border: 1px solid var(--gray-5);
 		border-radius: var(--border-radius);
 	}
+
 	footer .playerToggle {
+		/* disabled until we make it nice */
+		display: none;
+
 		position: absolute;
 		top: 0;
 		left: 0;
@@ -213,6 +219,7 @@
 		border-top-left-radius: var(--border-radius);
 		border-top-right-radius: var(--border-radius);
 	}
+
 	footer input {
 		/* visually  hide so you can still get keyboard ux */
 		position: absolute;

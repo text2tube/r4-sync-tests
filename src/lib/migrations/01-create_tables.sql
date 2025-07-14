@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS app_state (
 	volume NUMERIC DEFAULT 0.5,
 	muted BOOLEAN DEFAULT false,
 	shuffle BOOLEAN DEFAULT false,
+	show_video_player BOOLEAN default false,
 
 	playlist_tracks UUID[] DEFAULT ARRAY[]::UUID[],
 	playlist_track UUID references tracks(id),

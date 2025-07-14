@@ -8,7 +8,8 @@
 		IconNextFill,
 		IconPause,
 		IconPlayFill,
-		IconEject
+		IconEject,
+		IconVideo
 		// IconVolume1Fill,
 		// IconVolume2Fill,
 		// IconVolumeOffFill
@@ -137,16 +138,20 @@
 		title = null
 		slug = null
 		track = null
-		pg.sql`UPDATE app_state SET 
-			playlist_tracks = ${[]}, 
-			playlist_track = null, 
+		pg.sql`UPDATE app_state SET
+			playlist_tracks = ${[]},
+			playlist_track = null,
 			playlist_tracks_shuffled = ${[]},
 			shuffle = false
 			WHERE id = 1`
 	}
+
+	function toggleVideo() {
+		pg.sql`UPDATE app_state SET show_video_player = ${!appState.show_video_player}`
+	}
 </script>
 
-<article>
+<article class={['player', {showVideo: appState.show_video_player}]}>
 	<header>
 		<figure>
 			<ChannelAvatar id={image} alt={title} />
@@ -185,6 +190,9 @@
 			</button>
 			<button onclick={next} title="Go next track">
 				<IconNextFill />
+			</button>
+			<button onclick={toggleVideo} title="Show/hide video">
+				<IconVideo />
 			</button>
 		</menu>
 
@@ -227,11 +235,15 @@
 <style>
 	header {
 		display: grid;
+		margin-left: 0.5rem;
 	}
 
 	.center {
+		flex: 1;
 		display: flex;
 		flex-flow: column nowrap;
+		margin: 0 auto;
+		max-width: 640px;
 	}
 
 	menu {
@@ -241,32 +253,29 @@
 		place-content: center;
 	}
 
-	h2,
-	h3,
-	p,
-	figure {
-		margin: 0;
-	}
-
 	h3 {
 		font-weight: 400;
 	}
 
 	/* Fixed bottom */
-	:global(footer:not(:has(input:checked))) {
-		padding-right: 0.5rem;
-	}
-
 	:global(footer:not(:has(input:checked)) > article) {
 		display: grid;
-		grid-template-columns: 1fr 2fr auto;
 		gap: 0.5rem;
-		/* justify-items: center; */
+
+		@media (min-width: 600px) {
+			display: flex;
+
+			:global(media-control-bar) {
+				margin-right: 0.5rem;
+			}
+		}
 
 		header {
-			grid-template-columns: 3rem auto;
+			grid-template-columns: 4rem auto;
 			gap: 0.5rem;
+			margin-left: 0.5rem;
 			align-items: center;
+			/* place-content: flex-start; */
 
 			div {
 				display: flex;

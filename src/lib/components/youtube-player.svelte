@@ -55,7 +55,10 @@
 
 	youtube-video {
 		display: none;
-		/* min-width: 100px; */
-		min-height: 0;
+		:global(.showVideo) & {
+			display: block;
+			min-width: 300px;
+			min-height: 300px;
+		}
 	}
 </style>
