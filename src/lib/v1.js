@@ -1,21 +1,21 @@
 import {pg, debugLimit} from '$lib/db'
 
 /**
-	Imports a local export of v1 channels, imports them, and fetches + imports tracks as well
+	Imports a local export of v1 channels, imports them
 	It will not overwrite existing channels when slug exists.
 */
 export async function pullV1Channels() {
 	const res = await fetch('/r5-channels.json')
 	const items = (await res.json()).slice(0, debugLimit)
 
-	// remove duplicates (e.g. channels already in the database, be it from v2 or whatever)
+	// remove duplicates - skip v1 channels if ANY channel with same slug already exists
 	const {rows} = await pg.sql`select slug from channels`
 	// we only want channels with images and at least _some_ tracks
 	const channels = items.filter(
 		(item) => !rows.some((r) => r.slug === item.slug) && item.image && item.track_count > 9
 	)
 
-	console.log('Pulling v1 channels and tracks', channels)
+	console.log('Pulling v1 channels', channels)
 
 	try {
 		await pg.transaction(async (tx) => {
@@ -28,15 +28,15 @@ export async function pullV1Channels() {
 				} catch (err) {
 					console.warn('Failed to insert v1 channel', item.slug, err)
 				}
-				const {rows} = await tx.sql`select id from channels where slug = ${item.slug}`
+				// const {rows} = await tx.sql`select id from channels where slug = ${item.slug}`
 				// console.log('Pulled channel. Now tracks...', item.slug, rows[0].id, item.firebase_id)
-				await pullV1Tracks(rows[0].id, item.firebase_id, tx)
+				// await pullV1Tracks(rows[0].id, item.firebase_id, tx)
 			}
 		})
 	} catch (err) {
 		console.warn('Failed to insert v1 channels', err)
 	}
-	console.log('Pulled v1 channels and tracks', channels?.length)
+	console.log('Pulled v1 channels', channels?.length)
 }
 
 /**
@@ -61,11 +61,21 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 	}))
 	const x = tracks.filter((t) => !existingTracks.some((x) => x.firebase_id === t.firebase_id))
 	for (const item of x) {
-		await pg.sql`
-			insert into tracks (firebase_id, channel_id, created_at, updated_at, title, description, url, discogs_url)
-			values (${item.firebase_id}, ${channelId}, ${item.created_at}, ${item.updated_at}, ${item.title}, ${item.description}, ${item.url}, ${item.discogs_url}) on conflict (firebase_id) do nothing;
-		`
+		try {
+			await pg.sql`
+				insert into tracks (firebase_id, channel_id, created_at, updated_at, title, description, url, discogs_url)
+				values (${item.firebase_id}, ${channelId}, ${item.created_at}, ${item.updated_at}, ${item.title}, ${item.description}, ${item.url}, ${item.discogs_url}) on conflict (firebase_id) do nothing;
+			`
+			// Mark as successfully synced
+			await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP where id = ${channelId}`
+		} catch (error) {
+			// console.error(`Failed to insert track ${item.firebase_id}`, error)
+			// On error, just mark as not busy (tracks_synced_at stays NULL for retry)
+			await pg.sql`update channels set busy = false where slug = ${slug}`
+			throw error
+		}
 	}
+
 	console.log(`Pulled v1 tracks (${existingTracks.length} existing skipped)`, x.length)
 }
 

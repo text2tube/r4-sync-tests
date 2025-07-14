@@ -40,7 +40,6 @@
 	async function handleSync() {
 		syncing = true
 		try {
-			console.log('hadlesync')
 			await sync()
 		} catch (err) {
 			console.error(err)
@@ -53,13 +52,12 @@
 		resetting = true
 		try {
 			await initDb(true)
-			console.log('Database reset')
 			// Live queries don't recover well from table drops, so reload, and without a timeout it's too fast :/
 			setTimeout(() => {
-				// window.location.reload()
-			}, 1000)
+				//window.location.reload()
+			}, 100)
 		} catch (error) {
-			console.error('Database reset failed:', error)
+			console.error('initDb(true) aka reset failed:', error)
 		} finally {
 			resetting = false
 		}

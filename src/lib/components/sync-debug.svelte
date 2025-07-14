@@ -9,16 +9,12 @@
 	$effect(() => {
 		const liveQuery = pg.live.query(
 			`
-			SELECT 
-				c.*,
-				COUNT(t.id) as track_count
-			FROM channels c
-			LEFT JOIN tracks t ON c.id = t.channel_id
-			GROUP BY c.id
-			ORDER BY c.name
+			SELECT * FROM channels
+			ORDER BY name
 		`,
 			[],
 			(result) => {
+				console.log('channels live query', result)
 				channels = result.rows
 			}
 		)
@@ -54,18 +50,21 @@
 
 	/** @param {import('$lib/types').Channel} channel */
 	function getStatusIndicator(channel) {
-		if (channel.firebase_id) return '🟡'
+		if (channel.busy) return '🔄'
 		if (!channel.tracks_synced_at) return '🔴'
-		if (channel.track_count === 0) return '🔴'
 		return '🟢'
 	}
 
 	/** @param {import('$lib/types').Channel} channel */
 	function getStatusText(channel) {
-		if (channel.firebase_id) return 'v1 (read-only)'
+		if (channel.busy) return 'Syncing...'
 		if (!channel.tracks_synced_at) return 'Never synced'
-		if (channel.track_count === 0) return 'No tracks'
 		return 'Synced'
+	}
+
+	/** @param {import('$lib/types').Channel} channel */
+	function getVersionText(channel) {
+		return channel.firebase_id ? 'v1' : 'v2'
 	}
 </script>
 
@@ -81,17 +80,15 @@
 				<article>
 					<div>
 						<p>
-							<span>@{channel.slug}</span>
-							<span class="track-count">{channel.track_count} tracks</span>
+							<a href={`/${channel.slug}`}>@{channel.slug}</a>
+							<span class="track-count">{channel.name}</span>
 						</p>
 						<p>
 							{getStatusIndicator(channel)}
 							{getStatusText(channel)}
+							<span class="version">({getVersionText(channel)})</span>
 							{#if channel.tracks_synced_at}
 								{formatDate(channel.tracks_synced_at)}
-							{/if}
-							{#if channel.busy}
-								🔄 Syncing...
 							{/if}
 						</p>
 					</div>
@@ -100,7 +97,7 @@
 						<button onclick={() => pullTracks(channel.slug)}>&darr; Pull tracks</button>
 						<button
 							onclick={() => deleteTracks(channel.id, channel.name)}
-							disabled={channel.track_count === 0}
+							disabled={!channel.tracks_synced_at}
 						>
 							&times; Delete tracks
 						</button>
@@ -128,5 +125,9 @@
 		menu {
 			margin-left: auto;
 		}
+	}
+	.version {
+		opacity: 0.6;
+		font-size: 0.9em;
 	}
 </style>

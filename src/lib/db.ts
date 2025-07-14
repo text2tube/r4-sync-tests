@@ -9,7 +9,7 @@ import migration05sql from './migrations/05-add_shortcuts.sql?raw'
 import migration06sql from './migrations/06-add_play_history.sql?raw'
 
 // This will limit the amount of channels pulled.
-export const debugLimit = 20
+export const debugLimit = 400
 
 const migrations = [
 	{name: '01-create_tables', sql: migrationsql},

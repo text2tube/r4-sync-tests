@@ -42,12 +42,14 @@ export async function pullChannels({limit = debugLimit} = {}) {
           ${channel.description}, ${channel.image},
           ${channel.created_at}, ${channel.updated_at}
         )
-        ON CONFLICT (id) DO UPDATE SET
+        ON CONFLICT (slug) DO UPDATE SET
+          id = EXCLUDED.id,
           name = EXCLUDED.name,
-          slug = EXCLUDED.slug,
           description = EXCLUDED.description,
           image = EXCLUDED.image,
-          updated_at = EXCLUDED.updated_at;
+          created_at = EXCLUDED.created_at,
+          updated_at = EXCLUDED.updated_at,
+          firebase_id = NULL;
       `
 		}
 	})
@@ -79,26 +81,35 @@ export async function pullTracks(slug) {
 		const tracks = data
 
 		await pg.transaction(async (tx) => {
-			const inserts = tracks.map(
-				(track) => tx.sql`
-        INSERT INTO tracks (
-          id, channel_id, url, title, description,
-          discogs_url, created_at, updated_at
-        )
-        VALUES (
-          ${track.id}, ${channel.id}, ${track.url},
-          ${track.title}, ${track.description},
-          ${track.discogs_url}, ${track.created_at}, ${track.updated_at}
-        )
-        ON CONFLICT (id) DO UPDATE SET
-          url = EXCLUDED.url,
-          title = EXCLUDED.title,
-          description = EXCLUDED.description,
-          discogs_url = EXCLUDED.discogs_url,
-          updated_at = EXCLUDED.updated_at
-      `
-			)
-			await Promise.all(inserts)
+			const CHUNK_SIZE = 50
+			for (let i = 0; i < tracks.length; i += CHUNK_SIZE) {
+				const chunk = tracks.slice(i, i + CHUNK_SIZE)
+				const inserts = chunk.map(
+					(track) => tx.sql`
+	        INSERT INTO tracks (
+	          id, channel_id, url, title, description,
+	          discogs_url, created_at, updated_at
+	        )
+	        VALUES (
+	          ${track.id}, ${channel.id}, ${track.url},
+	          ${track.title}, ${track.description},
+	          ${track.discogs_url}, ${track.created_at}, ${track.updated_at}
+	        )
+	        ON CONFLICT (id) DO UPDATE SET
+	          url = EXCLUDED.url,
+	          title = EXCLUDED.title,
+	          description = EXCLUDED.description,
+	          discogs_url = EXCLUDED.discogs_url,
+	          updated_at = EXCLUDED.updated_at
+	      `
+				)
+				await Promise.all(inserts)
+
+				// Yield to UI thread between chunks
+				if (i + CHUNK_SIZE < tracks.length) {
+					await new Promise((resolve) => setTimeout(resolve, 0))
+				}
+			}
 			console.log('Pulled tracks', tracks?.length)
 		})
 		// Mark as successfully synced
@@ -170,7 +181,7 @@ export async function needsUpdate(slug) {
 			// v1 channels dont need updating because it is in read-only state since before this project
 			// @todo fetch tracks from v1 and pull to local??
 			console.log('v1 channel do we want to fetch tracks?', localLatest)
-			return false
+			if (!localLatest) return true
 		}
 
 		// Get latest remote track update
@@ -213,7 +224,7 @@ export async function needsUpdateBatch(channelIds) {
 	try {
 		// Get all channel data we need
 		const {rows: channels} = await pg.sql`
-			select id, slug, tracks_synced_at, firebase_id from channels 
+			select id, slug, tracks_synced_at, firebase_id from channels
 			where id = ANY(${channelIds})
 		`
 
@@ -309,26 +320,38 @@ export async function needsUpdateBatch(channelIds) {
 }
 
 /**
- * Complete sync: channels + tracks. Sequential and resumable.
+ * V2 sync pipeline: channels + tracks from SDK
+ * @param {Object} options
+ * @param {boolean} [options.skipUpdateCheck=false] - Skip update checks and sync all channels
+ */
+export async function syncV2({skipUpdateCheck = false} = {}) {
+	console.time('syncV2')
+	await pullChannels()
+	// await syncTracks({skipUpdateCheck})
+	console.timeEnd('syncV2')
+}
+
+/**
+ * V1 sync pipeline: channels only from JSON (tracks loaded on-demand)
+ */
+export async function syncV1() {
+	console.time('syncV1')
+	await pullV1Channels()
+	// we don't sync tracks to save time. they can be loaded on demand
+	console.timeEnd('syncV1')
+}
+
+/**
+ * Complete sync: v1 and v2 pipelines in parallel
  * @param {Object} options
  * @param {boolean} [options.skipUpdateCheck=false] - Skip update checks and sync all channels
  */
 export async function sync({skipUpdateCheck = false} = {}) {
 	console.time('sync')
-
-	// Step 1: Pull channel metadata (lightweight, always do this)
-	await pullChannels()
-
-	// Step 2: Pull v1 channels in parallel (they don't need individual track sync)
-	try {
-		await pullV1Channels()
-	} catch (err) {
-		console.log(err)
-	}
-
-	// Step 3: Track sync for v2 channels (or skip checks if requested)
-	await syncTracks({skipUpdateCheck})
-
+	await Promise.all([
+		syncV2({skipUpdateCheck}).catch((err) => console.error('V2 sync failed:', err)),
+		syncV1().catch((err) => console.error('V1 sync failed:', err))
+	])
 	console.timeEnd('sync')
 }
 
@@ -344,38 +367,35 @@ export async function syncTracks({skipUpdateCheck = false} = {}) {
 		// Skip update checks: sync all v2 channels regardless of update status
 		console.log('Skipping update checks: syncing all v2 channels')
 		const {rows} = await pg.query(`
-			SELECT id, slug, name FROM channels 
-			WHERE firebase_id IS NULL 
+			SELECT id, slug, name FROM channels
+			WHERE firebase_id IS NULL
 			ORDER BY name
 		`)
 		channelsToSync = rows
 	} else {
 		console.log('checking which channels need updates...')
 		const {rows: allChannels} = await pg.query(`
-			SELECT id, slug, name FROM channels 
-			WHERE firebase_id IS NULL 
+			SELECT id, slug, name FROM channels
 			ORDER BY name
 		`)
+		// WHERE firebase_id IS NULL
 
 		if (allChannels.length === 0) {
 			console.log('No v2 channels found')
 			return
 		}
 
-		// Use batch logic to determine which need updates
 		const channelIds = allChannels.map((ch) => ch.id)
 		const needsUpdateSet = await needsUpdateBatch(channelIds)
 
 		// Filter to only channels that need updates
 		channelsToSync = allChannels.filter((ch) => needsUpdateSet.has(ch.id))
 		console.log(
-			`🔄 syncTracks: channelsToSync result - ${channelsToSync.length} channels:`,
+			`syncTracks: channelsToSync result - ${channelsToSync.length} channels:`,
 			channelsToSync.map((ch) => `${ch.name} (${ch.slug})`)
 		)
 
-		console.log(
-			`📊 Check result: ${needsUpdateSet.size}/${allChannels.length} channels need updates`
-		)
+		console.log(`Check result: ${needsUpdateSet.size}/${allChannels.length} channels need updates`)
 	}
 
 	if (channelsToSync.length === 0) {
@@ -383,19 +403,35 @@ export async function syncTracks({skipUpdateCheck = false} = {}) {
 		return
 	}
 
-	console.log(`🔄 Syncing tracks for ${channelsToSync.length} channels`)
+	console.log(`Syncing tracks for ${channelsToSync.length} channels`)
 
-	for (const channel of channelsToSync) {
-		try {
-			console.log(`  • Syncing tracks for: ${channel.name}`)
-			await pullTracks(channel.slug)
-		} catch (error) {
-			console.error(`  ❌ Failed to sync tracks for ${channel.name}:`, error)
-			// Continue to next channel - error handling is in pullTracks
+	// Process channels in batches for concurrency
+	const CONCURRENCY = 8
+	const batches = []
+	for (let i = 0; i < channelsToSync.length; i += CONCURRENCY) {
+		batches.push(channelsToSync.slice(i, i + CONCURRENCY))
+	}
+
+	for (const batch of batches) {
+		await Promise.all(
+			batch.map(async (channel) => {
+				try {
+					console.log(`  • Syncing tracks for: ${channel.name}`)
+					await pullTracks(channel.slug)
+				} catch (error) {
+					console.error(`  ❌ Failed to sync tracks for ${channel.name}:`, error)
+					// Continue to next channel - error handling is in pullTracks
+				}
+			})
+		)
+
+		// Yield to UI thread between batches
+		if (batches.indexOf(batch) < batches.length - 1) {
+			await new Promise((resolve) => setTimeout(resolve, 10))
 		}
 	}
 
-	console.log('✅ Completed track sync')
+	console.log('√ Completed track sync')
 }
 
 /**
@@ -409,7 +445,7 @@ export async function syncChannel(slug, {skipUpdateCheck = false} = {}) {
 	if (!skipUpdateCheck) {
 		const needs = await needsUpdate(slug)
 		if (!needs) {
-			console.log(`⏭️  Skipping ${slug} - already up to date`)
+			console.log(`Skipping ${slug} - already up to date`)
 			return false
 		}
 	}
@@ -429,8 +465,8 @@ export async function dryRun({skipUpdateCheck = false} = {}) {
 
 	// Get all v2 channels
 	const {rows: allChannels} = await pg.query(`
-		SELECT id, slug, name, tracks_synced_at FROM channels 
-		WHERE firebase_id IS NULL 
+		SELECT id, slug, name, tracks_synced_at FROM channels
+		WHERE firebase_id IS NULL
 		ORDER BY name
 	`)
 

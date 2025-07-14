@@ -1,4 +1,4 @@
-import {describe, test, expect, beforeEach, vi} from 'vitest'
+import {describe, test, expect, beforeEach, afterEach, vi} from 'vitest'
 import {PGlite} from '@electric-sql/pglite'
 import {needsUpdate, needsUpdateBatch, syncTracks, dryRun} from './sync.js'
 import {sdk} from '@radio4000/sdk'
@@ -256,6 +256,105 @@ describe('Production Sync Performance: Real API Testing', () => {
 		})
 
 		expect(results[15].check).toBeGreaterThan(0)
+	}, 60000)
+
+	test('Track insertion chunking performance - jank reduction', async () => {
+		console.log('\\n🔄 Testing track insertion chunking to reduce jank\\n')
+
+		// Get a channel with many tracks to simulate the jank scenario
+		const {data: realChannels} = await sdk.channels.readChannels(5)
+		const testChannel = realChannels.find(ch => !ch.firebase_id) // Get a v2 channel
+		
+		if (!testChannel) {
+			console.log('No v2 channel found, skipping chunking test')
+			return
+		}
+
+		// Insert the channel
+		await pg.sql`
+			INSERT INTO channels (id, name, slug, description, image, created_at, updated_at)
+			VALUES (
+				${testChannel.id}, ${testChannel.name}, ${testChannel.slug},
+				${testChannel.description}, ${testChannel.image},
+				${testChannel.created_at}, ${testChannel.updated_at}
+			)
+		`
+
+		// Get real tracks for this channel
+		const {data: tracks, error} = await sdk.channels.readChannelTracks(testChannel.slug)
+		if (error || !tracks || tracks.length < 100) {
+			console.log(`Channel ${testChannel.slug} has ${tracks?.length || 0} tracks, skipping chunking test`)
+			return
+		}
+
+		console.log(`🧪 Testing with ${tracks.length} tracks from ${testChannel.slug}`)
+
+		// Test 1: Large transaction (current approach)
+		console.log('\\n📦 Test 1: Large transaction (current approach)')
+		const largeStart = performance.now()
+		await pg.transaction(async (tx) => {
+			const inserts = tracks.map(track => tx.sql`
+				INSERT INTO tracks (id, channel_id, url, title, description, discogs_url, created_at, updated_at)
+				VALUES (
+					${track.id}, ${testChannel.id}, ${track.url}, ${track.title}, ${track.description},
+					${track.discogs_url}, ${track.created_at}, ${track.updated_at}
+				)
+			`)
+			await Promise.all(inserts)
+		})
+		const largeTime = performance.now() - largeStart
+		console.log(`  • Large transaction: ${formatDuration(largeTime)}`)
+
+		// Clear tracks for next test
+		await pg.sql`DELETE FROM tracks WHERE channel_id = ${testChannel.id}`
+
+		// Test 2: Chunked with yielding (proposed approach)
+		console.log('\\n⚡ Test 2: Chunked with yielding (proposed approach)')
+		const CHUNK_SIZE = 50
+		const chunkStart = performance.now()
+		
+		await pg.transaction(async (tx) => {
+			for (let i = 0; i < tracks.length; i += CHUNK_SIZE) {
+				const chunk = tracks.slice(i, i + CHUNK_SIZE)
+				const inserts = chunk.map(track => tx.sql`
+					INSERT INTO tracks (id, channel_id, url, title, description, discogs_url, created_at, updated_at)
+					VALUES (
+						${track.id}, ${testChannel.id}, ${track.url}, ${track.title}, ${track.description},
+						${track.discogs_url}, ${track.created_at}, ${track.updated_at}
+					)
+				`)
+				await Promise.all(inserts)
+				
+				// Yield to event loop between chunks
+				if (i + CHUNK_SIZE < tracks.length) {
+					await new Promise(resolve => setTimeout(resolve, 0))
+				}
+			}
+		})
+		const chunkTime = performance.now() - chunkStart
+		console.log(`  • Chunked (${CHUNK_SIZE} per chunk): ${formatDuration(chunkTime)}`)
+
+		// Verify both approaches inserted same number of tracks
+		const {rows: [result]} = await pg.sql`SELECT COUNT(*) as count FROM tracks WHERE channel_id = ${testChannel.id}`
+		
+		console.log('\\n📊 Jank Reduction Analysis:')
+		console.log(`  • Tracks inserted: ${result.count}/${tracks.length}`)
+		
+		if (chunkTime > largeTime) {
+			const overhead = ((chunkTime - largeTime) / largeTime * 100).toFixed(1)
+			console.log(`  • Chunking overhead: ${overhead}% slower (${formatDuration(chunkTime - largeTime)} extra)`)
+		} else {
+			const savings = ((largeTime - chunkTime) / largeTime * 100).toFixed(1)
+			console.log(`  • Chunking savings: ${savings}% faster (${formatDuration(largeTime - chunkTime)} saved)`)
+		}
+		
+		console.log('  • Main benefit: Chunking yields to UI thread, reducing jank')
+		console.log(`  • Chunks processed: ${Math.ceil(tracks.length / CHUNK_SIZE)}`)
+		console.log(`  • UI yields: ${Math.ceil(tracks.length / CHUNK_SIZE) - 1}`)
+
+		expect(parseInt(result.count)).toBe(tracks.length)
+		expect(chunkTime).toBeGreaterThan(0)
+		expect(largeTime).toBeGreaterThan(0)
 	}, 60000)
 
 	test('Single Record: Individual vs Batch needsUpdate overhead', async () => {

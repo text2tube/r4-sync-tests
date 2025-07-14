@@ -10,7 +10,10 @@ export interface Channel {
 	tracks_outdated?: boolean
 	track_count?: number
 	busy: boolean
+
+	// only exists if it's a v1 channel, not yet imported to v2
 	firebase_id?: string
+
 	// for broadcasting
 	broadcasting?: boolean
 	broadcast_track_id?: string
