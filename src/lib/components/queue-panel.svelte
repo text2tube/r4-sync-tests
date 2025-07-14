@@ -60,8 +60,8 @@
 <aside>
 	<header>
 		<div class="view-buttons">
-			<button onclick={() => view = 'queue'} class:active={view === 'queue'}>Queue</button>
-			<button onclick={() => view = 'history'} class:active={view === 'history'}>History</button>
+			<button onclick={() => (view = 'queue')} class:active={view === 'queue'}>Queue</button>
+			<button onclick={() => (view = 'history')} class:active={view === 'history'}>History</button>
 		</div>
 		{#if view === 'queue' && trackIds.length > 0}
 			<button onclick={clearQueue}>Clear</button>
@@ -79,30 +79,28 @@
 					<p><small>Select a channel to start playing</small></p>
 				</div>
 			{/if}
+		{:else if playHistory.length > 0}
+			<ul class="list tracks">
+				{#each playHistory as entry, index}
+					<li ondblclick={() => playTrack(entry.id, null, 'user_click')}>
+						<span>{index + 1}.</span>
+						<div class="title">{entry.title}</div>
+						<div class="description">
+							<small>
+								{new Date(entry.started_at).toLocaleTimeString()}
+								{#if entry.reason_start}• {entry.reason_start}{/if}
+								{#if entry.reason_end}→ {entry.reason_end}{/if}
+								{#if entry.ms_played}• {Math.round(entry.ms_played / 1000)}s{/if}
+							</small>
+						</div>
+					</li>
+				{/each}
+			</ul>
 		{:else}
-			{#if playHistory.length > 0}
-				<ul class="list tracks">
-					{#each playHistory as entry, index}
-						<li ondblclick={() => playTrack(entry.id, null, 'user_click')}>
-							<span>{index + 1}.</span>
-							<div class="title">{entry.title}</div>
-							<div class="description">
-								<small>
-									{new Date(entry.started_at).toLocaleTimeString()}
-									{#if entry.reason_start}• {entry.reason_start}{/if}
-									{#if entry.reason_end}→ {entry.reason_end}{/if}
-									{#if entry.ms_played}• {Math.round(entry.ms_played / 1000)}s{/if}
-								</small>
-							</div>
-						</li>
-					{/each}
-				</ul>
-			{:else}
-				<div class="empty-state">
-					<p>No play history</p>
-					<p><small>Start playing tracks to see history</small></p>
-				</div>
-			{/if}
+			<div class="empty-state">
+				<p>No play history</p>
+				<p><small>Start playing tracks to see history</small></p>
+			</div>
 		{/if}
 	</main>
 </aside>

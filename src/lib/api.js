@@ -33,7 +33,7 @@ export async function playTrack(id, endReason = null, startReason = null) {
 	// Get current track
 	const {rows} = await pg.sql`SELECT playlist_track FROM app_state WHERE id = 1`
 	const currentTrack = rows[0]?.playlist_track
-	
+
 	// Handle history if reasons provided
 	if (endReason || startReason) {
 		await addPlayHistory({
@@ -43,7 +43,7 @@ export async function playTrack(id, endReason = null, startReason = null) {
 			startReason
 		})
 	}
-	
+
 	// Set new track
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
 }
@@ -295,14 +295,14 @@ export async function addPlayHistory({currentTrack, newTrack, endReason, startRe
 	// Get current shuffle state
 	const {rows} = await pg.sql`SELECT shuffle FROM app_state WHERE id = 1`
 	const shuffleState = rows[0]?.shuffle || false
-	
+
 	// End current track if switching tracks
 	if (currentTrack && currentTrack !== newTrack && endReason) {
 		// Get actual playback time from media controller
 		const mediaController = document.querySelector('media-controller#r5')
-		const actualPlayTime = mediaController?.getAttribute('mediacurrenttime') 
+		const actualPlayTime = mediaController?.getAttribute('mediacurrenttime')
 		const msPlayed = actualPlayTime ? Math.round(parseFloat(actualPlayTime) * 1000) : 0
-		
+
 		await pg.sql`
 			UPDATE play_history
 			SET ended_at = CURRENT_TIMESTAMP,
@@ -311,7 +311,7 @@ export async function addPlayHistory({currentTrack, newTrack, endReason, startRe
 			WHERE track_id = ${currentTrack} AND ended_at IS NULL
 		`
 	}
-	
+
 	// Start new track if reason provided
 	if (startReason) {
 		await pg.sql`

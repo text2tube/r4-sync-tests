@@ -36,7 +36,7 @@ async function testChunking() {
 		console.log('Could not find oskar channel, skipping test')
 		return
 	}
-	
+
 	const testChannel = oskarChannel
 
 	// Insert the channel
@@ -75,13 +75,15 @@ async function testChunking() {
 		console.log('  📦 Large transaction (current approach)')
 		const largeStart = performance.now()
 		await pg.transaction(async (tx) => {
-			const inserts = tracks.map(track => tx.sql`
+			const inserts = tracks.map(
+				(track) => tx.sql`
 				INSERT INTO tracks (id, channel_id, url, title, description, discogs_url, created_at, updated_at)
 				VALUES (
 					${track.id + '_large'}, ${testChannel.id}, ${track.url}, ${track.title}, ${track.description},
 					${track.discogs_url}, ${track.created_at}, ${track.updated_at}
 				)
-			`)
+			`
+			)
 			await Promise.all(inserts)
 		})
 		const largeTime = performance.now() - largeStart
@@ -91,22 +93,24 @@ async function testChunking() {
 		console.log('  ⚡ Chunked with yielding (proposed approach)')
 		const CHUNK_SIZE = 50
 		const chunkStart = performance.now()
-		
+
 		await pg.transaction(async (tx) => {
 			for (let i = 0; i < tracks.length; i += CHUNK_SIZE) {
 				const chunk = tracks.slice(i, i + CHUNK_SIZE)
-				const inserts = chunk.map(track => tx.sql`
+				const inserts = chunk.map(
+					(track) => tx.sql`
 					INSERT INTO tracks (id, channel_id, url, title, description, discogs_url, created_at, updated_at)
 					VALUES (
 						${track.id + '_chunk'}, ${testChannel.id}, ${track.url}, ${track.title}, ${track.description},
 						${track.discogs_url}, ${track.created_at}, ${track.updated_at}
 					)
-				`)
+				`
+				)
 				await Promise.all(inserts)
-				
+
 				// Yield to event loop between chunks
 				if (i + CHUNK_SIZE < tracks.length) {
-					await new Promise(resolve => setTimeout(resolve, 0))
+					await new Promise((resolve) => setTimeout(resolve, 0))
 				}
 			}
 		})
@@ -115,11 +119,11 @@ async function testChunking() {
 
 		// Calculate overhead/savings
 		const isOverhead = chunkTime > largeTime
-		const percentage = isOverhead 
-			? ((chunkTime - largeTime) / largeTime * 100).toFixed(1)
-			: ((largeTime - chunkTime) / largeTime * 100).toFixed(1)
+		const percentage = isOverhead
+			? (((chunkTime - largeTime) / largeTime) * 100).toFixed(1)
+			: (((largeTime - chunkTime) / largeTime) * 100).toFixed(1)
 		const symbol = isOverhead ? '↑' : '↓'
-		
+
 		console.log(`    • Chunking ${isOverhead ? 'overhead' : 'savings'}: ${symbol} ${percentage}%`)
 		console.log(`    • UI yields: ${Math.ceil(tracks.length / CHUNK_SIZE) - 1}`)
 
@@ -138,7 +142,7 @@ async function testChunking() {
 	console.log('\n📈 Summary Results:')
 	console.log('Size  | Large Trans | Chunked    | Overhead | UI Yields')
 	console.log('------|-------------|------------|----------|----------')
-	results.forEach(r => {
+	results.forEach((r) => {
 		const sizeStr = r.size.toString().padEnd(5)
 		const largeStr = formatDuration(r.largeTime).padEnd(11)
 		const chunkStr = formatDuration(r.chunkTime).padEnd(10)

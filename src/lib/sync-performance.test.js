@@ -263,8 +263,8 @@ describe('Production Sync Performance: Real API Testing', () => {
 
 		// Get a channel with many tracks to simulate the jank scenario
 		const {data: realChannels} = await sdk.channels.readChannels(5)
-		const testChannel = realChannels.find(ch => !ch.firebase_id) // Get a v2 channel
-		
+		const testChannel = realChannels.find((ch) => !ch.firebase_id) // Get a v2 channel
+
 		if (!testChannel) {
 			console.log('No v2 channel found, skipping chunking test')
 			return
@@ -283,7 +283,9 @@ describe('Production Sync Performance: Real API Testing', () => {
 		// Get real tracks for this channel
 		const {data: tracks, error} = await sdk.channels.readChannelTracks(testChannel.slug)
 		if (error || !tracks || tracks.length < 100) {
-			console.log(`Channel ${testChannel.slug} has ${tracks?.length || 0} tracks, skipping chunking test`)
+			console.log(
+				`Channel ${testChannel.slug} has ${tracks?.length || 0} tracks, skipping chunking test`
+			)
 			return
 		}
 
@@ -293,13 +295,15 @@ describe('Production Sync Performance: Real API Testing', () => {
 		console.log('\\n📦 Test 1: Large transaction (current approach)')
 		const largeStart = performance.now()
 		await pg.transaction(async (tx) => {
-			const inserts = tracks.map(track => tx.sql`
+			const inserts = tracks.map(
+				(track) => tx.sql`
 				INSERT INTO tracks (id, channel_id, url, title, description, discogs_url, created_at, updated_at)
 				VALUES (
 					${track.id}, ${testChannel.id}, ${track.url}, ${track.title}, ${track.description},
 					${track.discogs_url}, ${track.created_at}, ${track.updated_at}
 				)
-			`)
+			`
+			)
 			await Promise.all(inserts)
 		})
 		const largeTime = performance.now() - largeStart
@@ -312,22 +316,24 @@ describe('Production Sync Performance: Real API Testing', () => {
 		console.log('\\n⚡ Test 2: Chunked with yielding (proposed approach)')
 		const CHUNK_SIZE = 50
 		const chunkStart = performance.now()
-		
+
 		await pg.transaction(async (tx) => {
 			for (let i = 0; i < tracks.length; i += CHUNK_SIZE) {
 				const chunk = tracks.slice(i, i + CHUNK_SIZE)
-				const inserts = chunk.map(track => tx.sql`
+				const inserts = chunk.map(
+					(track) => tx.sql`
 					INSERT INTO tracks (id, channel_id, url, title, description, discogs_url, created_at, updated_at)
 					VALUES (
 						${track.id}, ${testChannel.id}, ${track.url}, ${track.title}, ${track.description},
 						${track.discogs_url}, ${track.created_at}, ${track.updated_at}
 					)
-				`)
+				`
+				)
 				await Promise.all(inserts)
-				
+
 				// Yield to event loop between chunks
 				if (i + CHUNK_SIZE < tracks.length) {
-					await new Promise(resolve => setTimeout(resolve, 0))
+					await new Promise((resolve) => setTimeout(resolve, 0))
 				}
 			}
 		})
@@ -335,19 +341,25 @@ describe('Production Sync Performance: Real API Testing', () => {
 		console.log(`  • Chunked (${CHUNK_SIZE} per chunk): ${formatDuration(chunkTime)}`)
 
 		// Verify both approaches inserted same number of tracks
-		const {rows: [result]} = await pg.sql`SELECT COUNT(*) as count FROM tracks WHERE channel_id = ${testChannel.id}`
-		
+		const {
+			rows: [result]
+		} = await pg.sql`SELECT COUNT(*) as count FROM tracks WHERE channel_id = ${testChannel.id}`
+
 		console.log('\\n📊 Jank Reduction Analysis:')
 		console.log(`  • Tracks inserted: ${result.count}/${tracks.length}`)
-		
+
 		if (chunkTime > largeTime) {
-			const overhead = ((chunkTime - largeTime) / largeTime * 100).toFixed(1)
-			console.log(`  • Chunking overhead: ${overhead}% slower (${formatDuration(chunkTime - largeTime)} extra)`)
+			const overhead = (((chunkTime - largeTime) / largeTime) * 100).toFixed(1)
+			console.log(
+				`  • Chunking overhead: ${overhead}% slower (${formatDuration(chunkTime - largeTime)} extra)`
+			)
 		} else {
-			const savings = ((largeTime - chunkTime) / largeTime * 100).toFixed(1)
-			console.log(`  • Chunking savings: ${savings}% faster (${formatDuration(largeTime - chunkTime)} saved)`)
+			const savings = (((largeTime - chunkTime) / largeTime) * 100).toFixed(1)
+			console.log(
+				`  • Chunking savings: ${savings}% faster (${formatDuration(largeTime - chunkTime)} saved)`
+			)
 		}
-		
+
 		console.log('  • Main benefit: Chunking yields to UI thread, reducing jank')
 		console.log(`  • Chunks processed: ${Math.ceil(tracks.length / CHUNK_SIZE)}`)
 		console.log(`  • UI yields: ${Math.ceil(tracks.length / CHUNK_SIZE) - 1}`)
