@@ -9,7 +9,7 @@ export async function delay(ms: number) {
 }
 
 /**
- * Awaits a query and returns the first row or undefined
+ * Awaits a query and returns the first row or undefined. Use for getFirstRow(pg.sql`select * from channels where id = 1`) style queries
  * @template T
  * @param {Promise<{rows: T[]}>} query
  * @returns {Promise<T|undefined>}

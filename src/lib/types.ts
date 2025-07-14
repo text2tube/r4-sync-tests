@@ -11,7 +11,7 @@ export interface Channel {
 	track_count?: number
 	busy: boolean
 
-	// only exists if it's a v1 channel, not yet imported to v2
+	// Link to v1 channel  (locally only channels that did not migrate to v2 will have this field)
 	firebase_id?: string
 
 	// for broadcasting

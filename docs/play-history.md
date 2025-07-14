@@ -1,4 +1,4 @@
-# Play tistory
+# Play history
 
 The player.svelte components wrap the youtube-player.component. Both use [media-chrome](https://www.media-chrome.org/) for the UI controls.
 
