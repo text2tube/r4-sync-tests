@@ -92,3 +92,35 @@ export function err<T>(error: T): Error<T> {
 		error
 	}
 }
+
+export const PlayReasonStart = {
+	USER_CLICK: 'user_click',
+	USER_NEXT: 'user_next',
+	USER_PREVIOUS: 'user_previous',
+	AUTO_NEXT: 'auto_next',
+	SHUFFLE_NEXT: 'shuffle_next',
+	BROADCAST_SYNC: 'broadcast_sync',
+	PLAYLIST_LOAD: 'playlist_load'
+} as const
+
+export const PlayReasonEnd = {
+	TRACK_COMPLETED: 'track_completed',
+	USER_NEXT: 'user_next',
+	USER_PREVIOUS: 'user_previous',
+	USER_STOP: 'user_stop',
+	PLAYLIST_CHANGE: 'playlist_change',
+	YOUTUBE_ERROR: 'youtube_error',
+	BROADCAST_SYNC: 'broadcast_sync'
+} as const
+
+export interface PlayHistory {
+	id: string
+	track_id: string
+	started_at: string
+	ended_at?: string
+	ms_played: number
+	reason_start?: keyof typeof PlayReasonStart
+	reason_end?: keyof typeof PlayReasonEnd
+	shuffle: boolean
+	skipped: boolean
+}

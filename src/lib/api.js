@@ -161,8 +161,6 @@ export async function readBroadcastsWithChannel() {
 	return data || []
 }
 
-// App State Management Functions
-
 /** @param {(state: import('$lib/types').AppState) => void} callback */
 export async function subscribeToAppState(callback) {
 	return pg.live.query('SELECT * FROM app_state WHERE id = 1', [], (res) => {
@@ -206,7 +204,7 @@ export async function searchChannelTracks(channelId, searchTerm = '') {
 
 export async function getChannelsWithTrackCounts() {
 	const {rows} = await pg.sql`
-		SELECT 
+		SELECT
 			c.*,
 			COUNT(t.id) as track_count
 		FROM channels c
@@ -278,4 +276,26 @@ export function togglePlayPause() {
 			ytPlayer.pause()
 		}
 	}
+}
+
+/** @returns {Promise<import('$lib/types').PlayHistory[]>} */
+export async function getPlayHistory() {
+	const {rows} = await pg.sql`
+		SELECT * FROM play_history
+		ORDER BY started_at DESC
+	`
+	return rows
+}
+
+/** @param {import('$lib/types').PlayHistory} playData */
+export async function addPlayHistory(playData) {
+	await pg.sql`
+		INSERT INTO play_history (
+			track_id, started_at, ended_at, ms_played,
+			reason_start, reason_end, shuffle, skipped
+		) VALUES (
+			${playData.track_id}, ${playData.started_at}, ${playData.ended_at}, ${playData.ms_played},
+			${playData.reason_start}, ${playData.reason_end}, ${playData.shuffle}, ${playData.skipped}
+		)
+	`
 }
