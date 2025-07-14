@@ -28,8 +28,23 @@ export async function checkUser() {
 	}
 }
 
-/** @param {string} id */
-export async function playTrack(id) {
+/** @param {string} id @param {string|null} [endReason] @param {string|null} [startReason] */
+export async function playTrack(id, endReason = null, startReason = null) {
+	// Get current track
+	const {rows} = await pg.sql`SELECT playlist_track FROM app_state WHERE id = 1`
+	const currentTrack = rows[0]?.playlist_track
+	
+	// Handle history if reasons provided
+	if (endReason || startReason) {
+		await addPlayHistory({
+			currentTrack,
+			newTrack: id,
+			endReason,
+			startReason
+		})
+	}
+	
+	// Set new track
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
 }
 
@@ -126,7 +141,7 @@ export async function syncToBroadcast(broadcast) {
 		return false
 	}
 
-	await playTrack(track_id)
+	await playTrack(track_id, null, 'broadcast_sync')
 	console.log('synced to broadcast', {trackId: track_id})
 	return true
 }
@@ -135,11 +150,8 @@ export async function syncToBroadcast(broadcast) {
 async function loadPlaylist(ids, index = 0) {
 	console.log('loadPlaylist', ids?.length, ids[index])
 	if (!ids || !ids[index]) throw new Error('uhoh loadplaylist missing stuff')
-	await pg.sql`
-    UPDATE app_state SET
-			playlist_tracks = ${ids},
-			playlist_track = ${ids[index]}
-  `
+	await pg.sql`UPDATE app_state SET playlist_tracks = ${ids}`
+	await playTrack(ids[index], null, 'playlist_load')
 }
 
 /** @returns {Promise<import('$lib/types').BroadcastWithChannel[]>} */
@@ -160,8 +172,6 @@ export async function readBroadcastsWithChannel() {
 	// @ts-expect-error shut up
 	return data || []
 }
-
-// App State Management Functions
 
 /** @param {(state: import('$lib/types').AppState) => void} callback */
 export async function subscribeToAppState(callback) {
@@ -206,7 +216,7 @@ export async function searchChannelTracks(channelId, searchTerm = '') {
 
 export async function getChannelsWithTrackCounts() {
 	const {rows} = await pg.sql`
-		SELECT 
+		SELECT
 			c.*,
 			COUNT(t.id) as track_count
 		FROM channels c
@@ -277,5 +287,41 @@ export function togglePlayPause() {
 		} else {
 			ytPlayer.pause()
 		}
+	}
+}
+
+/** @param {object} data @param {string|null} data.currentTrack @param {string} data.newTrack @param {string|null} data.endReason @param {string|null} data.startReason */
+export async function addPlayHistory({currentTrack, newTrack, endReason, startReason}) {
+	// Get current shuffle state
+	const {rows} = await pg.sql`SELECT shuffle FROM app_state WHERE id = 1`
+	const shuffleState = rows[0]?.shuffle || false
+	
+	// End current track if switching tracks
+	if (currentTrack && currentTrack !== newTrack && endReason) {
+		// Get actual playback time from media controller
+		const mediaController = document.querySelector('media-controller#r5')
+		const actualPlayTime = mediaController?.getAttribute('mediacurrenttime') 
+		const msPlayed = actualPlayTime ? Math.round(parseFloat(actualPlayTime) * 1000) : 0
+		
+		await pg.sql`
+			UPDATE play_history
+			SET ended_at = CURRENT_TIMESTAMP,
+				ms_played = ${msPlayed},
+				reason_end = ${endReason}
+			WHERE track_id = ${currentTrack} AND ended_at IS NULL
+		`
+	}
+	
+	// Start new track if reason provided
+	if (startReason) {
+		await pg.sql`
+			INSERT INTO play_history (
+				track_id, started_at, ended_at, ms_played,
+				reason_start, reason_end, shuffle, skipped
+			) VALUES (
+				${newTrack}, CURRENT_TIMESTAMP, NULL, 0,
+				${startReason}, NULL, ${shuffleState}, FALSE
+			)
+		`
 	}
 }

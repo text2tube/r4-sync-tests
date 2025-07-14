@@ -46,7 +46,7 @@
 	{#each tracks as item, index (index)}
 		<li
 			class={item.id === appState.playlist_track ? 'current' : ''}
-			ondblclick={() => playTrack(item.id)}
+			ondblclick={() => playTrack(item.id, null, 'user_click')}
 		>
 			<span>{index + 1}.</span>
 			<div class="title">

@@ -93,18 +93,21 @@
 		}
 	}
 
-	function previous() {
+	function previous(reason) {
 		if (!track?.id) return
 		const idx = activeQueue.indexOf(track.id)
 		const prev = activeQueue[idx - 1]
-		if (prev) playTrack(prev)
+		if (prev) playTrack(prev, reason, reason)
 	}
 
-	function next() {
+	function next(reason) {
 		if (!track?.id) return
 		const idx = activeQueue.indexOf(track.id)
 		const next = activeQueue[idx + 1]
-		if (next) playTrack(next)
+		if (next) {
+			const startReason = (reason === 'track_completed' || reason === 'youtube_error') ? 'auto_next' : reason
+			playTrack(next, reason, startReason)
+		}
 	}
 
 	function play() {
@@ -121,7 +124,7 @@
 		const code = event.target.error.code
 		if (code === 150) {
 			console.log('YouTube player error 150 -> next()')
-			next()
+			next('youtube_error')
 		} else {
 			console.warn('Unhandled player error', code)
 		}
@@ -129,7 +132,7 @@
 
 	function handleEndTrack() {
 		console.log('Player ended')
-		next()
+		next('track_completed')
 	}
 
 	function eject() {
@@ -179,7 +182,7 @@
 			>
 				<IconShuffle />
 			</button>
-			<button onclick={previous} title="Go previous track">
+			<button onclick={() => previous('user_prev')} title="Go previous track">
 				<IconPreviousFill />
 			</button>
 			<button class="play" onclick={play}>
@@ -188,7 +191,7 @@
 			<button class="pause" onclick={() => yt.pause()}>
 				<IconPause />
 			</button>
-			<button onclick={next} title="Go next track">
+			<button onclick={() => next('user_next')} title="Go next track">
 				<IconNextFill />
 			</button>
 			<button onclick={toggleVideo} title="Show/hide video">
