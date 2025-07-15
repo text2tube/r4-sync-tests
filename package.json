@@ -24,7 +24,7 @@
 		"globals": "^16.3.0",
 		"prettier": "^3.6.2",
 		"prettier-plugin-svelte": "^3.4.0",
-		"svelte": "^5.35.7",
+		"svelte": "^5.36.0",
 		"svelte-check": "^4.2.2",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.37.0",
@@ -33,8 +33,8 @@
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {
-		"@electric-sql/pglite": "^0.3.4",
-		"@electric-sql/pglite-repl": "^0.2.22",
+		"@electric-sql/pglite": "^0.3.5",
+		"@electric-sql/pglite-repl": "^0.2.23",
 		"@humanspeak/svelte-virtual-list": "^0.2.6",
 		"@radio4000/components": "^0.2.15",
 		"@radio4000/sdk": "^0.4.11",
@@ -45,6 +45,6 @@
 		"media-chrome": "^4.12.0",
 		"obra-icons-svelte": "^1.23.1",
 		"tinykeys": "^3.0.0",
-		"youtube-video-element": "^1.6.0"
+		"youtube-video-element": "^1.6.1"
 	}
 }
