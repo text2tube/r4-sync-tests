@@ -4,6 +4,7 @@
 	import {IconGrid, IconUnorderedList, IconMap} from 'obra-icons-svelte'
 	import ChannelCard from './channel-card.svelte'
 	import Map from './map.svelte'
+	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
 
 	/** @type {import('$lib/types').Channel[]}*/
 	let channels = $state([])
@@ -60,13 +61,11 @@
 {#if display === 'map'}
 	<Map markers={mapChannels}></Map>
 {:else}
-	<ul class={display}>
-		{#each channels as channel (channel.id)}
-			<li>
-				<ChannelCard {channel} />
-			</li>
-		{/each}
-	</ul>
+	<SvelteVirtualList items={channels} itemsClass={display}>
+		{#snippet renderItem(channel)}
+			<ChannelCard {channel} />
+		{/snippet}
+	</SvelteVirtualList>
 {/if}
 
 <style>

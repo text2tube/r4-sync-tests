@@ -35,6 +35,7 @@
 	"dependencies": {
 		"@electric-sql/pglite": "^0.3.4",
 		"@electric-sql/pglite-repl": "^0.2.22",
+		"@humanspeak/svelte-virtual-list": "^0.2.6",
 		"@radio4000/components": "^0.2.15",
 		"@radio4000/sdk": "^0.4.11",
 		"@sveltejs/adapter-static": "^3.0.8",
