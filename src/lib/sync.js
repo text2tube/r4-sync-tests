@@ -59,6 +59,9 @@ export async function pullChannels({limit = debugLimit} = {}) {
           image = EXCLUDED.image,
           created_at = EXCLUDED.created_at,
           updated_at = EXCLUDED.updated_at,
+          url = EXCLUDED.url,
+          latitude = EXCLUDED.latitude,
+          longitude = EXCLUDED.longitude,
           firebase_id = NULL;
       `
 		}
