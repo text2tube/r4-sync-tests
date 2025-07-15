@@ -1,20 +1,26 @@
 import {syncChannel, pullChannel} from '$lib/sync'
-import {pg, initDb} from '$lib/db'
+import {pg} from '$lib/db'
 import {error} from '@sveltejs/kit'
 
 /** @type {import('./$types').PageLoad} */
-export async function load({parent, locals, params, url}) {
+export async function load({parent, params, url}) {
+	// Make sure we have the db.
+	await parent()
+	if (!pg) error(500, 'Database connection error')
+
+	// Get URL params
 	const {slug} = params
 	const search = url.searchParams.get('search') || ''
 	const order = url.searchParams.get('order') || 'created'
 	const dir = url.searchParams.get('dir') || 'desc'
 
-	await parent()
-
+	// Query local channel
 	const {rows} = await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])
+
+	/** @type {import('$lib/types').Channel} */
 	let channel = rows[0]
 
-	// If not found locally, pull from SDK
+	// If not found locally, pull from remote
 	try {
 		if (!channel) {
 			channel = await pullChannel(slug)
@@ -24,6 +30,7 @@ export async function load({parent, locals, params, url}) {
 		error(404, 'Channel not found')
 	}
 
+	// and make sure it's up to date
 	await syncChannel(slug)
 
 	return {

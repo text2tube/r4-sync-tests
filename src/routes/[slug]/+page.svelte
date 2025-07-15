@@ -9,16 +9,13 @@
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
 
-	/** @type {{data: {slug: string, search: string, order: string, dir: string}}} */
 	let {data} = $props()
 
-	/** @type {import('$lib/types').Channel|null} */
 	let channel = $state(data.channel)
 
 	/** @type {string[]} */
 	let trackIds = $state([])
 	let searchQuery = $state(data.search || '')
-	let isSearching = $state(false)
 	let debounceTimer = $state()
 
 	function debouncedSearch() {
@@ -28,10 +25,7 @@
 
 	async function performSearch() {
 		if (!channel?.id) return
-
-		isSearching = true
 		const search = searchQuery?.trim() || ''
-
 		try {
 			if (!search) {
 				// Load all tracks if no search query
@@ -47,9 +41,9 @@
 				const query = `%${search.toLowerCase()}%`
 				const {rows} = await pg.query(
 					`
-					SELECT id FROM tracks 
-					WHERE channel_id = $1 
-					  AND (LOWER(title) LIKE $2 
+					SELECT id FROM tracks
+					WHERE channel_id = $1
+					  AND (LOWER(title) LIKE $2
 					       OR LOWER(description) LIKE $2
 					       OR LOWER(url) LIKE $2)
 					ORDER BY created_at DESC
@@ -61,8 +55,6 @@
 		} catch (err) {
 			console.error('Error searching tracks:', err)
 			trackIds = []
-		} finally {
-			isSearching = false
 		}
 	}
 

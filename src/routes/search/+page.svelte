@@ -139,9 +139,9 @@
 				channelResults = await pg.query(
 					`
 					SELECT id, name, slug, description, image
-					FROM channels 
-					WHERE LOWER(name) LIKE $1 
-					   OR LOWER(slug) LIKE $1 
+					FROM channels
+					WHERE LOWER(name) LIKE $1
+					   OR LOWER(slug) LIKE $1
 					   OR LOWER(description) LIKE $1
 					ORDER BY name
 				`,
@@ -157,7 +157,7 @@
 					FROM tracks t
 					JOIN channels c ON t.channel_id = c.id
 					WHERE c.slug = $2
-					  AND (LOWER(t.title) LIKE $1 
+					  AND (LOWER(t.title) LIKE $1
 					       OR LOWER(t.description) LIKE $1
 					       OR LOWER(t.url) LIKE $1)
 					ORDER BY t.title
@@ -167,8 +167,8 @@
 					       c.name as channel_name, c.slug as channel_slug
 					FROM tracks t
 					JOIN channels c ON t.channel_id = c.id
-					WHERE LOWER(t.title) LIKE $1 
-					   OR LOWER(t.description) LIKE $1 
+					WHERE LOWER(t.title) LIKE $1
+					   OR LOWER(t.description) LIKE $1
 					   OR LOWER(t.url) LIKE $1
 					ORDER BY t.title
 				`
@@ -183,8 +183,8 @@
 					FROM channels c
 					JOIN tracks t ON c.id = t.channel_id
 					WHERE c.slug = $2
-					  AND (LOWER(t.title) LIKE $1 
-					       OR LOWER(t.description) LIKE $1 
+					  AND (LOWER(t.title) LIKE $1
+					       OR LOWER(t.description) LIKE $1
 					       OR LOWER(t.url) LIKE $1)
 					GROUP BY c.id, c.name, c.slug, c.description, c.image
 					ORDER BY COUNT(t.id) DESC, c.name
@@ -193,8 +193,8 @@
 					SELECT c.id, c.name, c.slug, c.description, c.image, COUNT(t.id) as track_count
 					FROM channels c
 					JOIN tracks t ON c.id = t.channel_id
-					WHERE LOWER(t.title) LIKE $1 
-					   OR LOWER(t.description) LIKE $1 
+					WHERE LOWER(t.title) LIKE $1
+					   OR LOWER(t.description) LIKE $1
 					   OR LOWER(t.url) LIKE $1
 					GROUP BY c.id, c.name, c.slug, c.description, c.image
 					ORDER BY COUNT(t.id) DESC, c.name
@@ -297,10 +297,10 @@
 		oninput={debouncedSearch}
 	/>
 	<datalist id="command-suggestions">
-		{#each commands as command}
+		{#each commands as command (command.id)}
 			<option value="/{command.id}">/{command.title}</option>
 		{/each}
-		{#each filteredChannels as channel}
+		{#each filteredChannels as channel (channel.id)}
 			<option value="@{channel.slug}">@{channel.slug} - {channel.name}</option>
 		{/each}
 	</datalist>
@@ -333,7 +333,7 @@
 		<section>
 			<h2>{channels.length} Channels</h2>
 			<ul class="grid">
-				{#each channels as channel}
+				{#each channels as channel (channel.id)}
 					<li>
 						<ChannelCard {channel} />
 					</li>
@@ -346,7 +346,7 @@
 		<section>
 			<h2>{channelSummary.length} Channels with tracks <em>"{searchQuery}"</em></h2>
 			<ul class="list">
-				{#each channelSummary as channel}
+				{#each channelSummary as channel (channel.id)}
 					<li>
 						<ChannelCard channel={{...channel, track_count: channel.track_count}} />
 					</li>
@@ -362,7 +362,7 @@
 			</header>
 
 			<ul class="list tracks">
-				{#each tracks as track, index}
+				{#each tracks as track, index (track.id)}
 					<li
 						class={track.id === appState.playlist_track ? 'current' : ''}
 						ondblclick={() => playTrack(track.id, null, 'user_click')}

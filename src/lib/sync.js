@@ -136,8 +136,7 @@ export async function pullChannel(slug) {
 	const {data: channel, error} = await sdk.channels.readChannel(slug)
 	if (error) throw error
 
-	if (channel) {
-		await pg.sql`
+	await pg.sql`
 			INSERT INTO channels (id, name, slug, description, image, created_at, updated_at)
 			VALUES (
 				${channel.id}, ${channel.name}, ${channel.slug},
@@ -151,8 +150,7 @@ export async function pullChannel(slug) {
 				image = EXCLUDED.image,
 				updated_at = EXCLUDED.updated_at
 		`
-		console.log('Pulled channel', channel.slug)
-	}
+	console.log('Pulled channel', channel.slug)
 
 	return channel
 }

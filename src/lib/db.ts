@@ -1,5 +1,6 @@
 import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
+import type {PGliteWithLive} from '@electric-sql/pglite/live'
 
 import migrationsql from './migrations/01-create_tables.sql?raw'
 import migration02sql from './migrations/02-add_queue_panel_visibility.sql?raw'
@@ -23,9 +24,13 @@ const migrations = [
 const persist = true
 const dbUrl = persist ? 'idb://radio4000test2' : 'memory://'
 
-let _pg: PGlite | null = null
+// Why do we have this
+let _pg: PGliteWithLive | null = null
 
-async function createPg(): Promise<PGlite> {
+// This will be null until initDb() is called
+export let pg: PGliteWithLive
+
+async function createPg(): Promise<PGliteWithLive> {
 	if (!_pg) {
 		_pg = await PGlite.create({
 			// debug: 1,
@@ -39,10 +44,8 @@ async function createPg(): Promise<PGlite> {
 	return _pg
 }
 
-// This will be null until initDb() is called
-export let pg: PGlite = null as any
-
 export async function dropAllTables() {
+	if (!pg) throw new Error('Database not initialized')
 	console.log('Dropping all tables')
 	// Clear tables
 	await pg.sql`DELETE FROM app_state;`
@@ -53,7 +56,6 @@ export async function dropAllTables() {
 	await pg.sql`drop table if exists tracks CASCADE;`
 	await pg.sql`drop table if exists channels CASCADE;`
 	await pg.sql`drop table if exists migrations CASCADE;`
-
 	console.log('Dropped all tables')
 }
 
@@ -73,6 +75,7 @@ export async function initDb(reset = false) {
 }
 
 export async function exportDb() {
+	if (!pg) throw new Error('Database not initialized')
 	const file = await pg.dumpDataDir()
 	// Download the dump
 	const url = URL.createObjectURL(file)
@@ -85,6 +88,8 @@ export async function exportDb() {
 
 /** Runs a list of SQL migrations on the database */
 export async function migrate() {
+	if (!pg) throw new Error('Database not initialized')
+
 	// Create migrations table if it doesn't exist
 	await pg.exec(`
 		create table if not exists migrations (
