@@ -40,12 +40,12 @@
 		display: flex;
 		flex-flow: row nowrap;
 		gap: 0.5rem;
-		padding: 0.25rem 0.5rem;
 
 		:global(.list) & {
 			display: grid;
 			grid-template-columns: 4rem auto;
 			align-items: center;
+			padding: 0.25rem 0.5rem;
 		}
 
 		:global(.grid) & {
@@ -68,9 +68,10 @@
 
 	article :global(figure + button) {
 		position: absolute;
-		left: 0.75rem;
+		top: 0.5rem;
+		left: 0.5rem;
 		background: var(--gray-2);
-		width: 2.5rem;
+		width: 4rem;
 		border: 0;
 		box-shadow: none;
 		transition: none;
