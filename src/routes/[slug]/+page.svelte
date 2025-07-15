@@ -40,6 +40,8 @@
 					[channel.id]
 				)
 				trackIds = rows.map((row) => row.id)
+				await pg.sql`update channels set track_count = ${trackIds.length} where id = ${channel.id}`
+				console.log('sat track_count', trackIds.length)
 			} else {
 				// Search tracks within this channel
 				const query = `%${search.toLowerCase()}%`

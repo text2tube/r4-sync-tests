@@ -1,6 +1,7 @@
 <script>
 	import {pg} from '$lib/db'
 	import {pullTracks, dryRun} from '$lib/sync'
+	import InternetIndicator from '$lib/components/internet-indicator.svelte'
 
 	/** @type {import('$lib/types').Channel[]} */
 	let channels = $state([])
@@ -25,19 +26,13 @@
 		}
 	})
 
-	/**
-	 * @param {string} id
-	 * @param {string} name
-	 */
-	async function deleteChannel(id, name) {
+	/** * @param {string} id */
+	async function deleteChannel(id) {
 		await pg.sql`DELETE FROM channels WHERE id = ${id}`
 	}
 
-	/**
-	 * @param {string} id
-	 * @param {string} name
-	 */
-	async function deleteTracks(id, name) {
+	/** * @param {string} id */
+	async function deleteTracks(id) {
 		await pg.sql`DELETE FROM tracks WHERE channel_id = ${id}`
 		await pg.sql`UPDATE channels SET tracks_synced_at = NULL WHERE id = ${id}`
 	}
@@ -110,6 +105,8 @@
 		</section>
 	{/if}
 </section>
+
+<InternetIndicator />
 
 <style>
 	.list {

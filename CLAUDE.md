@@ -80,10 +80,10 @@ $effect(() => {
 ## HTML/CSS
 
 - Semantic HTML over divs
-- Use existing global styles over new classes
-- CSS custom properties for theming
+- Rely existing global styles over new classes
 - Only create CSS classes when really needed
-- Use semantic elements like header menu instead. it's obvious. and call the button label "Add to queue"
+- Use CSS custom property variables from variables.css (colors, font-sizing)
+- Use semantic elements like header menu instead
 
 ## Code Style
 

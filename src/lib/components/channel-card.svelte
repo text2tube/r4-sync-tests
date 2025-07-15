@@ -60,6 +60,8 @@
 
 	figure {
 		max-width: 50vw;
+		/* for channels with no image */
+		min-height: 2rem;
 	}
 
 	article :global(figure + button) {

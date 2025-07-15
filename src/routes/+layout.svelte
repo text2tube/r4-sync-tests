@@ -6,7 +6,6 @@
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
 	import AuthListener from '$lib/components/auth-listener.svelte'
 	import AddTrackModal from '$lib/components/add-track-modal.svelte'
-	import InternetIndicator from '$lib/components/internet-indicator.svelte'
 	import LiveBroadcasts from '$lib/components/live-broadcasts.svelte'
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
 	import LiveChat from '$lib/components/live-chat.svelte'
@@ -56,13 +55,13 @@
 	}
 
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
-	// $effect(() => {
-	// 	window.addEventListener('beforeunload', async (event) => {
-	// 		console.log('maybe close pglite?')
-	// 		event.preventDefault()
-	// 		await pg.close()
-	// 	})
-	// })
+	$effect(() => {
+		window.addEventListener('beforeunload', async (event) => {
+			console.log('maybe close pglite?')
+			// event.preventDefault()
+			// await pg.close()
+		})
+	})
 </script>
 
 <AuthListener />
@@ -77,6 +76,7 @@
 			{/if}
 		</a>
 		<a href="/search" class="btn" title="cmd/ctrl+k"><IconSearch size={20} /></a>
+		<!-- <a href="/spam-warrior" class="btn">Spam Warrior</a> -->
 
 		<div class="row right">
 			{#if appState}

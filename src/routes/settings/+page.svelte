@@ -93,12 +93,11 @@
 
 	<hr />
 	<ShortcutsEditor />
+	<!-- <SyncDebug /> -->
+	<hr />
+	<button onclick={logout}>Logout</button>
 	<hr />
 	<PgliteRepl />
-	<hr />
-	<SyncDebug />
-	<hr />
-	<h3>Account <button onclick={logout}>Logout</button></h3>
 </article>
 
 <style>

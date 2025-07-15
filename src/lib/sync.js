@@ -38,7 +38,7 @@ export async function pullChannels({limit = debugLimit} = {}) {
 		.order('updated_at', {ascending: false})
 		.limit(limit)
 	if (error) throw error
-	
+
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {
 			await tx.sql`
