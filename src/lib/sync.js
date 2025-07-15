@@ -39,14 +39,18 @@ export async function pullChannels({limit = debugLimit} = {}) {
 		.limit(limit)
 	if (error) throw error
 
+	console.log('loaded channels', channels)
+
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {
 			await tx.sql`
-        INSERT INTO channels (id, name, slug, description, image, created_at, updated_at)
+        INSERT INTO channels (id, name, slug, description, image, created_at, updated_at, latitude, longitude, url)
         VALUES (
           ${channel.id}, ${channel.name}, ${channel.slug},
           ${channel.description}, ${channel.image},
-          ${channel.created_at}, ${channel.updated_at}
+          ${channel.created_at}, ${channel.updated_at},
+          ${channel.latitude}, ${channel.longitude},
+          ${channel.url}
         )
         ON CONFLICT (slug) DO UPDATE SET
           id = EXCLUDED.id,
