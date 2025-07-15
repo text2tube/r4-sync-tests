@@ -1,7 +1,7 @@
 <script>
 	import {pg} from '$lib/db'
 	import {subscribeToAppState, playTrack} from '$lib/api'
-	//import {formatDate} from '$lib/dates'
+	import {formatDate} from '$lib/dates'
 
 	/** @type {{tracks?: import('$lib/types').Track[], ids?: string[], footer?: (props: {track: import('$lib/types').Track}) => any}} */
 	const {tracks: tracksProp, ids, footer} = $props()
@@ -29,7 +29,7 @@
 		// Turn the list of ids into real tracks.
 		pg.live.incrementalQuery(
 			`
-		SELECT t.id, t.title, t.description, t.url, t.channel_id, c.name as channel_name, c.slug as channel_slug
+		SELECT t.id, t.title, t.description, t.url, t.channel_id, t.created_at, t.updated_at, c.name as channel_name, c.slug as channel_slug
 		FROM tracks t
 		JOIN channels c on t.channel_id = c.id
 		WHERE t.id IN (select unnest($1::uuid[]))
@@ -54,7 +54,8 @@
 		>
 			<span>{index + 1}.</span>
 			<div class="title">
-				<a href={`/${item.channel_slug}/tracks/${item.id}`}>{item.title}</a>
+				{item.title}
+				<a href={`/${item.channel_slug}/tracks/${item.id}`}>{formatDate(item.created_at)}</a>
 			</div>
 			<div class="description">
 				<small>{item.description}</small>
@@ -64,3 +65,10 @@
 		</li>
 	{/each}
 </ul>
+
+<style>
+	.title {
+		display: flex;
+		justify-content: space-between;
+	}
+	</style>

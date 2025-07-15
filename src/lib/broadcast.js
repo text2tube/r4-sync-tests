@@ -64,6 +64,8 @@ export function setupBroadcastSync() {
 
 		const {broadcasting_channel_id, playlist_track} = state
 
+		console.log('setup broadast sync', playlist_track)
+
 		// Handle broadcast state change (start/stop broadcasting)
 		if (broadcasting_channel_id !== lastBroadcastingChannelId) {
 			if (broadcasting_channel_id) {
