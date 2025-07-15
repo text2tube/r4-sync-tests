@@ -9,7 +9,9 @@ CREATE TABLE IF NOT EXISTS channels (
 	busy BOOLEAN,
 	firebase_id TEXT unique,
 	tracks_synced_at TIMESTAMP WITH TIME ZONE,
-	broadcasting BOOLEAN
+	broadcasting BOOLEAN,
+	spam BOOLEAN,
+	track_count INTEGER DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_channels_slug ON channels(slug);

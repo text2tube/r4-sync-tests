@@ -19,6 +19,9 @@ export interface Channel {
 	broadcast_track_id?: string
 	broadcast_started_at?: string
 	tracks_synced_at?: string
+
+	// local only
+	spam?: boolean
 }
 
 export type Track = {
