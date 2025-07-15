@@ -60,8 +60,10 @@
 
 	figure {
 		max-width: 50vw;
+		aspect-ratio: 1/1;
 		/* for channels with no image */
 		min-height: 2rem;
+		background: var(--gray-2);
 	}
 
 	article :global(figure + button) {

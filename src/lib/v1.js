@@ -14,9 +14,6 @@ export async function pullV1Channels() {
 	const channels = items.filter(
 		(item) => !rows.some((r) => r.slug === item.slug) && item.image && item.track_count > 9
 	)
-
-	console.log('Pulling v1 channels', channels)
-
 	try {
 		await pg.transaction(async (tx) => {
 			for (const item of channels) {
@@ -36,7 +33,7 @@ export async function pullV1Channels() {
 	} catch (err) {
 		console.warn('Failed to insert v1 channels', err)
 	}
-	console.log('Pulled v1 channels', channels?.length)
+	console.log('Pulled v1 channels', channels)
 }
 
 /**

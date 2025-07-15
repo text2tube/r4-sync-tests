@@ -6,6 +6,7 @@
 
 	$effect(async () => {
 		const data = await pg.live.query(`select counter from app_state where id = 1`, [], (stuff) => {
+			console.log('app state live query from /playground ran')
 			count = stuff.rows[0].counter
 		})
 	})
