@@ -30,11 +30,9 @@ export async function checkUser() {
 
 /** @param {string} id @param {string|null} [endReason] @param {string|null} [startReason] */
 export async function playTrack(id, endReason = null, startReason = null) {
-	// Get current track
 	const {rows} = await pg.sql`SELECT playlist_track FROM app_state WHERE id = 1`
 	const currentTrack = rows[0]?.playlist_track
-
-	// Handle history if reasons provided
+	if (!currentTrack) throw new Error('missing track to play')
 	if (endReason || startReason) {
 		await addPlayHistory({
 			currentTrack,
@@ -43,85 +41,35 @@ export async function playTrack(id, endReason = null, startReason = null) {
 			startReason
 		})
 	}
-
-	// Set new track
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
+}
+
+/**
+ * Leaves a channels' broadacst, if you're listening to it.
+ * @param {string} channelId
+ */
+async function maybeLeaveBroadcast(channelId) {
+	const {rows} = await pg.sql`SELECT listening_to_channel_id FROM app_state WHERE id = 1`
+	const appState = rows[0]
+	if (appState?.listening_to_channel_id && appState.listening_to_channel_id !== channelId) {
+		await leaveBroadcast()
+	}
 }
 
 /** @param {import('$lib/types').Channel} channel */
 export async function playChannel({id, slug}) {
-	// Check if currently listening to a broadcast, and leave it if switching to different channel
-	const {rows: appStateRows} =
-		await pg.sql`SELECT listening_to_channel_id FROM app_state WHERE id = 1`
-	const currentState = appStateRows[0]
-	if (currentState?.listening_to_channel_id && currentState.listening_to_channel_id !== id) {
-		await leaveBroadcast()
-	}
-
-	let tracks = (
+	await maybeLeaveBroadcast(id)
+	if (await needsUpdate(slug)) await pullTracks(slug)
+	const tracks = (
 		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
 	).rows
-
-	if (!tracks?.length) {
-		await pullTracks(slug)
-	}
-	tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`)
-		.rows
-
-	needsUpdate(slug).then((needs) => {
-		console.log('needsUpdate', slug, needs)
-		if (needs) return pullTracks(slug)
-	})
-
-	const ids = tracks.map((t) => t.id)
-	return loadPlaylist(ids)
+	await setPlaylist(tracks.map((t) => t.id))
+	await playTrack(tracks[0].id, null, 'play_channel')
 }
 
-/** @param {string} trackId */
-export async function ensureTrackAvailable(trackId) {
-	try {
-		if ((await pg.sql`SELECT 1 FROM tracks WHERE id = ${trackId}`).rows.length > 0) {
-			console.log('found track locally', {trackId})
-			return true
-		}
-
-		console.log('fetching track channel', {trackId})
-		const {data} = await sdk.supabase
-			.from('channel_track')
-			.select('channels(slug)')
-			.eq('track_id', trackId)
-			.single()
-
-		// @ts-expect-error shut up
-		const slug = data?.channels?.slug
-		if (!slug) {
-			console.log('track channel not found', {trackId})
-			return false
-		}
-
-		console.log('pulling channel for track', {trackId, slug})
-		try {
-			if (await needsUpdate(slug)) {
-				await pullChannel(slug)
-				await pullTracks(slug)
-				console.log('pulled channel', {slug})
-				return true
-			}
-		} catch {
-			// Channel doesn't exist locally, pull it
-			console.log('channel not found locally, pulling', {slug})
-			await pullChannel(slug)
-			await pullTracks(slug)
-			console.log('pulled channel', {slug})
-			return true
-		}
-
-		console.log('channel already up to date', {slug})
-		return false
-	} catch (/** @type {any} */ err) {
-		console.log('failed ensuring track availability', {trackId, error: err.message})
-		return false
-	}
+/** @param {string[]} ids */
+export async function setPlaylist(ids) {
+	await pg.sql`UPDATE app_state SET playlist_tracks = ${ids}`
 }
 
 /** @param {any} broadcast */
@@ -129,29 +77,30 @@ export async function syncToBroadcast(broadcast) {
 	const {track_id, track_played_at} = broadcast
 	const playbackPosition = (Date.now() - new Date(track_played_at).getTime()) / 1000
 
-	console.log('syncing to broadcast', {trackId: track_id, playbackPosition})
-
-	if (playbackPosition < 0 || playbackPosition > 600) {
-		console.log('rejected broadcast sync', {reason: 'too old', playbackPosition})
-		return false
+	if (playbackPosition > 600) {
+		console.log('ignoring stale broadcast', {playbackPosition, track_id})
+		return
 	}
 
-	if (!(await ensureTrackAvailable(track_id))) {
-		console.log('rejected broadcast sync', {reason: 'track unavailable', trackId: track_id})
-		return false
+	try {
+		await playTrack(track_id, null, 'broadcast_sync')
+	} catch {
+		const {data} = await sdk.supabase
+			.from('channel_track')
+			.select('channels(slug)')
+			.eq('track_id', track_id)
+			.single()
+		// @ts-expect-error supabase query result structure
+		const slug = data?.channels?.slug
+		if (slug) {
+			await pullChannel(slug)
+			await pullTracks(slug)
+			await playTrack(track_id, null, 'broadcast_sync')
+			await pg.sql`UPDATE app_state SET listening_to_channel_id = ${broadcast.channel_id} WHERE id = 1`
+			console.log('synced to broadcast track change', track_id)
+			return true
+		}
 	}
-
-	await playTrack(track_id, null, 'broadcast_sync')
-	console.log('synced to broadcast', {trackId: track_id})
-	return true
-}
-
-/** @param {string[]} ids @param {number} index */
-async function loadPlaylist(ids, index = 0) {
-	console.log('loadPlaylist', ids?.length, ids[index])
-	if (!ids || !ids[index]) throw new Error('uhoh loadplaylist missing stuff')
-	await pg.sql`UPDATE app_state SET playlist_tracks = ${ids}`
-	await playTrack(ids[index], null, 'playlist_load')
 }
 
 /** @returns {Promise<import('$lib/types').BroadcastWithChannel[]>} */
@@ -233,12 +182,6 @@ export async function addToPlaylist(trackIds) {
 	const currentTracks = rows[0]?.playlist_tracks || []
 	const newTracks = [...currentTracks, ...trackIds]
 	await pg.sql`UPDATE app_state SET playlist_tracks = ${newTracks}`
-}
-
-/** @param {string[]} trackIds */
-export async function playTracks(trackIds) {
-	if (!trackIds?.length) return
-	await loadPlaylist(trackIds)
 }
 
 // Command palette functions

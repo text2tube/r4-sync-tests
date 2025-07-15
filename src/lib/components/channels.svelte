@@ -9,12 +9,13 @@
 	/** @type {import('$lib/types').Channel[]}*/
 	let channels = $state([])
 	const mapChannels = $derived(
-		channels.filter((c) => c.longitude && c.latitude)
+		channels
+			.filter((c) => c.longitude && c.latitude)
 			.map(({longitude, latitude, slug, name}) => ({
 				longitude,
 				latitude,
 				title: name,
-				href: `${slug}`,
+				href: `${slug}`
 			}))
 	)
 

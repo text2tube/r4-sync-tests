@@ -35,15 +35,7 @@ export async function joinBroadcast(channelId) {
 		if (!data) throw new Error('Broadcast not found')
 
 		console.log('fetched broadcast', {trackId: data.track_id, playedAt: data.track_played_at})
-
-		const synced = await syncToBroadcast(data)
-
-		if (synced) {
-			await pg.sql`UPDATE app_state SET listening_to_channel_id = ${channelId} WHERE id = 1`
-			console.log('joined broadcast', {channelId, trackId: data.track_id})
-		} else {
-			console.log('rejected broadcast sync', {reason: 'track unavailable or too old'})
-		}
+		await syncToBroadcast(data)
 	} catch (error) {
 		console.log('failed joining broadcast', {
 			channelId,

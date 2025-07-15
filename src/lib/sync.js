@@ -187,6 +187,7 @@ export async function needsUpdate(slug) {
       limit 1
     `
 		const localLatest = localRows[0]
+		if (!localLatest) return true
 
 		if (firebase_id) {
 			// v1 channels dont need updating because it is in read-only state since before this project
@@ -204,8 +205,6 @@ export async function needsUpdate(slug) {
 			.limit(1)
 			.single()
 		if (remoteError) throw remoteError
-
-		if (!localLatest) return true
 
 		// If never synced, needs update
 		if (!channel.tracks_synced_at) return true

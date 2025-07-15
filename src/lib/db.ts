@@ -46,7 +46,7 @@ async function createPg(): Promise<PGliteWithLive> {
 	return _pg
 }
 
-export async function dropAllTables() {
+async function dropAllTables() {
 	if (!pg) throw new Error('Database not initialized')
 	console.log('Dropping all tables')
 	// Clear tables

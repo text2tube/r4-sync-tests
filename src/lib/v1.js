@@ -1,9 +1,9 @@
 import {pg, debugLimit} from '$lib/db'
 
 /**
-	Imports a local export of v1 channels, imports them
-	It will not overwrite existing channels when slug exists.
-*/
+ * Imports a local export of v1 channels, imports them
+ * It will not overwrite existing channels when slug exists.
+ */
 export async function pullV1Channels() {
 	const res = await fetch('/r5-channels.json')
 	const items = (await res.json()).slice(0, debugLimit)
