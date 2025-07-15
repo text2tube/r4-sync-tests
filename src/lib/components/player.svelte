@@ -146,6 +146,7 @@
 			playlist_tracks = ${[]},
 			playlist_track = null,
 			playlist_tracks_shuffled = ${[]},
+			show_video_player = false,
 			shuffle = false
 			WHERE id = 1`
 	}
