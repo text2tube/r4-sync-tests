@@ -29,9 +29,13 @@
 		// Turn the list of ids into real tracks.
 		pg.live.incrementalQuery(
 			`
-		SELECT * FROM tracks
-		WHERE id IN (select unnest($1::uuid[]))
-		ORDER BY created_at desc
+		SELECT t.id, t.title, t.description, t.url, t.channel_id, c.name as channel_name, c.slug as channel_slug
+		FROM tracks t
+		JOIN channels c on t.channel_id = c.id
+		WHERE t.id IN (select unnest($1::uuid[]))
+		ORDER BY t.created_at desc
+
+
 	`,
 			[ids],
 			'id',
@@ -50,7 +54,7 @@
 		>
 			<span>{index + 1}.</span>
 			<div class="title">
-				{item.title}
+				<a href={`/${item.channel_slug}/tracks/${item.id}`}>{item.title}</a>
 			</div>
 			<div class="description">
 				<small>{item.description}</small>
