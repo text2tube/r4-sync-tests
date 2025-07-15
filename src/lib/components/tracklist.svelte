@@ -55,7 +55,7 @@
 			<span>{index + 1}.</span>
 			<div class="title">
 				{item.title}
-				<a href={`/${item.channel_slug}/tracks/${item.id}`}>{formatDate(item.created_at)}</a>
+				<time><a href={`/${item.channel_slug}/tracks/${item.id}`}>{formatDate(item.created_at)}</a></time>
 			</div>
 			<div class="description">
 				<small>{item.description}</small>
@@ -70,5 +70,9 @@
 	.title {
 		display: flex;
 		justify-content: space-between;
+		padding-right: 0.5rem;
+	}
+	time {
+		font-size: var(--font-size-micro);
 	}
 	</style>

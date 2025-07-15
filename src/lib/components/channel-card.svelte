@@ -16,7 +16,11 @@
 </script>
 
 <article ondblclick={doubleclick} data-busy={channel.busy}>
-	<figure><ChannelAvatar id={channel.image} alt={channel.name} /></figure>
+	<figure>
+		<a href={`/${channel.slug}`}>
+			<ChannelAvatar id={channel.image} alt={channel.name} />
+		</a>
+	</figure>
 	<ButtonPlay {channel} />
 	<div>
 		<h3>
