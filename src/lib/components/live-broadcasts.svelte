@@ -1,13 +1,17 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
 	import {pg} from '$lib/db'
-	import {joinBroadcast, leaveBroadcast} from '$lib/broadcast'
+	import {setupBroadcastSync, joinBroadcast, leaveBroadcast} from '$lib/broadcast'
 	import {readBroadcastsWithChannel} from '$lib/api'
 
 	const {appState} = $props()
 
 	/** @type {import('$lib/types').BroadcastWithChannel[]} */
 	let activeBroadcasts = $state([])
+
+	$effect(async () => {
+		await setupBroadcastSync()
+	})
 
 	/**
 	 * Set channel.broadcasting on local channels from the remote broadcasts
