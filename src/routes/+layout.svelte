@@ -1,5 +1,6 @@
 <script>
 	import '../styles/style.css'
+	import 'leaflet/dist/leaflet.css';
 	import Player from '$lib/components/player.svelte'
 	import QueuePanel from '$lib/components/queue-panel.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'

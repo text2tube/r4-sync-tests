@@ -1,11 +1,21 @@
 <script>
 	import {pg} from '$lib/db'
 	import {subscribeToAppState, getChannelsWithTrackCounts} from '$lib/api'
-	import {IconGrid, IconUnorderedList} from 'obra-icons-svelte'
+	import {IconGrid, IconUnorderedList, IconMap} from 'obra-icons-svelte'
 	import ChannelCard from './channel-card.svelte'
+	import Map from './map.svelte'
 
 	/** @type {import('$lib/types').Channel[]}*/
 	let channels = $state([])
+	const mapChannels = $derived(
+		channels.filter((c) => c.longitude && c.latitude)
+			.map(({longitude, latitude, slug, name}) => ({
+				longitude,
+				latitude,
+				title: name,
+				href: `${slug}`,
+			}))
+	)
 
 	/** @type {'list' | 'grid'}*/
 	let display = $state('list')
@@ -42,15 +52,22 @@
 	<button title="View as grid" class:active={display === 'grid'} onclick={() => setDisplay('grid')}
 		><IconGrid /></button
 	>
+	<button title="View as map" class:active={display === 'map'} onclick={() => setDisplay('map')}
+		><IconMap /></button
+	>
 </menu>
 
-<ul class={display}>
-	{#each channels as channel (channel.id)}
-		<li>
-			<ChannelCard {channel} />
-		</li>
-	{/each}
-</ul>
+{#if display === 'map'}
+	<Map markers={mapChannels}></Map>
+{:else}
+	<ul class={display}>
+		{#each channels as channel (channel.id)}
+			<li>
+				<ChannelCard {channel} />
+			</li>
+		{/each}
+	</ul>
+{/if}
 
 <style>
 	menu {

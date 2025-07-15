@@ -2,7 +2,7 @@
 	import {onMount} from 'svelte'
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
-	import {IconSearch} from 'obra-icons-svelte'
+	import {IconSearch, IconMap} from 'obra-icons-svelte'
 	import {pg} from '$lib/db'
 	import {playTracks, addToPlaylist} from '$lib/api'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
@@ -103,6 +103,11 @@
 			<h1>
 				{channel.name}
 				<ButtonPlay {channel} />
+				<a
+					href={`/?display=map&slug=${channel.slug}&longitude=${channel.longitude}&latitude=${channel.latitude}&zoom=15`}
+				>
+					<IconMap />
+				</a>
 			</h1>
 			<p>{channel.description}</p>
 		</header>

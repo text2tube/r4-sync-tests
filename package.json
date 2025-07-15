@@ -40,6 +40,7 @@
 		"@sveltejs/adapter-static": "^3.0.8",
 		"fuzzysort": "^3.1.0",
 		"gsap": "^3.13.0",
+		"leaflet": "^1.9.4",
 		"media-chrome": "^4.12.0",
 		"obra-icons-svelte": "^1.23.1",
 		"tinykeys": "^3.0.0",
