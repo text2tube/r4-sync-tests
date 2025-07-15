@@ -157,7 +157,7 @@
 	}
 
 	article header :global(img) {
-		margin: 1rem 1rem 1rem 0.5rem;
+		margin: 1rem 1rem 0.5rem 0.5rem;
 		max-width: calc(100vw - 2rem);
 		border-radius: var(--border-radius);
 		float: left;
@@ -176,7 +176,7 @@
 	}
 
 	h1 {
-		padding-top: 5rem;
+		padding-top: 1rem;
 	}
 
 	p {
