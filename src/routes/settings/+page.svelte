@@ -14,7 +14,7 @@
 	$effect(() => {
 		const liveQuery = pg.live.query(
 			`
-			SELECT 
+			SELECT
 				COUNT(*) FILTER (WHERE tracks_synced_at IS NOT NULL AND firebase_id IS NULL) as synced,
 				COUNT(*) FILTER (WHERE firebase_id IS NULL) as total
 			FROM channels
@@ -93,7 +93,7 @@
 
 	<hr />
 	<ShortcutsEditor />
-	<!-- <SyncDebug /> -->
+	<SyncDebug />
 	<hr />
 	<button onclick={logout}>Logout</button>
 	<hr />

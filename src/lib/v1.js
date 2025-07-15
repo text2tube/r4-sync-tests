@@ -8,12 +8,13 @@ export async function pullV1Channels() {
 	const res = await fetch('/r5-channels.json')
 	const items = (await res.json()).slice(0, debugLimit)
 
-	// remove duplicates - skip v1 channels if ANY channel with same slug already exists
+	// Since we don't want to overwrite any existing local channels with v1 channels,
+	// we filter them out here.
 	const {rows} = await pg.sql`select slug from channels`
-	// we only want channels with images and at least _some_ tracks
 	const channels = items.filter(
-		(item) => !rows.some((r) => r.slug === item.slug) && item.image && item.track_count > 9
+		(item) => !rows.some((r) => r.slug === item.slug) && item.track_count > 3
 	)
+
 	try {
 		await pg.transaction(async (tx) => {
 			for (const item of channels) {
@@ -25,9 +26,6 @@ export async function pullV1Channels() {
 				} catch (err) {
 					console.warn('Failed to insert v1 channel', item.slug, err)
 				}
-				// const {rows} = await tx.sql`select id from channels where slug = ${item.slug}`
-				// console.log('Pulled channel. Now tracks...', item.slug, rows[0].id, item.firebase_id)
-				// await pullV1Tracks(rows[0].id, item.firebase_id, tx)
 			}
 		})
 	} catch (err) {

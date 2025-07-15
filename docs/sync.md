@@ -1,10 +1,10 @@
 # Sync
 
-## Data sources
+We have three different data sources.
 
+- /r5-channels.json -> Local v1 Firebase export (legacy channels)
+- @radio4000/sdk -> Remote Postgres via Supabase (v2)
 - $lib/db -> Local Postgres db
-- @radio4000/sdk -> Remote Postgres via Supabase
-- /r5-channels.json -> v1 Firebase export (legacy channels)
 
 ## Different typesof channels
 
