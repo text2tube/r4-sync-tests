@@ -55,7 +55,13 @@
 			<span>{index + 1}.</span>
 			<div class="title">
 				{item.title}
-				<time><a href={`/${item.channel_slug}/tracks/${item.id}`}>{formatDate(item.created_at)}</a></time>
+				<time>
+					<a href={`/${item.channel_slug}/tracks/${item.id}`}>
+						<small>
+							{formatDate(item.created_at)}
+						</small>
+					</a>
+				</time>
 			</div>
 			<div class="description">
 				<small>{item.description}</small>
@@ -72,7 +78,4 @@
 		justify-content: space-between;
 		padding-right: 0.5rem;
 	}
-	time {
-		font-size: var(--font-size-micro);
-	}
-	</style>
+</style>
