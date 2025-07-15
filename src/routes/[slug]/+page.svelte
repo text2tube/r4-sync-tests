@@ -28,18 +28,19 @@
 		const search = searchQuery?.trim() || ''
 		try {
 			if (!search) {
-				// Load all tracks if no search query
-				const {rows} = await pg.query(
+				// Use live query for all tracks
+				pg.live.query(
 					'SELECT id FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
-					[channel.id]
+					[channel.id],
+					(res) => {
+						trackIds = res.rows.map((row) => row.id)
+						pg.sql`update channels set track_count = ${trackIds.length} where id = ${channel.id}`
+					}
 				)
-				trackIds = rows.map((row) => row.id)
-				await pg.sql`update channels set track_count = ${trackIds.length} where id = ${channel.id}`
-				console.log('sat track_count', trackIds.length)
 			} else {
 				// Search tracks within this channel
 				const query = `%${search.toLowerCase()}%`
-				const {rows} = await pg.query(
+				pg.live.query(
 					`
 					SELECT id FROM tracks
 					WHERE channel_id = $1
@@ -48,9 +49,11 @@
 					       OR LOWER(url) LIKE $2)
 					ORDER BY created_at DESC
 				`,
-					[channel.id, query]
+					[channel.id, query],
+					(res) => {
+						trackIds = res.rows.map((row) => row.id)
+					}
 				)
-				trackIds = rows.map((row) => row.id)
 			}
 		} catch (err) {
 			console.error('Error searching tracks:', err)

@@ -31,7 +31,7 @@ export async function load({parent, params, url}) {
 	}
 
 	// and make sure it's up to date
-	await syncChannel(slug)
+	syncChannel(slug)
 
 	return {
 		channel,
