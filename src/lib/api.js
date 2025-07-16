@@ -31,38 +31,24 @@ export async function checkUser() {
 /** @param {string} id @param {string|null} [endReason] @param {string|null} [startReason] */
 export async function playTrack(id, endReason = null, startReason = null) {
 	const {rows} = await pg.sql`SELECT playlist_track FROM app_state WHERE id = 1`
-	const currentTrack = rows[0]?.playlist_track
-	if (!currentTrack) throw new Error('missing track to play')
+	const track = rows[0]?.playlist_track
+	if (!track) throw new Error('missing track to play')
+	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
 	if (endReason || startReason) {
 		await addPlayHistory({
-			currentTrack,
+			currentTrack: track,
 			newTrack: id,
 			endReason,
-			startReason
+			startReason,
 		})
-	}
-	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
-}
-
-/**
- * Leaves a channels' broadacst, if you're listening to it.
- * @param {string} channelId
- */
-async function maybeLeaveBroadcast(channelId) {
-	const {rows} = await pg.sql`SELECT listening_to_channel_id FROM app_state WHERE id = 1`
-	const appState = rows[0]
-	if (appState?.listening_to_channel_id && appState.listening_to_channel_id !== channelId) {
-		await leaveBroadcast()
 	}
 }
 
 /** @param {import('$lib/types').Channel} channel */
 export async function playChannel({id, slug}) {
-	await maybeLeaveBroadcast(id)
+	await leaveBroadcast() // actually only needed if we're listening
 	if (await needsUpdate(slug)) await pullTracks(slug)
-	const tracks = (
-		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
-	).rows
+	const tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
 	await setPlaylist(tracks.map((t) => t.id))
 	await playTrack(tracks[0].id, null, 'play_channel')
 }
@@ -85,11 +71,7 @@ export async function syncToBroadcast(broadcast) {
 	try {
 		await playTrack(track_id, null, 'broadcast_sync')
 	} catch {
-		const {data} = await sdk.supabase
-			.from('channel_track')
-			.select('channels(slug)')
-			.eq('track_id', track_id)
-			.single()
+		const {data} = await sdk.supabase.from('channel_track').select('channels(slug)').eq('track_id', track_id).single()
 		// @ts-expect-error supabase query result structure
 		const slug = data?.channels?.slug
 		if (slug) {
@@ -145,8 +127,7 @@ export async function getTrackWithChannel(trackId) {
  * @param {string} searchTerm
  */
 export async function searchChannelTracks(channelId, searchTerm = '') {
-	const query =
-		'SELECT id, title, description, created_at, updated_at FROM tracks WHERE channel_id = $1'
+	const query = 'SELECT id, title, description, created_at, updated_at FROM tracks WHERE channel_id = $1'
 	const {rows} = await pg.query(query, [channelId])
 
 	let filteredTracks = [...rows]
