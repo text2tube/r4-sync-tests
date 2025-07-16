@@ -32,7 +32,15 @@ export async function checkUser() {
 export async function playTrack(id, endReason = null, startReason = null) {
 	const track = (await pg.sql`SELECT * FROM tracks WHERE id = ${id}`).rows[0]
 	if (!track) throw new Error(`failed to play track: ${id}`)
+
+	const tracks = (
+		await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`
+	).rows
+	const ids = tracks.map((t) => t.id)
+	await setPlaylist(ids)
+
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
+
 	if (endReason || startReason) {
 		await addPlayHistory({
 			currentTrack: track,
@@ -43,15 +51,20 @@ export async function playTrack(id, endReason = null, startReason = null) {
 	}
 }
 
-/** @param {import('$lib/types').Channel} channel */
-export async function playChannel({id, slug}) {
+/**
+ * @param {import('$lib/types').Channel} channel
+ * @param {number} index
+ */
+export async function playChannel({id, slug}, index = 0) {
+	console.log('playChannel', id, slug)
 	await leaveBroadcast() // actually only needed if we're listening
 	if (await needsUpdate(slug)) await pullTracks(slug)
 	const tracks = (
 		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
 	).rows
-	await setPlaylist(tracks.map((t) => t.id))
-	await playTrack(tracks[0].id, null, 'play_channel')
+	const ids = tracks.map((t) => t.id)
+	await setPlaylist(ids)
+	await playTrack(tracks[index].id, null, 'play_channel')
 }
 
 /** @param {string[]} ids */
