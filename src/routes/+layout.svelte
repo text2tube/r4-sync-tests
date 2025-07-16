@@ -68,9 +68,9 @@
 
 		<div class="row right">
 			{#if appState}
-				<AddTrackModal />
-				<BroadcastControls {appState} />
 				<LiveBroadcasts {appState} />
+				<BroadcastControls {appState} />
+				<AddTrackModal />
 			{/if}
 			{#if appState}
 				<button onclick={toggleQueuePanel} class="btn">

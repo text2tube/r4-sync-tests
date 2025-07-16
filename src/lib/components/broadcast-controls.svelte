@@ -1,10 +1,11 @@
 <script>
 	import {IconSignal} from 'obra-icons-svelte'
 	import {startBroadcasting, stopBroadcasting} from '$lib/broadcast'
+	import {goto} from '$app/navigation'
 
 	const {appState} = $props()
 
-	const userChannelId = $derived(appState.channels?.[0])
+	const userChannelId = $derived(appState?.channels?.[0])
 
 	async function start() {
 		if (!appState.playlist_track)
@@ -26,6 +27,10 @@
 			><IconSignal size={20} strokeWidth={1.7} /> <span>Broadcast</span></button
 		>
 	{/if}
+{:else}
+	<a class="btn" href="/login">
+		<IconSignal size={20} strokeWidth={1.7} /> <span>Broadcast</span>
+	</a>
 {/if}
 
 <style>

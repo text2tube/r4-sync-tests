@@ -3,6 +3,7 @@
 	import {pg} from '$lib/db'
 	import {setupBroadcastSync, joinBroadcast, leaveBroadcast} from '$lib/broadcast'
 	import {readBroadcastsWithChannel, syncPlayBroadcast} from '$lib/api'
+	import ChannelAvatar from './channel-avatar.svelte'
 
 	const {appState} = $props()
 
@@ -103,7 +104,6 @@
 
 {#if activeBroadcasts.length > 0}
 	<div class="live-broadcasts">
-		<span>🔴 Live &rarr;</span>
 		{#each activeBroadcasts as broadcast (broadcast.channel_id)}
 			{@const isActive = broadcast.channel_id === appState.listening_to_channel_id}
 			<button
@@ -116,6 +116,10 @@
 					}
 				}}
 			>
+				<div class="avatar-container">
+					<ChannelAvatar id={broadcast.channels.image} alt={broadcast.channels.name} size={32} />
+					<div class="live-dot"></div>
+				</div>
 				@{broadcast.channels.slug}
 			</button>
 		{/each}
@@ -130,6 +134,42 @@
 		font-size: var(--font-size-small);
 		line-height: 1;
 	}
+
+	button {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		height: 2rem;
+		padding-left: 0;
+		padding-right: 0.5rem;
+	}
+
+	.avatar-container {
+		position: relative;
+		width: 2rem;
+		height: 2rem;
+	}
+
+	.avatar-container :global(img) {
+		width: 2rem;
+		height: 2rem;
+		border-radius: var(--border-radius);
+		object-fit: cover;
+	}
+
+	.live-dot {
+		position: absolute;
+		top: -3px;
+		left: -5px;
+		width: var(--font-size-small);
+		height: var(--font-size-small);
+		background-color: #00ff00;
+		border: 2px solid white;
+		border-radius: 50%;
+		box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+	}
+
 	button.active {
 		background-color: var(--color-lavender);
 	}
