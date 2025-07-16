@@ -153,6 +153,7 @@ textarea,
 input[type='email'],
 input[type='search'],
 input[type='password'],
+input[type='number'],
 input[type='text'],
 input[type='url'] {
 	font-size: var(--font-size-regular);

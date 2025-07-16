@@ -77,7 +77,7 @@
 			{/if}
 		</a>
 		<a href="/search" class="btn" title="cmd/ctrl+k"><IconSearch size={20} /></a>
-		<!-- <a href="/spam-warrior" class="btn">Spam Warrior</a> -->
+		<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
 		<div class="row right">
 			{#if appState}
@@ -85,8 +85,6 @@
 				<BroadcastControls {appState} />
 				<LiveBroadcasts {appState} />
 			{/if}
-			<!-- <a href="/playground/syncthing">Syncthing</a> -->
-			<!--<InternetIndicator />-->
 			{#if appState}
 				<button onclick={toggleQueuePanel} class="btn">
 					<IconSidebarFillRight size={20} />
