@@ -1,6 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
-	import {pullTracks, dryRun} from '$lib/sync'
+	import {pullTracks} from '$lib/sync'
 	import InternetIndicator from '$lib/components/internet-indicator.svelte'
 
 	/** @type {import('$lib/types').Channel[]} */
@@ -8,6 +8,7 @@
 
 	// Live query for channels with track counts
 	$effect(() => {
+		console.log('new sync-debug live query')
 		const liveQuery = pg.live.query(
 			`
 			SELECT * FROM channels
@@ -15,12 +16,12 @@
 		`,
 			[],
 			(result) => {
-				console.log('channels live query', result)
+				console.log('sync-debug query callback', result)
+				// @ts-expect-error rows are not typed
 				channels = result.rows
 			}
 		)
 
-		// Cleanup function - unsubscribe when effect re-runs or component unmounts
 		return () => {
 			liveQuery.then(({unsubscribe}) => unsubscribe())
 		}
@@ -46,85 +47,69 @@
 	/** @param {import('$lib/types').Channel} channel */
 	function getStatusIndicator(channel) {
 		if (channel.busy) return '🔄'
-		if (!channel.tracks_synced_at) return '🔴'
+		if (!channel.tracks_synced_at) return '🟡'
 		return '🟢'
 	}
 
 	/** @param {import('$lib/types').Channel} channel */
 	function getStatusText(channel) {
 		if (channel.busy) return 'Syncing...'
-		if (!channel.tracks_synced_at) return 'Never synced'
+		if (!channel.tracks_synced_at) return 'Synced without tracks'
 		return 'Synced'
-	}
-
-	/** @param {import('$lib/types').Channel} channel */
-	function getVersionText(channel) {
-		return channel.firebase_id ? 'v1' : 'v2'
 	}
 </script>
 
 <section>
 	<h3>
-		Sync status ({channels.length} channels)
-		<button onclick={() => dryRun()}>Dry run</button>
+		Sync debug ({channels.length} channels)
 	</h3>
 
+	<menu>
+		<button>Channels that were synced</button>
+	</menu>
+
 	{#if channels.length === 0}{:else}
-		<section class="list">
+		<div class="list">
 			{#each channels as channel (channel.id)}
 				<article>
-					<div>
-						<p>
-							<a href={`/${channel.slug}`}>@{channel.slug}</a>
-							<span class="track-count">{channel.name}</span>
-						</p>
-						<p>
-							{getStatusIndicator(channel)}
-							{getStatusText(channel)}
-							<span class="version">({getVersionText(channel)})</span>
-							{#if channel.tracks_synced_at}
-								{formatDate(channel.tracks_synced_at)}
-							{/if}
-						</p>
-					</div>
+					<p>
+						{getStatusIndicator(channel)}
+						<span class="version">({channel.firebase_id ? 'v1' : 'v2'})</span>
+						<a href={`/${channel.slug}`}>
+							@{channel.slug}
+							{channel.name}
+						</a>
+						<br />
+						{getStatusText(channel)}
+						{#if channel.tracks_synced_at}
+							{formatDate(channel.tracks_synced_at)}
+						{/if}
+					</p>
 
 					<menu>
 						<button onclick={() => pullTracks(channel.slug)}>&darr; Pull tracks</button>
-						<button
-							onclick={() => deleteTracks(channel.id, channel.name)}
-							disabled={!channel.tracks_synced_at}
-						>
+						<button onclick={() => deleteTracks(channel.id)} disabled={!channel.tracks_synced_at}>
 							&times; Delete tracks
 						</button>
-						<button onclick={() => deleteChannel(channel.id, channel.name)} class="danger">
+						<button onclick={() => deleteChannel(channel.id)} class="danger">
 							&times; Delete channel
 						</button>
 					</menu>
 				</article>
 			{/each}
-		</section>
+		</div>
 	{/if}
 </section>
 
 <InternetIndicator />
 
 <style>
-	.list {
-		article {
-			display: flex;
-			align-items: center;
-			padding: 0.2rem 0;
-		}
-		p,
-		menu {
-			margin: 0;
-		}
+	.list > article {
+		padding: 0.5rem 0;
+		display: flex;
+		align-items: center;
 		menu {
 			margin-left: auto;
 		}
-	}
-	.version {
-		opacity: 0.6;
-		font-size: 0.9em;
 	}
 </style>

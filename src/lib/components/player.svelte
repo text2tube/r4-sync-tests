@@ -14,7 +14,7 @@
 		// IconVolume2Fill,
 		// IconVolumeOffFill
 	} from 'obra-icons-svelte'
-	import {playTrack, subscribeToAppState, getTrackWithChannel} from '$lib/api'
+	import {playTrack, subscribeToAppState, queryTrackWithChannel} from '$lib/api'
 
 	/** @typedef {import('$lib/types').Channel} Channel */
 	/** @typedef {import('$lib/types').Track} Track */
@@ -45,28 +45,22 @@
 	let isListeningToBroadcast = $derived(!!appState.listening_to_channel_id)
 
 	subscribeToAppState(async (state) => {
-		const trackChanged = appState.playlist_track && appState.playlist_track !== state.playlist_track
 		const tid = state.playlist_track
-		if (tid) {
-			await setChannelFromTrack(tid)
-		}
-		if (trackChanged) {
-			console.log('playlist_track changed -> autoplay=true')
-			autoplay = true
-		}
+		const trackChanged = appState.playlist_track && appState.playlist_track !== state.playlist_track
+		if (tid) await setChannelFromTrack(tid)
+		if (trackChanged) autoplay = true
 	})
 
 	/** @param {string} tid} */
 	async function setChannelFromTrack(tid) {
 		if (!tid || tid === track?.id) return
-		const result = await getTrackWithChannel(tid)
-		if (result) {
-			track = result.track
-			title = result.channel.name
-			image = result.channel.image
-			description = result.channel.description
-			slug = result.channel.slug
-		}
+		const result = await queryTrackWithChannel(tid)
+		if (!result) return
+		track = result.track
+		title = result.channel.name
+		image = result.channel.image
+		description = result.channel.description
+		slug = result.channel.slug
 	}
 
 	function generateShuffleQueue() {
@@ -132,7 +126,7 @@
 	}
 
 	function handleEndTrack() {
-		console.log('Player ended')
+		console.log('player track_completed')
 		next('track_completed')
 	}
 

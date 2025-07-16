@@ -2,7 +2,7 @@
 	import {sdk} from '@radio4000/sdk'
 	import {pg} from '$lib/db'
 	import {setupBroadcastSync, joinBroadcast, leaveBroadcast} from '$lib/broadcast'
-	import {readBroadcastsWithChannel} from '$lib/api'
+	import {readBroadcastsWithChannel, syncPlayBroadcast} from '$lib/api'
 
 	const {appState} = $props()
 
@@ -26,8 +26,8 @@
 		// Set broadcasting channels to true
 		if (broadcastingChannelIds.length > 0) {
 			await pg.sql`
-				UPDATE channels 
-				SET broadcasting = true 
+				UPDATE channels
+				SET broadcasting = true
 				WHERE id = ANY(${broadcastingChannelIds})
 			`
 		}
@@ -88,14 +88,7 @@
 						const {rows} = await pg.sql`SELECT listening_to_channel_id FROM app_state WHERE id = 1`
 						const currentListeningTo = rows[0]?.listening_to_channel_id
 						if (currentListeningTo === payload.new.channel_id) {
-							const {syncToBroadcast} = await import('$lib/api.js')
-							const synced = await syncToBroadcast(payload.new)
-							if (synced) {
-								console.log('synced to broadcast track change', {
-									channelId: payload.new.channel_id,
-									trackId: payload.new.track_id
-								})
-							}
+							await syncPlayBroadcast(payload.new)
 						}
 					}
 					activeBroadcasts = await readBroadcastsWithChannel()

@@ -1,4 +1,4 @@
-import {syncChannel, pullChannel} from '$lib/sync'
+import {needsUpdate, pullChannel, pullTracks} from '$lib/sync'
 import {pg} from '$lib/db'
 import {error} from '@sveltejs/kit'
 
@@ -22,16 +22,14 @@ export async function load({parent, params, url}) {
 
 	// If not found locally, pull from remote
 	try {
-		if (!channel) {
-			channel = await pullChannel(slug)
-		}
+		if (!channel) await pullChannel(slug)
 	} catch (err) {
 		console.error('Error pulling channel:', err)
 		error(404, 'Channel not found')
 	}
 
 	// and make sure it's up to date
-	syncChannel(slug)
+	if (await needsUpdate(slug)) await pullTracks(slug)
 
 	return {
 		channel,

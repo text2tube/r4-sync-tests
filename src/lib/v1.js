@@ -1,9 +1,9 @@
 import {pg, debugLimit} from '$lib/db'
 
 /**
-	Imports a local export of v1 channels, imports them
-	It will not overwrite existing channels when slug exists.
-*/
+ * Imports a local export of v1 channels, imports them
+ * It will not overwrite existing channels when slug exists.
+ */
 export async function pullV1Channels() {
 	const res = await fetch('/r5-channels.json')
 	const items = (await res.json()).slice(0, debugLimit)
@@ -41,9 +41,9 @@ export async function pullV1Channels() {
  * @param {typeof pg} [pg]
  */
 export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
-	const {rows: existingTracks} =
-		await pg.sql`select firebase_id from tracks where channel_id = ${channelId}`
-	const v1Tracks = await findV1TracksByChannel(channelFirebaseId)
+	if (!pg) throw new Error('Missing pg')
+
+	const v1Tracks = await readFirebaseChannelTracks(channelFirebaseId)
 	const tracks = v1Tracks.map((track) => ({
 		firebase_id: track.id,
 		channel_id: channelId,
@@ -54,37 +54,42 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 		created_at: new Date(track.created).toISOString(),
 		updated_at: new Date(track.updated || track.created).toISOString()
 	}))
-	const x = tracks.filter((t) => !existingTracks.some((x) => x.firebase_id === t.firebase_id))
-	for (const item of x) {
+
+	const {rows: existingTracks} =
+		await pg.sql`select firebase_id from tracks where channel_id = ${channelId}`
+	const newTracks = tracks.filter(
+		(t) => !existingTracks.some((x) => x.firebase_id === t.firebase_id)
+	)
+	for (const item of newTracks) {
 		try {
 			await pg.sql`
 				insert into tracks (firebase_id, channel_id, created_at, updated_at, title, description, url, discogs_url)
 				values (${item.firebase_id}, ${channelId}, ${item.created_at}, ${item.updated_at}, ${item.title}, ${item.description}, ${item.url}, ${item.discogs_url}) on conflict (firebase_id) do nothing;
 			`
-			// Mark as successfully synced
 			await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP where id = ${channelId}`
 		} catch (error) {
-			// console.error(`Failed to insert track ${item.firebase_id}`, error)
-			// On error, just mark as not busy (tracks_synced_at stays NULL for retry)
-			await pg.sql`update channels set busy = false where slug = ${slug}`
+			await pg.sql`update channels set busy = false where id = ${channelId}`
 			throw error
 		}
 	}
 
-	console.log(`Pulled v1 tracks (${existingTracks.length} existing skipped)`, x.length)
+	await pg.sql`update channels set busy = false where id = ${channelId}`
+	console.log(`Pulled v1 tracks (${existingTracks.length} existing skipped)`, newTracks.length)
 }
 
 /**
  * Fetches all v1 tracks from a v1 channel id
- * Firebase queries through REST are not sorted.
- * @param {string} id
+ * @param {string} cid
  */
-async function findV1TracksByChannel(id) {
+async function readFirebaseChannelTracks(cid) {
 	const toObject = (value, id) => ({...value, id})
 	const toArray = (data) => Object.keys(data).map((id) => toObject(data[id], id))
-	const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${id}"&endAt="${id}"`
-	return fetch(url)
-		.then((res) => res.json())
-		.then(toArray)
-		.then((arr) => arr.sort((a, b) => a.created - b.created))
+	const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${cid}"&endAt="${cid}"`
+	return (
+		fetch(url)
+			.then((res) => res.json())
+			.then(toArray)
+			// Firebase queries through REST are not sorted, so we sort..
+			.then((arr) => arr.sort((a, b) => a.created - b.created))
+	)
 }

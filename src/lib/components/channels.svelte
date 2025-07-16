@@ -1,6 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
-	import {subscribeToAppState, getChannelsWithTrackCounts} from '$lib/api'
+	import {subscribeToAppState} from '$lib/api'
 	import {IconGrid, IconUnorderedList, IconMap} from 'obra-icons-svelte'
 	import ChannelCard from './channel-card.svelte'
 	import Map from './map.svelte'
@@ -9,23 +9,23 @@
 	/** @type {import('$lib/types').Channel[]}*/
 	let channels = $state([])
 	const mapChannels = $derived(
-		channels.filter((c) => c.longitude && c.latitude)
+		channels
+			.filter((c) => c.longitude && c.latitude)
 			.map(({longitude, latitude, slug, name}) => ({
 				longitude,
 				latitude,
 				title: name,
-				href: `${slug}`,
+				href: `${slug}`
 			}))
 	)
 
-	/** @type {'list' | 'grid'}*/
+	/** @type {'list' | 'grid' | 'map'}*/
 	let display = $state('list')
 
 	subscribeToAppState((state) => {
 		display = state.channels_display || display
 	})
 
-	// Load channels with track counts
 	$effect(() => {
 		const liveQuery = pg.live.incrementalQuery(
 			'select * from channels order by updated_at desc',
@@ -47,7 +47,7 @@
 </script>
 
 <menu>
-	<button titl="View as list" class:active={display === 'list'} onclick={() => setDisplay('list')}
+	<button title="View as list" class:active={display === 'list'} onclick={() => setDisplay('list')}
 		><IconUnorderedList /></button
 	>
 	<button title="View as grid" class:active={display === 'grid'} onclick={() => setDisplay('grid')}

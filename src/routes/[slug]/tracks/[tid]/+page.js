@@ -23,7 +23,9 @@ export async function load({parent, params}) {
 	console.log({track})
 
 	// Get channel info
-	const {rows: channelRows} = await pg.query('SELECT * FROM channels WHERE id = $1', [track.channel_id])
+	const {rows: channelRows} = await pg.query('SELECT * FROM channels WHERE id = $1', [
+		track.channel_id
+	])
 	const channel = channelRows[0]
 
 	// Verify the slug matches the channel

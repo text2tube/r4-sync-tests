@@ -153,9 +153,12 @@
 		recording.releases?.[0]}
 
 	<div>
-		<p>Please note, we searched MusicBrainz for the track title. This might not be the track you are looking for. But it also might be.</p>
 		<p>
-			MusicBrainz ID: {recording.id}<br/>
+			Please note, we searched MusicBrainz for the track title. This might not be the track you are
+			looking for. But it also might be.
+		</p>
+		<p>
+			MusicBrainz ID: {recording.id}<br />
 			recording title: {recording.title}<br />
 			artist: {artist}<br />
 			duration: {duration}<br />

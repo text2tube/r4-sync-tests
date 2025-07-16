@@ -1,6 +1,6 @@
 <script>
 	import '../styles/style.css'
-	import 'leaflet/dist/leaflet.css';
+	import 'leaflet/dist/leaflet.css'
 	import Player from '$lib/components/player.svelte'
 	import QueuePanel from '$lib/components/queue-panel.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
@@ -11,6 +11,7 @@
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
 	import LiveChat from '$lib/components/live-chat.svelte'
 	import DraggablePanel from '$lib/components/draggable-panel.svelte'
+	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte'
 	import {
 		IconSearch,
 		IconChevronUp,
@@ -19,14 +20,12 @@
 		IconSidebarFillRight
 	} from 'obra-icons-svelte'
 	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
-	import {initializeKeyboardShortcuts} from '$lib/shortcuts'
 	import '@radio4000/components'
 
 	const {data, children} = $props()
 
 	let chatPanelVisible = $state(false)
-	/** @type {HTMLInputElement|undefined} */
-	let playerLayoutCheckbox = $state()
+	let playerLayoutCheckbox = $state(false)
 
 	/** @type {import('$lib/types').AppState} */
 	let appState = $state({})
@@ -36,19 +35,6 @@
 
 	subscribeToAppState((state) => {
 		appState = state
-	})
-
-	// Initialize keyboard shortcuts
-	$effect(() => {
-		if (!preloading) {
-			let cleanup = () => {}
-			initializeKeyboardShortcuts().then((cleanupFn) => {
-				cleanup = cleanupFn
-			})
-
-			// Cleanup on effect teardown
-			return cleanup
-		}
 	})
 
 	function toggleChatPanel() {
@@ -66,6 +52,7 @@
 </script>
 
 <AuthListener />
+<KeyboardShortcuts />
 
 <div class="layout">
 	<header class="row">
@@ -77,7 +64,7 @@
 			{/if}
 		</a>
 		<a href="/search" class="btn" title="cmd/ctrl+k"><IconSearch size={20} /></a>
-		<!-- <a href="/spam-warrior" class="btn">Spam Warrior</a> -->
+		<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
 		<div class="row right">
 			{#if appState}
@@ -85,8 +72,6 @@
 				<BroadcastControls {appState} />
 				<LiveBroadcasts {appState} />
 			{/if}
-			<!-- <a href="/playground/syncthing">Syncthing</a> -->
-			<!--<InternetIndicator />-->
 			{#if appState}
 				<button onclick={toggleQueuePanel} class="btn">
 					<IconSidebarFillRight size={20} />
@@ -126,7 +111,7 @@
 		<label class="playerToggle">
 			<IconChevronUp size={24} strokeWidth={2} />
 			<IconChevronDown size={24} strokeWidth={2} />
-			<input type="checkbox" name="playerLayout" bind:this={playerLayoutCheckbox} />
+			<input type="checkbox" name="playerLayout" checked={playerLayoutCheckbox} />
 		</label>
 		{#if !preloading}
 			<Player {appState} />

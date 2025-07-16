@@ -25,8 +25,6 @@
 		'--gray-12'
 	]
 
-	const accentColors = ['--color-accent']
-
 	const fontSizes = [
 		'--font-size-micro',
 		'--font-size-mini',
@@ -58,26 +56,12 @@
 
 	<section>
 		<h2>Gray Scale (1-12)</h2>
-		<div class="gray-scale">
-			{#each grayScale as grayVar (grayVar)}
-				<div class="gray-item">
-					<div class="gray-swatch" style="background-color: var({grayVar})"></div>
-					<div class="gray-info">
-						<code>{grayVar}</code>
-					</div>
-				</div>
-			{/each}
-		</div>
-	</section>
-
-	<section>
-		<h2>Accent Color</h2>
 		<div class="color-grid">
-			{#each accentColors as colorVar (colorVar)}
+			{#each grayScale as grayVar (grayVar)}
 				<div class="color-item">
-					<div class="color-swatch" style="background-color: var({colorVar})"></div>
+					<div class="color-swatch" style="background-color: var({grayVar})"></div>
 					<div class="color-info">
-						<code>{colorVar}</code>
+						<code>{grayVar}</code>
 					</div>
 				</div>
 			{/each}
@@ -88,20 +72,45 @@
 		<h2>Font Sizes</h2>
 		<div class="variable-grid">
 			{#each fontSizes as sizeVar (sizeVar)}
-				<div class="variable-item">
-					<div class="variable-demo" style="font-size: var({sizeVar})">Sample text</div>
-					<div class="variable-info">
-						<code>{sizeVar}</code>
-					</div>
-				</div>
+				<article style="--size: var({sizeVar})">
+					<h3>{sizeVar}</h3>
+					<p>
+						Sample text. The man writes like he's permanently high on incense and good intentions.
+						Every sentence floats along with this oiled mystical confidence, as if he's personally
+						received a download from the cosmos and is graciously sharing the password with the rest
+						of us mortals. "Your children are not your children"—well, thanks Khalil.
+					</p>
+				</article>
 			{/each}
 		</div>
+	</section>
+
+	<section>
+		<h2>A form</h2>
+		<form>
+			<div>
+				<label
+					>Your name
+					<input type="text" />
+				</label>
+			</div>
+			<div>
+				<label
+					>Your age
+					<input type="number" />
+				</label>
+			</div>
+			<div>
+				<button type="button">Cancel</button>
+				<button type="submit">Submit</button>
+			</div>
+		</form>
 	</section>
 </div>
 
 <style>
 	.styleguide {
-		padding: 1rem;
+		margin: 0 0.5rem;
 	}
 
 	.color-grid {
@@ -110,16 +119,11 @@
 		gap: 1rem;
 	}
 
-	.variable-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-		gap: 1rem;
-	}
-
 	h2 {
 		margin-top: 3rem;
 		margin-bottom: 0.5rem;
 	}
+
 	.color-item {
 		border: 1px solid var(--gray-4);
 		border-radius: var(--border-radius);
@@ -133,60 +137,30 @@
 	}
 
 	.color-info {
-		padding: 0.75rem;
+		padding: 0.5rem;
 	}
 
 	.color-info code {
 		font-size: 12px;
 	}
 
-	.gray-scale {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-	}
+	.variable-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(60ch, 1fr));
+		gap: 1rem;
 
-	.gray-item {
-		flex: 1;
-		min-width: 80px;
-		border: 1px solid var(--gray-4);
-		border-radius: var(--border-radius);
-		overflow: hidden;
-		background: var(--gray-2);
-	}
+		h3 {
+			font-size: var(--font-size-regular);
+			border-left: var(--size) solid;
+			padding-left: 0.5rem;
+			margin: 0;
+		}
 
-	.gray-swatch {
-		height: 60px;
-		width: 100%;
-	}
-
-	.gray-info {
-		padding: 0.5rem;
-		text-align: center;
-	}
-
-	.gray-info code {
-		font-size: 10px;
-	}
-
-	.variable-item {
-		border: 1px solid var(--gray-4);
-		border-radius: var(--border-radius);
-		overflow: hidden;
-		background: var(--gray-2);
-	}
-
-	.variable-demo {
-		padding: 1rem;
-		background: var(--gray-1);
-		border-bottom: 1px solid var(--gray-4);
-	}
-
-	.variable-info {
-		padding: 0.75rem;
-	}
-
-	.variable-info code {
-		font-size: 12px;
+		p {
+			margin: 0;
+			padding: 0.5rem;
+			border-left: 1px solid;
+			font-size: var(--size);
+		}
 	}
 </style>

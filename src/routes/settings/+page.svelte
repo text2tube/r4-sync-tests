@@ -1,5 +1,5 @@
 <script>
-	import {initDb, pg, exportDb} from '$lib/db'
+	import {migrateDb, dropDb, pg, exportDb} from '$lib/db'
 	import {sync} from '$lib/sync'
 	import {sdk} from '@radio4000/sdk'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
@@ -51,13 +51,14 @@
 	async function resetDatabase() {
 		resetting = true
 		try {
-			await initDb(true)
+			await dropDb()
+			await migrateDb()
 			// Live queries don't recover well from table drops, so reload, and without a timeout it's too fast :/
 			setTimeout(() => {
 				//window.location.reload()
 			}, 100)
 		} catch (error) {
-			console.error('initDb(true) aka reset failed:', error)
+			console.error('dropDb + migrateDb() failed:', error)
 		} finally {
 			resetting = false
 		}

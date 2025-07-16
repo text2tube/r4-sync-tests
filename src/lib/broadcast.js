@@ -1,6 +1,6 @@
 import {sdk} from '@radio4000/sdk'
 import {pg} from '$lib/db'
-import {syncToBroadcast} from '$lib/api.js'
+import {syncPlayBroadcast} from '$lib/api.js'
 
 /** @type {string|null} */
 let lastBroadcastingChannelId = null
@@ -23,29 +23,16 @@ export async function stopBroadcasting() {
 /** @param {string} channelId */
 export async function joinBroadcast(channelId) {
 	try {
-		console.log('joining broadcast', {channelId})
-
 		const {data, error} = await sdk.supabase
 			.from('broadcast')
 			.select('*')
 			.eq('channel_id', channelId)
 			.single()
-
 		if (error) throw error
-		if (!data) throw new Error('Broadcast not found')
-
-		console.log('fetched broadcast', {trackId: data.track_id, playedAt: data.track_played_at})
-
-		const synced = await syncToBroadcast(data)
-
-		if (synced) {
-			await pg.sql`UPDATE app_state SET listening_to_channel_id = ${channelId} WHERE id = 1`
-			console.log('joined broadcast', {channelId, trackId: data.track_id})
-		} else {
-			console.log('rejected broadcast sync', {reason: 'track unavailable or too old'})
-		}
+		await syncPlayBroadcast(data)
+		console.log('joined broadcast', {channelId})
 	} catch (error) {
-		console.log('failed joining broadcast', {
+		console.log('join broadcast failed', {
 			channelId,
 			error: /** @type {Error} */ (error).message
 		})
@@ -58,13 +45,11 @@ export async function leaveBroadcast() {
 }
 
 export function setupBroadcastSync() {
+	console.log('setup broadast sync')
 	pg.live.query('SELECT * FROM app_state WHERE id = 1', [], async (res) => {
 		const state = res.rows[0]
 		if (!state) return
-
 		const {broadcasting_channel_id, playlist_track} = state
-
-		console.log('setup broadast sync', playlist_track)
 
 		// Handle broadcast state change (start/stop broadcasting)
 		if (broadcasting_channel_id !== lastBroadcastingChannelId) {
@@ -110,7 +95,6 @@ async function createRemoteBroadcast(channelId, trackId) {
  */
 async function deleteRemoteBroadcast(channelId) {
 	if (!channelId) return
-
 	try {
 		await sdk.supabase.from('broadcast').delete().eq('channel_id', channelId)
 		console.log('deleted remote broadcast', {channelId})

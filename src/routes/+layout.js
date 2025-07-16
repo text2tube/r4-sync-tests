@@ -1,5 +1,5 @@
 import {browser} from '$app/environment'
-import {pg, initDb} from '$lib/db'
+import {pg, migrateDb} from '$lib/db'
 import {sdk} from '@radio4000/sdk'
 
 // Disable server-side rendering for all routes by default. Otherwise we can't use pglite + indexeddb.
@@ -11,7 +11,8 @@ export async function load() {
 
 	if (browser) {
 		try {
-			await initDb() // Creates PGlite instance and runs migrations
+			await migrateDb()
+			// @ts-expect-error debugging
 			window.r5 = {pg, sdk}
 		} catch (err) {
 			console.error('Failed to initialize database:', err)

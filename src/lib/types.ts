@@ -42,6 +42,7 @@ export type Track = {
 export interface AppState {
 	id?: number
 	playlist_tracks?: string[]
+	playlist_tracks_shuffled?: string[]
 	playlist_track?: string
 	is_playing?: boolean
 	theme?: string
@@ -54,6 +55,7 @@ export interface AppState {
 	broadcasting_channel_id?: string
 	listening_to_channel_id?: string
 	queue_panel_visible?: boolean
+	show_video_player?: boolean
 	key_bindings?: Record<string, string>
 }
 

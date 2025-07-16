@@ -77,6 +77,16 @@ $effect(() => {
 })
 ```
 
+## Domain separation
+
+Library has channels and tracks (like albums + songs)
+Player has playlist_tracks (queue) and playlist_track (now playing)
+
+in other words:
+
+Library → Playlist → Player flow
+playChannel() → setPlaylist() + playTrack()
+
 ## HTML/CSS
 
 - Semantic HTML over divs
@@ -97,7 +107,11 @@ $effect(() => {
 - Pass primitives directly, avoid wrapper objects around simple data
 - Use literal objects directly, avoid helper functions for basic object creation
 - Meaningful methods: Methods should do something meaningful beyond simple delegation
+- Use domain-specific verbs that match user mental models
+- Single responsibility no complex availability checking
+- Optimistic execution - trust in methods, let errors throw
+- Less defensive
 
 ## Debug Tricks
 
-Ask me to perform queries for you, if it helps: `(await window.r5.pg.sql`select * from app_state where id = 1`).rows[0]`
+Ask me to perform queries for you, if it helps: `(await window.r5.pg.sql`select \* from app_state where id = 1`).rows[0]`

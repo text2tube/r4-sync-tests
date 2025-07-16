@@ -4,7 +4,7 @@
 	import {goto} from '$app/navigation'
 	import {IconSearch, IconMap} from 'obra-icons-svelte'
 	import {pg} from '$lib/db'
-	import {playTracks, addToPlaylist} from '$lib/api'
+	import {setPlaylist, addToPlaylist} from '$lib/api'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
@@ -120,7 +120,7 @@
 					<header>
 						<h2>Tracks ({trackIds.length})</h2>
 						<menu>
-							<button onclick={() => playTracks(trackIds)}>Play All</button>
+							<button onclick={() => setPlaylist(trackIds)}>Play All</button>
 							<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
 						</menu>
 					</header>
