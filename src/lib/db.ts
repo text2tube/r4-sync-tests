@@ -2,13 +2,13 @@ import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
 import type {PGliteWithLive} from '@electric-sql/pglite/live'
 
-import migrationsql from './migrations/01-create_tables.sql?raw'
-import migration02sql from './migrations/02-add_queue_panel_visibility.sql?raw'
-import migration03sql from './migrations/03-add_broadcasts_table.sql?raw'
-import migration04sql from './migrations/04-add_shuffle_queue.sql?raw'
-import migration05sql from './migrations/05-add_shortcuts.sql?raw'
-import migration06sql from './migrations/06-add_play_history.sql?raw'
-import migration07sql from './migrations/07-add_channel-coordinates-url.sql?raw'
+import migrationsql from '$lib/migrations/01-create_tables.sql?raw'
+import migration02sql from '$lib/migrations/02-add_queue_panel_visibility.sql?raw'
+import migration03sql from '$lib/migrations/03-add_broadcasts_table.sql?raw'
+import migration04sql from '$lib/migrations/04-add_shuffle_queue.sql?raw'
+import migration05sql from '$lib/migrations/05-add_shortcuts.sql?raw'
+import migration06sql from '$lib/migrations/06-add_play_history.sql?raw'
+import migration07sql from '$lib/migrations/07-add_channel-coordinates-url.sql?raw'
 
 // This will limit the amount of channels pulled.
 export const debugLimit = 2000
@@ -23,31 +23,29 @@ const migrations = [
 	{name: '07-add_channel-coordinates-url', sql: migration07sql}
 ]
 
+// Switch between in-memory and OPFS persisted indexeddb for PostgreSQL
 const persist = true
-const dbUrl = persist ? 'idb://radio4000test2' : 'memory://'
+const dataDir = persist ? 'idb://radio4000test2' : 'memory://'
 
-// Why do we have this
-let _pg: PGliteWithLive | null = null
-
-// This will be null until initDb() is called
+// This will be null until createPg() is called
 export let pg: PGliteWithLive
 
 async function createPg(): Promise<PGliteWithLive> {
-	if (!_pg) {
-		_pg = await PGlite.create({
+	if (!pg) {
+		pg = await PGlite.create({
 			// debug: 1,
-			dataDir: dbUrl,
+			dataDir: dataDir,
 			relaxedDurability: true,
 			extensions: {
 				live
 			}
 		})
 	}
-	return _pg
+	return pg
 }
 
-async function dropAllTables() {
-	if (!pg) throw new Error('Database not initialized')
+export async function dropDb() {
+	if (!pg) pg = await createPg()
 	console.log('Dropping all tables')
 	// Clear tables
 	await pg.sql`DELETE FROM app_state;`
@@ -59,21 +57,6 @@ async function dropAllTables() {
 	await pg.sql`drop table if exists channels CASCADE;`
 	await pg.sql`drop table if exists migrations CASCADE;`
 	console.log('Dropped all tables')
-}
-
-export async function initDb(reset = false) {
-	console.time('Initialized database')
-
-	// Create the database instance and assign to pg
-	pg = await createPg()
-
-	// Reset if requested
-	if (reset) await dropAllTables()
-
-	// Run migrations
-	await migrate()
-
-	console.timeEnd('Initialized database')
 }
 
 export async function exportDb() {
@@ -89,8 +72,8 @@ export async function exportDb() {
 }
 
 /** Runs a list of SQL migrations on the database */
-export async function migrate() {
-	if (!pg) throw new Error('Database not initialized')
+export async function migrateDb() {
+	if (!pg) pg = await createPg()
 
 	// Create migrations table if it doesn't exist
 	await pg.exec(`
