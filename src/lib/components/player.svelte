@@ -45,15 +45,10 @@
 	let isListeningToBroadcast = $derived(!!appState.listening_to_channel_id)
 
 	subscribeToAppState(async (state) => {
-		const trackChanged = appState.playlist_track && appState.playlist_track !== state.playlist_track
 		const tid = state.playlist_track
-		if (tid) {
-			await setChannelFromTrack(tid)
-		}
-		if (trackChanged) {
-			console.log('playlist_track changed -> autoplay=true')
-			autoplay = true
-		}
+		const trackChanged = appState.playlist_track && appState.playlist_track !== state.playlist_track
+		if (tid) await setChannelFromTrack(tid)
+		if (trackChanged) autoplay = true
 	})
 
 	/** @param {string} tid} */
@@ -131,7 +126,7 @@
 	}
 
 	function handleEndTrack() {
-		console.log('Player ended')
+		console.log('player track_completed')
 		next('track_completed')
 	}
 

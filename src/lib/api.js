@@ -24,15 +24,14 @@ export async function checkUser() {
 			return user
 		}
 	} catch (err) {
-		console.log('hmm', err)
+		console.log('check user error', err)
 	}
 }
 
 /** @param {string} id @param {string|null} [endReason] @param {string|null} [startReason] */
 export async function playTrack(id, endReason = null, startReason = null) {
-	const {rows} = await pg.sql`SELECT playlist_track FROM app_state WHERE id = 1`
-	const track = rows[0]?.playlist_track
-	if (!track) throw new Error('missing track to play')
+	const track = (await pg.sql`SELECT * FROM tracks WHERE id = ${id}`).rows[0]
+	if (!track) throw new Error(`failed to play track: ${id}`)
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
 	if (endReason || startReason) {
 		await addPlayHistory({
@@ -127,8 +126,8 @@ export async function getTrackWithChannel(trackId) {
 }
 
 export async function queryTrackWithChannel(trackId) {
-	const track = await pg.sql`select * from tracks where id = ${trackId}`
-	const channel = await pg.sql`select * from channels where id = ${track.channel_id}`
+	const track = (await pg.sql`select * from tracks where id = ${trackId}`).rows[0]
+	const channel = (await pg.sql`select * from channels where id = ${track.channel_id}`).rows[0]
 	return {track, channel}
 }
 
