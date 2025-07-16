@@ -166,7 +166,7 @@
 		</div>
 	</header>
 
-	<div class="center">
+	<main class="center">
 		<menu>
 			<button onclick={eject} title="Clear queue and stop playback">
 				<IconEject />
@@ -199,7 +199,7 @@
 			<media-time-range></media-time-range>
 			<media-time-display showduration></media-time-display>
 		</media-control-bar>
-	</div>
+	</main>
 
 	<media-control-bar mediacontroller="r5">
 		<!-- <media-play-button></media-play-button> -->
@@ -237,8 +237,8 @@
 		margin-left: 0.5rem;
 	}
 
-	.center {
-		flex: 1;
+	main {
+		flex: 2;
 		display: flex;
 		flex-flow: column nowrap;
 		margin: 0 auto;
@@ -270,11 +270,12 @@
 		}
 
 		header {
+			width: 40ch;
+			/* flex: 1; */
 			grid-template-columns: 4rem auto;
 			gap: 0.5rem;
 			margin-left: 0.5rem;
 			align-items: center;
-			/* place-content: flex-start; */
 
 			div {
 				display: flex;
@@ -282,6 +283,9 @@
 				gap: 0.25rem;
 				line-height: 1;
 			}
+		}
+		main {
+			flex: 1;
 		}
 		menu {
 			margin-top: 0.5rem;

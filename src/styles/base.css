@@ -165,7 +165,7 @@ input[type='url'] {
 	padding: 0 0.5rem;
 	background: var(--gray-1);
 	color: var(--gray-12);
-	border: .1rem solid var(--gray-6);
+	border: 0.1rem solid var(--gray-6);
 	border-radius: var(--border-radius);
 	box-shadow: inset 2px 2px var(--gray-3);
 }

@@ -49,7 +49,5 @@ export function relativeDateSolar(dateString: string) {
 }
 
 export function trimWithEllipsis(text?: string, maxLength: number = 267) {
-	return !text || text.length <= maxLength
-		? text || ''
-		: text.substring(0, maxLength) + '…'
+	return !text || text.length <= maxLength ? text || '' : text.substring(0, maxLength) + '…'
 }
