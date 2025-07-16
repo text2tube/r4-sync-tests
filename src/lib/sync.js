@@ -55,25 +55,20 @@ export async function pullChannels({limit = debugLimit} = {}) {
  * @param {string} slug - Channel slug
  */
 export async function pullTracks(slug) {
-	// Mark channel as busy while pulling
-	await pg.sql`update channels set busy = true where slug = ${slug}`
 	try {
-		// Get channel ID for foreign key relationship
-		const {rows} = await pg.sql`select id, firebase_id from channels where slug = ${slug}`
-		const channel = rows[0]
-		if (!channel.id) throw new Error(`Channel not found: ${slug}`)
-
-		// if v1 pull like this instead
-		if (channel.firebase_id) {
-			return await pullV1Tracks(channel.id, channel.firebase_id, pg)
-		}
+		// Get the channel
+		const channel = (await pg.sql`update channels set busy = true where slug = ${slug} returning *`)
+			.rows[0]
+		if (!channel) throw new Error(`Channel not found: ${slug}`)
 
 		// Pull tracks
+		if (channel.firebase_id) return await pullV1Tracks(channel.id, channel.firebase_id, pg)
 		const {data, error} = await sdk.channels.readChannelTracks(slug)
 		if (error) throw error
 		/** @type {import('$lib/types').Track[]} */
 		const tracks = data
 
+		// Insert tracks
 		await pg.transaction(async (tx) => {
 			const CHUNK_SIZE = 50
 			for (let i = 0; i < tracks.length; i += CHUNK_SIZE) {
@@ -153,7 +148,7 @@ export async function needsUpdate(slug) {
 
 		const {id, firebase_id} = channel
 
-		if (!id) return true
+		if (!id || !channel.tracks_synced_at) return true
 
 		// Get latest local track update
 		const {rows: localRows} = await pg.sql`
@@ -182,9 +177,6 @@ export async function needsUpdate(slug) {
 			.limit(1)
 			.single()
 		if (remoteError) throw remoteError
-
-		// If never synced, needs update
-		if (!channel.tracks_synced_at) return true
 
 		// Compare timestamps (ignoring milliseconds)
 		const remoteMsRemoved = new Date(remoteLatest.updated_at).setMilliseconds(0)
