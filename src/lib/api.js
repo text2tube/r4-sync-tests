@@ -78,7 +78,6 @@ export async function syncToBroadcast(broadcast) {
 			.select('channels(slug)')
 			.eq('track_id', track_id)
 			.single()
-		// @ts-expect-error supabase query result structure
 		const slug = data?.channels?.slug
 		if (slug) {
 			await pullChannel(slug)
@@ -106,7 +105,6 @@ export async function readBroadcastsWithChannel() {
 		)
 	`)
 	if (error) throw error
-	// @ts-expect-error shut up
 	return data || []
 }
 
@@ -122,7 +120,6 @@ export async function getTrackWithChannel(trackId) {
 	const {rows: trackRows} = await pg.sql`SELECT * FROM tracks WHERE id = ${trackId}`
 	const track = trackRows[0]
 	if (!track) return null
-
 	const {rows: channelRows} = await pg.sql`SELECT * FROM channels WHERE id = ${track.channel_id}`
 	const channel = channelRows[0]
 	return {track, channel}

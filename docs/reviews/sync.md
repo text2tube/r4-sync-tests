@@ -12,11 +12,9 @@ exports:
 - pullTracks(slug) - downloads all tracks for specified channel
 - pullChannel(slug) - fetches single channel data
 - needsUpdate(slug) - timestamp comparison for sync necessity
-- needsUpdateBatch(channelIds) - batch version of needsUpdate
 - syncV2(options) - v2 channel sync pipeline
 - syncV1() - v1 channel sync pipeline
 - sync(options) - complete sync orchestrator
-- syncTracks(options) - track synchronization with concurrency control
 - syncChannel(slug, options) - single channel sync
 - dryRun(options) - preview sync operations without execution
 
@@ -56,7 +54,6 @@ outlines three data sources and channel type distinctions. documents sync method
 
 notes discrepancy between documentation and implementation:
 
-- docs mention batchNeedsUpdate but actual function is needsUpdateBatch
 - sync flow diagram simplified compared to actual code paths
 - v1/v2 channel handling more complex than described
 

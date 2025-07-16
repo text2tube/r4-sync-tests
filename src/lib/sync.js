@@ -16,7 +16,6 @@ await syncChannel('my-channel') // Single channel sync
 
 // Status & preview
 await needsUpdate('slug') // Check one channel
-await needsUpdateBatch(['ids']) // Check multiple channels
 await dryRun() // Preview what would sync
 
 // Low-level
@@ -222,114 +221,6 @@ export async function needsUpdate(slug) {
 }
 
 /**
- * Batch check which channels need track updates - much faster than individual needsUpdate calls
- * @param {string[]} channelIds - Array of channel IDs to check
- * @returns {Promise<Set<string>>} Set of channel IDs that need updates
- */
-export async function needsUpdateBatch(channelIds) {
-	if (!channelIds.length) return new Set()
-
-	console.log(`🔍 needsUpdateBatch: Checking ${channelIds.length} channels for updates`)
-
-	try {
-		// Get all channel data we need
-		const {rows: channels} = await pg.sql`
-			select id, slug, tracks_synced_at, firebase_id from channels
-			where id = ANY(${channelIds})
-		`
-
-		// Filter out v1 channels (they don't need updates)
-		const v2Channels = channels.filter((ch) => !ch.firebase_id)
-		if (!v2Channels.length) return new Set()
-
-		const v2ChannelIds = v2Channels.map((ch) => ch.id)
-
-		// Single batch query for all remote latest updates
-		const {data: remoteUpdates, error: remoteError} = await sdk.supabase
-			.from('channel_track')
-			.select('channel_id, updated_at')
-			.in('channel_id', v2ChannelIds)
-			.order('updated_at', {ascending: false})
-
-		if (remoteError) throw remoteError
-
-		// Get latest remote update per channel
-		const remoteLatestMap = new Map()
-		for (const update of remoteUpdates || []) {
-			if (!remoteLatestMap.has(update.channel_id)) {
-				remoteLatestMap.set(update.channel_id, update.updated_at)
-			}
-		}
-
-		// Get all local latest updates in one query
-		const {rows: localUpdates} = await pg.sql`
-			select channel_id, max(updated_at) as updated_at
-			from tracks
-			where channel_id = ANY(${v2ChannelIds})
-			group by channel_id
-		`
-
-		const localLatestMap = new Map()
-		for (const update of localUpdates) {
-			localLatestMap.set(update.channel_id, update.updated_at)
-		}
-
-		// Determine which channels need updates
-		const needsUpdateSet = new Set()
-		const toleranceMs = 20 * 1000
-
-		console.log(`🔍 needsUpdateBatch: Processing ${v2Channels.length} v2 channels for sync check`)
-
-		for (const channel of v2Channels) {
-			const {id, slug, tracks_synced_at} = channel
-
-			// If never synced, needs update
-			if (!tracks_synced_at) {
-				console.log(`📝 Channel ${slug} (${id}): tracks_synced_at = null -> NEEDS UPDATE`)
-				needsUpdateSet.add(id)
-				continue
-			}
-
-			// If no local tracks, needs update
-			if (!localLatestMap.has(id)) {
-				console.log(`📝 Channel ${slug} (${id}): no local tracks -> NEEDS UPDATE`)
-				needsUpdateSet.add(id)
-				continue
-			}
-
-			// If no remote tracks, skip
-			if (!remoteLatestMap.has(id)) {
-				console.log(`📝 Channel ${slug} (${id}): no remote tracks -> SKIP`)
-				continue
-			}
-
-			// Compare timestamps
-			const remoteMs = new Date(remoteLatestMap.get(id)).setMilliseconds(0)
-			const localMs = new Date(localLatestMap.get(id)).setMilliseconds(0)
-
-			if (remoteMs - localMs > toleranceMs) {
-				console.log(
-					`📝 Channel ${slug} (${id}): timestamp diff ${remoteMs - localMs}ms > ${toleranceMs}ms -> NEEDS UPDATE`
-				)
-				needsUpdateSet.add(id)
-			} else {
-				console.log(`📝 Channel ${slug} (${id}): up to date (diff: ${remoteMs - localMs}ms)`)
-			}
-		}
-
-		console.log(
-			`🔍 needsUpdateBatch: Final result - ${needsUpdateSet.size} channels need updates:`,
-			Array.from(needsUpdateSet)
-		)
-		return needsUpdateSet
-	} catch (error) {
-		console.error('Error in batch needs update check', error)
-		// On error, return all channel IDs to be safe
-		return new Set(channelIds)
-	}
-}
-
-/**
  * V2 sync pipeline: channels + tracks from SDK
  * @param {Object} options
  * @param {boolean} [options.skipUpdateCheck=false] - Skip update checks and sync all channels
@@ -337,7 +228,6 @@ export async function needsUpdateBatch(channelIds) {
 export async function syncV2({skipUpdateCheck = false} = {}) {
 	console.time('syncV2')
 	await pullChannels()
-	// await syncTracks({skipUpdateCheck})
 	console.timeEnd('syncV2')
 }
 
@@ -363,85 +253,6 @@ export async function sync({skipUpdateCheck = false} = {}) {
 		syncV1().catch((err) => console.error('V1 sync failed:', err))
 	])
 	console.timeEnd('sync')
-}
-
-/**
- * Track sync for v2 channels that need it
- * @param {Object} options
- * @param {boolean} [options.skipUpdateCheck=false] - Skip needsUpdate checks and sync all channels
- */
-export async function syncTracks({skipUpdateCheck = false} = {}) {
-	let channelsToSync
-
-	if (skipUpdateCheck) {
-		// Skip update checks: sync all v2 channels regardless of update status
-		console.log('Skipping update checks: syncing all v2 channels')
-		const {rows} = await pg.query(`
-			SELECT id, slug, name FROM channels
-			WHERE firebase_id IS NULL
-			ORDER BY name
-		`)
-		channelsToSync = rows
-	} else {
-		console.log('checking which channels need updates...')
-		const {rows: allChannels} = await pg.query(`
-			SELECT id, slug, name FROM channels
-			ORDER BY name
-		`)
-		// WHERE firebase_id IS NULL
-
-		if (allChannels.length === 0) {
-			console.log('No v2 channels found')
-			return
-		}
-
-		const channelIds = allChannels.map((ch) => ch.id)
-		const needsUpdateSet = await needsUpdateBatch(channelIds)
-
-		// Filter to only channels that need updates
-		channelsToSync = allChannels.filter((ch) => needsUpdateSet.has(ch.id))
-		console.log(
-			`syncTracks: channelsToSync result - ${channelsToSync.length} channels:`,
-			channelsToSync.map((ch) => `${ch.name} (${ch.slug})`)
-		)
-
-		console.log(`Check result: ${needsUpdateSet.size}/${allChannels.length} channels need updates`)
-	}
-
-	if (channelsToSync.length === 0) {
-		console.log('✅ All channels up to date')
-		return
-	}
-
-	console.log(`Syncing tracks for ${channelsToSync.length} channels`)
-
-	// Process channels in batches for concurrency
-	const CONCURRENCY = 8
-	const batches = []
-	for (let i = 0; i < channelsToSync.length; i += CONCURRENCY) {
-		batches.push(channelsToSync.slice(i, i + CONCURRENCY))
-	}
-
-	for (const batch of batches) {
-		await Promise.all(
-			batch.map(async (channel) => {
-				try {
-					console.log(`  • Syncing tracks for: ${channel.name}`)
-					await pullTracks(channel.slug)
-				} catch (error) {
-					console.error(`  ❌ Failed to sync tracks for ${channel.name}:`, error)
-					// Continue to next channel - error handling is in pullTracks
-				}
-			})
-		)
-
-		// Yield to UI thread between batches
-		if (batches.indexOf(batch) < batches.length - 1) {
-			await new Promise((resolve) => setTimeout(resolve, 10))
-		}
-	}
-
-	console.log('√ Completed track sync')
 }
 
 /**

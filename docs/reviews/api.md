@@ -11,7 +11,6 @@ exports:
 - checkUser() - validates authentication and syncs user channels
 - playTrack(id, endReason, startReason) - updates current track with history tracking
 - playChannel({id, slug}) - loads channel tracks and starts playback
-- ensureTrackAvailable(trackId) - guarantees track exists locally, syncing if needed
 - syncToBroadcast(broadcast) - synchronizes player to remote broadcast state
 - readBroadcastsWithChannel() - fetches active broadcasts with channel metadata
 - subscribeToAppState(callback) - establishes reactive app state subscription
@@ -28,7 +27,6 @@ exports:
 
 architectural patterns:
 
-- data availability guarantees via ensureTrackAvailable
 - automatic sync triggering on data access
 - hybrid synchronous/asynchronous operations
 - direct dom manipulation for ui controls
