@@ -6,6 +6,15 @@
 	import Map from './map.svelte'
 	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
 
+	const {
+		slug: initialSlug,
+		display: initialDisplay,
+		longitude,
+		latitude,
+		zoom,
+		handleMapChange = () => {}
+	} = $props()
+
 	/** @type {import('$lib/types').Channel[]}*/
 	let channels = $state([])
 	const mapChannels = $derived(
@@ -15,12 +24,13 @@
 				longitude,
 				latitude,
 				title: name,
-				href: `${slug}`
+				href: slug
 			}))
 	)
 
 	/** @type {'list' | 'grid' | 'map'}*/
-	let display = $state('list')
+	let display = $state(initialDisplay || 'list')
+	let center = $derived(latitude && longitude ? [latitude, longitude] : null)
 
 	subscribeToAppState((state) => {
 		display = state.channels_display || display
@@ -59,7 +69,9 @@
 </menu>
 
 {#if display === 'map'}
-	<Map markers={mapChannels}></Map>
+	{#if mapChannels}
+		<Map markers={mapChannels} {center} {zoom} on:change={handleMapChange}></Map>
+	{/if}
 {:else}
 	<SvelteVirtualList items={channels} itemsClass={display}>
 		{#snippet renderItem(channel)}

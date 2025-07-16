@@ -7,7 +7,7 @@
 		mapId = Date.now().toString(),
 		markers = [],
 		center = [0, 0],
-		zoom = 10,
+		zoom,
 		selectMode = false
 	} = $props();
 
@@ -39,7 +39,11 @@
 		const fill = getCssVar('--c-fg');
 		const fillNew = getCssVar('--c-link');
 
-		map = L.map(node).setView(center, zoom);
+		map = L.map(node)
+
+		map.on('moveend', handleChange);
+		map.on('zoomend', handleChange);
+
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; OpenStreetMap contributors',
 			className: 'Map-tiles'
@@ -64,11 +68,25 @@
 			});
 		}
 
+		if (center) {
+			map.setView(center, zoom);
+		}
+
 		return {
 			destroy() {
 				map.remove();
 			}
 		};
+	}
+
+	function handleChange() {
+		const newCenter = map.getCenter();
+		const newZoom = map.getZoom();
+		dispatch('change', {
+			latitude: newCenter.lat,
+			longitude: newCenter.lng,
+			zoom: newZoom
+		});
 	}
 
 	// Redraw markers whenever validMarkers change
@@ -91,12 +109,19 @@
 		}
 
 		if (validMarkers.length === 1) {
-			const [latitude, longitude] = validMarkers[0].coordinates;
+			const {latitude, longitude} = validMarkers[0];
 			map.setView([latitude, longitude], 13);
 		} else if (validMarkers.length > 1) {
 			map.fitBounds(markerGroup.getBounds().pad(0.2));
 		}
     });
+
+    $effect(() => {
+        if (map) {
+            map.setZoom(zoom);
+        }
+    });
+
     // Expose method to clear the temporary new marker
     export function clearNewMarker() {
         if (newMarker) {
