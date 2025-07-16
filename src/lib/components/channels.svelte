@@ -19,7 +19,7 @@
 			}))
 	)
 
-	/** @type {'list' | 'grid'}*/
+	/** @type {'list' | 'grid' | 'map'}*/
 	let display = $state('list')
 
 	subscribeToAppState((state) => {
@@ -48,7 +48,7 @@
 </script>
 
 <menu>
-	<button titl="View as list" class:active={display === 'list'} onclick={() => setDisplay('list')}
+	<button title="View as list" class:active={display === 'list'} onclick={() => setDisplay('list')}
 		><IconUnorderedList /></button
 	>
 	<button title="View as grid" class:active={display === 'grid'} onclick={() => setDisplay('grid')}

@@ -60,13 +60,12 @@
 	async function setChannelFromTrack(tid) {
 		if (!tid || tid === track?.id) return
 		const result = await queryTrackWithChannel(tid)
-		if (result) {
-			track = result.track
-			title = result.channel.name
-			image = result.channel.image
-			description = result.channel.description
-			slug = result.channel.slug
-		}
+		if (!result) return
+		track = result.track
+		title = result.channel.name
+		image = result.channel.image
+		description = result.channel.description
+		slug = result.channel.slug
 	}
 
 	function generateShuffleQueue() {
