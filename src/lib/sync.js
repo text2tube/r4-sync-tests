@@ -198,7 +198,7 @@ export async function needsUpdate(slug) {
 	}
 }
 
-/** Pulls channels from both v2 and v1 into local database */
+/** Pulls all channels into local db (v1+v2) */
 export async function sync() {
 	console.time('sync')
 	await Promise.all([

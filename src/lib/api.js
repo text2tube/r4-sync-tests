@@ -61,7 +61,7 @@ export async function setPlaylist(ids) {
 }
 
 /** @param {import('$lib/types').Broadcast} broadcast */
-export async function syncToBroadcast(broadcast) {
+export async function syncPlayBroadcast(broadcast) {
 	const {track_id, track_played_at} = broadcast
 	const playbackPosition = (Date.now() - new Date(track_played_at).getTime()) / 1000
 
@@ -78,6 +78,7 @@ export async function syncToBroadcast(broadcast) {
 			.select('channels(slug)')
 			.eq('track_id', track_id)
 			.single()
+		// @ts-expect-error supabase
 		const slug = data?.channels?.slug
 		if (slug) {
 			await pullChannel(slug)

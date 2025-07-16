@@ -8,19 +8,21 @@ Exports from lib/api.js, sync.js, broadcast.js
 - exportDb() - exports the database
 
 // DATA
-- findV1TracksByChannel(id) - finds v1 tracks by channel id
-- getChannelsWithTrackCounts() - aggregates channel statistics
-- getTrackWithChannel(trackId) - retrieves track with associated channel data
 - needsUpdate(slug) - track timestamp comparison for sync necessity
 - pullChannel(slug) - fetches single channel data
 - pullChannels(options) - retrieves channel metadata from remote
 - pullTracks(slug) - downloads all tracks for specified channel
 - pullV1Channels() - pulls v1 channels
 - pullV1Tracks(channelId, channelFirebaseId, pg) - pulls v1 tracks
+- sync() - pulls both v1 and v2 channels
+
+// API
+
+- queryChannelsWithTrackCounts() - aggregates channel statistics
+- queryTrackWithChannel(trackId) - retrieves track with associated channel data
+- readFirebaseChannelTracks(channelId)
 - searchChannelTracks(channelId, searchTerm) - filters tracks by text search
 - subscribeToAppState(callback) - establishes reactive app state subscription
-- sync(options) - complete sync orchestrator
-- syncToBroadcast(broadcast) - synchronizes player to remote broadcast state
 
 // AUTH
 - checkUser() - validates authentication and syncs user channels
@@ -44,6 +46,7 @@ BROADCAST
 - startBroadcasting(channelId) - enables broadcast mode for user channel
 - stopBroadcastSync() - tears down sync subscription
 - stopBroadcasting() - disables broadcast mode
+- syncToBroadcast(broadcast) - synchronizes player to remote broadcast state
 
 KEYBOARD SHORTCUTS
 - initializeKeyboardShortcuts() - initializes the keyboard shortcuts

@@ -1,6 +1,6 @@
 import {sdk} from '@radio4000/sdk'
 import {pg} from '$lib/db'
-import {syncToBroadcast} from '$lib/api.js'
+import {syncPlayBroadcast} from '$lib/api.js'
 
 /** @type {string|null} */
 let lastBroadcastingChannelId = null
@@ -29,7 +29,7 @@ export async function joinBroadcast(channelId) {
 			.eq('channel_id', channelId)
 			.single()
 		if (error) throw error
-		await syncToBroadcast(data)
+		await syncPlayBroadcast(data)
 		console.log('joined broadcast', {channelId})
 	} catch (error) {
 		console.log('join broadcast failed', {

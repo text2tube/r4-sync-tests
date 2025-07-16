@@ -6,25 +6,6 @@ central data operations module providing abstraction layer over database and rem
 
 comprehensive api module handling user management, playlist operations, broadcast synchronization, and ui interactions. serves as primary interface between components and data layer.
 
-exports:
-
-- checkUser() - validates authentication and syncs user channels
-- playTrack(id, endReason, startReason) - updates current track with history tracking
-- playChannel({id, slug}) - loads channel tracks and starts playback
-- syncToBroadcast(broadcast) - synchronizes player to remote broadcast state
-- readBroadcastsWithChannel() - fetches active broadcasts with channel metadata
-- subscribeToAppState(callback) - establishes reactive app state subscription
-- getTrackWithChannel(trackId) - retrieves track with associated channel data
-- searchChannelTracks(channelId, searchTerm) - filters tracks by text search
-- getChannelsWithTrackCounts() - aggregates channel statistics
-- addToPlaylist(trackIds) - appends tracks to current playlist
-- toggleTheme() - switches between light and dark modes
-- toggleQueuePanel() - shows/hides queue interface
-- closePlayerOverlay() - manipulates player ui state
-- openSearch() - navigates to search with input focus
-- togglePlayPause() - controls youtube player state
-- addPlayHistory({currentTrack, newTrack, endReason, startReason}) - records playback analytics
-
 architectural patterns:
 
 - automatic sync triggering on data access

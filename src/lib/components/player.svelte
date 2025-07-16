@@ -14,7 +14,7 @@
 		// IconVolume2Fill,
 		// IconVolumeOffFill
 	} from 'obra-icons-svelte'
-	import {playTrack, subscribeToAppState, getTrackWithChannel} from '$lib/api'
+	import {playTrack, subscribeToAppState, queryTrackWithChannel} from '$lib/api'
 
 	/** @typedef {import('$lib/types').Channel} Channel */
 	/** @typedef {import('$lib/types').Track} Track */
@@ -59,7 +59,7 @@
 	/** @param {string} tid} */
 	async function setChannelFromTrack(tid) {
 		if (!tid || tid === track?.id) return
-		const result = await getTrackWithChannel(tid)
+		const result = await queryTrackWithChannel(tid)
 		if (result) {
 			track = result.track
 			title = result.channel.name
