@@ -76,7 +76,7 @@
 				<button onclick={toggleQueuePanel} class="btn">
 					<IconSidebarFillRight size={20} />
 				</button>
-				<button onclick={toggleChatPanel}>Chat</button>
+				<!-- <button onclick={toggleChatPanel}>Chat</button> -->
 				<ThemeToggle />
 			{/if}
 			<a href="/settings" class="btn">
