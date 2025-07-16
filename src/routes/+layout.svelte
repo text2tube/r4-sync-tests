@@ -11,6 +11,7 @@
 	import BroadcastControls from '$lib/components/broadcast-controls.svelte'
 	import LiveChat from '$lib/components/live-chat.svelte'
 	import DraggablePanel from '$lib/components/draggable-panel.svelte'
+	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte'
 	import {
 		IconSearch,
 		IconChevronUp,
@@ -19,14 +20,12 @@
 		IconSidebarFillRight
 	} from 'obra-icons-svelte'
 	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
-	import {initializeKeyboardShortcuts} from '$lib/shortcuts'
 	import '@radio4000/components'
 
 	const {data, children} = $props()
 
 	let chatPanelVisible = $state(false)
-	/** @type {HTMLInputElement|undefined} */
-	let playerLayoutCheckbox = $state()
+	let playerLayoutCheckbox = $state(false)
 
 	/** @type {import('$lib/types').AppState} */
 	let appState = $state({})
@@ -36,19 +35,6 @@
 
 	subscribeToAppState((state) => {
 		appState = state
-	})
-
-	// Initialize keyboard shortcuts
-	$effect(() => {
-		if (!preloading) {
-			let cleanup = () => {}
-			initializeKeyboardShortcuts().then((cleanupFn) => {
-				cleanup = cleanupFn
-			})
-
-			// Cleanup on effect teardown
-			return cleanup
-		}
 	})
 
 	function toggleChatPanel() {
@@ -66,6 +52,7 @@
 </script>
 
 <AuthListener />
+<KeyboardShortcuts />
 
 <div class="layout">
 	<header class="row">
@@ -124,7 +111,7 @@
 		<label class="playerToggle">
 			<IconChevronUp size={24} strokeWidth={2} />
 			<IconChevronDown size={24} strokeWidth={2} />
-			<input type="checkbox" name="playerLayout" bind:this={playerLayoutCheckbox} />
+			<input type="checkbox" name="playerLayout" checked={playerLayoutCheckbox} />
 		</label>
 		{#if !preloading}
 			<Player {appState} />
