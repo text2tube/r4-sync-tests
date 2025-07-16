@@ -8,11 +8,10 @@ Exports from lib/api.js, sync.js, broadcast.js
 - exportDb() - exports the database
 
 // DATA
-- dryRun(options) - preview sync operations without execution
 - findV1TracksByChannel(id) - finds v1 tracks by channel id
 - getChannelsWithTrackCounts() - aggregates channel statistics
 - getTrackWithChannel(trackId) - retrieves track with associated channel data
-- needsUpdate(slug) - timestamp comparison for sync necessity
+- needsUpdate(slug) - track timestamp comparison for sync necessity
 - pullChannel(slug) - fetches single channel data
 - pullChannels(options) - retrieves channel metadata from remote
 - pullTracks(slug) - downloads all tracks for specified channel
@@ -21,10 +20,8 @@ Exports from lib/api.js, sync.js, broadcast.js
 - searchChannelTracks(channelId, searchTerm) - filters tracks by text search
 - subscribeToAppState(callback) - establishes reactive app state subscription
 - sync(options) - complete sync orchestrator
-- syncChannel(slug, options) - single channel sync
+- syncChannel(slug) - single channel sync
 - syncToBroadcast(broadcast) - synchronizes player to remote broadcast state
-- syncV1() - v1 channel sync pipeline
-- syncV2(options) - v2 channel sync pipeline
 
 // AUTH
 - checkUser() - validates authentication and syncs user channels

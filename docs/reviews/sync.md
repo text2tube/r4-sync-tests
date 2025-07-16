@@ -12,11 +12,8 @@ exports:
 - pullTracks(slug) - downloads all tracks for specified channel
 - pullChannel(slug) - fetches single channel data
 - needsUpdate(slug) - timestamp comparison for sync necessity
-- syncV2(options) - v2 channel sync pipeline
-- syncV1() - v1 channel sync pipeline
 - sync(options) - complete sync orchestrator
-- syncChannel(slug, options) - single channel sync
-- dryRun(options) - preview sync operations without execution
+- syncChannel(slug) - single channel sync
 
 architecture notes:
 

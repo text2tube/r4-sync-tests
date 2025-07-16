@@ -17,9 +17,7 @@ Besides the firebase_id field, they are the same.
 ## Sync flow
 
 sync()
-syncV2()
 pullChannels()
-syncV1()
 pullV1Channels()
 
 Tracks are not included the `sync()` method, but loaded on-demand when user interacts with the channel. Then we call: `pullTracks(slug)` or `pullV1Tracks(id, firebase_id)`

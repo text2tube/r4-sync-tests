@@ -1,6 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
-	import {pullTracks, dryRun} from '$lib/sync'
+	import {pullTracks} from '$lib/sync'
 	import InternetIndicator from '$lib/components/internet-indicator.svelte'
 
 	/** @type {import('$lib/types').Channel[]} */
@@ -63,7 +63,6 @@
 <section>
 	<h3>
 		Sync debug ({channels.length} channels)
-		<button onclick={() => dryRun()}>Dry run</button>
 	</h3>
 
 	<menu>

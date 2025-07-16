@@ -12,6 +12,7 @@ export async function load() {
 	if (browser) {
 		try {
 			await migrateDb()
+			// @ts-expect-error debugging
 			window.r5 = {pg, sdk}
 		} catch (err) {
 			console.error('Failed to initialize database:', err)

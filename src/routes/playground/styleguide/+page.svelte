@@ -25,7 +25,7 @@
 		'--gray-12'
 	]
 
-	const accentColors = ['--color-accent']
+
 
 	const fontSizes = [
 		'--font-size-micro',
@@ -91,12 +91,14 @@
 		<h2>A form</h2>
 		<form>
 			<div>
-				<label>Your name</label>
-				<input type="text" />
+				<label>Your name
+					<input type="text" />
+				</label>
 			</div>
 			<div>
-				<label>Your age</label>
-				<input type="number" />
+				<label>Your age
+					<input type="number" />
+				</label>
 			</div>
 			<div>
 				<button type="button">Cancel</button>

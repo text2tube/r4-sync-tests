@@ -22,9 +22,7 @@ export async function load({parent, params, url}) {
 
 	// If not found locally, pull from remote
 	try {
-		if (!channel) {
-			channel = await pullChannel(slug)
-		}
+		if (!channel) await pullChannel(slug)
 	} catch (err) {
 		console.error('Error pulling channel:', err)
 		error(404, 'Channel not found')

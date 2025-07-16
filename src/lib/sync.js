@@ -1,6 +1,7 @@
 import {pg, debugLimit} from '$lib/db'
 import {sdk} from '@radio4000/sdk'
 import {pullV1Tracks, pullV1Channels} from '$lib/v1'
+import { err, ok } from '$lib/types'
 
 /**
  * SYNC ARCHITECTURE:
@@ -16,7 +17,6 @@ await syncChannel('my-channel') // Single channel sync
 
 // Status & preview
 await needsUpdate('slug') // Check one channel
-await dryRun() // Preview what would sync
 
 // Low-level
 await pullChannels() // Always pull N channels
@@ -136,12 +136,10 @@ export async function pullTracks(slug) {
 /**
  * Pull a single channel by slug from Radio4000 into local database
  * @param {string} slug - Channel slug
- * @returns {Promise<import('$lib/types').Channel|null>}
  */
 export async function pullChannel(slug) {
 	const {data: channel, error} = await sdk.channels.readChannel(slug)
-	if (error) throw error
-
+	if (error) return err(error)
 	await pg.sql`
 			INSERT INTO channels (id, name, slug, description, image, created_at, updated_at)
 			VALUES (
@@ -155,10 +153,8 @@ export async function pullChannel(slug) {
 				description = EXCLUDED.description,
 				image = EXCLUDED.image,
 				updated_at = EXCLUDED.updated_at
+				RETURNING *
 		`
-	console.log('Pulled channel', channel.slug)
-
-	return channel
 }
 
 /**
@@ -175,7 +171,7 @@ export async function needsUpdate(slug) {
 
 		const {id, firebase_id} = channel
 
-		if (!id) throw new Error(`Channel not found: ${slug}`)
+		if (!id) return true
 
 		// Get latest local track update
 		const {rows: localRows} = await pg.sql`
@@ -220,37 +216,12 @@ export async function needsUpdate(slug) {
 	}
 }
 
-/**
- * V2 sync pipeline: channels + tracks from SDK
- * @param {Object} options
- * @param {boolean} [options.skipUpdateCheck=false] - Skip update checks and sync all channels
- */
-export async function syncV2({skipUpdateCheck = false} = {}) {
-	console.time('syncV2')
-	await pullChannels()
-	console.timeEnd('syncV2')
-}
-
-/**
- * V1 sync pipeline: channels only from JSON (tracks loaded on-demand)
- */
-export async function syncV1() {
-	console.time('syncV1')
-	await pullV1Channels()
-	// we don't sync tracks to save time. they can be loaded on demand
-	console.timeEnd('syncV1')
-}
-
-/**
- * Complete sync: v1 and v2 pipelines in parallel
- * @param {Object} options
- * @param {boolean} [options.skipUpdateCheck=false] - Skip update checks and sync all channels
- */
-export async function sync({skipUpdateCheck = false} = {}) {
+/** Pulls channels from both v2 and v1 into local database */
+export async function sync() {
 	console.time('sync')
 	await Promise.all([
-		syncV2({skipUpdateCheck}).catch((err) => console.error('V2 sync failed:', err)),
-		syncV1().catch((err) => console.error('V1 sync failed:', err))
+		pullChannels().catch((err) => console.error('pull channels failed:', err)),
+		pullV1Channels().catch((err) => console.error('pull v1 channels failed:', err))
 	])
 	console.timeEnd('sync')
 }
@@ -258,80 +229,7 @@ export async function sync({skipUpdateCheck = false} = {}) {
 /**
  * Sync for a single channel - only pulls tracks if channel needs updating
  * @param {string} slug - Channel slug
- * @param {Object} options
- * @param {boolean} [options.skipUpdateCheck=false] - Skip update check and always pull
- * @returns {Promise<boolean>} - True if tracks were pulled, false if skipped
  */
-export async function syncChannel(slug, {skipUpdateCheck = false} = {}) {
-	if (!skipUpdateCheck) {
-		const needs = await needsUpdate(slug)
-		if (!needs) {
-			console.log(`Skipping ${slug} - already up to date`)
-			return false
-		}
-	}
-
-	await pullTracks(slug)
-	return true
-}
-
-/**
- * Dry run - check what would be synced without actually syncing
- * @param {Object} options
- * @param {boolean} [options.skipUpdateCheck=false] - Check behavior when skipping update checks
- * @returns {Promise<Object>} Analysis of what would be synced
- */
-export async function dryRun({skipUpdateCheck = false} = {}) {
-	let analysis
-
-	// Get all v2 channels
-	const {rows: allChannels} = await pg.query(`
-		SELECT id, slug, name, tracks_synced_at FROM channels
-		WHERE firebase_id IS NULL
-		ORDER BY name
-	`)
-
-	if (allChannels.length === 0) {
-		analysis = {
-			total: 0,
-			needsSync: 0,
-			upToDate: 0,
-			channels: [],
-			wouldSync: []
-		}
-	}
-
-	let channelsNeedingSync = []
-
-	if (skipUpdateCheck) {
-		channelsNeedingSync = allChannels
-	} else {
-		// Use batch logic for efficiency
-		const channelIds = allChannels.map((ch) => ch.id)
-		const needsUpdateSet = await needsUpdateBatch(channelIds)
-		channelsNeedingSync = allChannels.filter((ch) => needsUpdateSet.has(ch.id))
-	}
-
-	analysis = {
-		total: allChannels.length,
-		needsSync: channelsNeedingSync.length,
-		upToDate: allChannels.length - channelsNeedingSync.length,
-		channels: allChannels.map((ch) => ({
-			slug: ch.slug,
-			name: ch.name,
-			lastSynced: ch.tracks_synced_at,
-			needsSync: channelsNeedingSync.some((sync) => sync.id === ch.id)
-		})),
-		wouldSync: channelsNeedingSync.map((ch) => ({slug: ch.slug, name: ch.name}))
-	}
-
-	console.log(
-		`Dry run sync analysis (${skipUpdateCheck ? 'skip checks' : 'check'} mode):`,
-		analysis
-	)
-	if (analysis.needsSync > 0) {
-		console.log(`  • Would sync: ${analysis.wouldSync.map((ch) => ch.slug).join(', ')}`)
-	}
-
-	return analysis
+export async function syncChannel(slug) {
+	if ((await needsUpdate(slug))) await pullTracks(slug)
 }
