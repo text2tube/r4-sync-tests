@@ -1,7 +1,7 @@
 <script>
 	import {pg} from '$lib/db'
 	import {pullTracks} from '$lib/sync'
-	import InternetIndicator from '$lib/components/internet-indicator.svelte'
+	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
 
 	/** @type {import('$lib/types').Channel[]} */
 	let channels = $state([])
@@ -59,19 +59,15 @@
 	}
 </script>
 
-<section>
+<section style="height: 500px">
 	<h3>
 		Sync debug ({channels.length} channels)
 	</h3>
 
-	<menu>
-		<button>Channels that were synced</button>
-	</menu>
-
 	{#if channels.length === 0}{:else}
-		<div class="list">
-			{#each channels as channel (channel.id)}
-				<article>
+		<SvelteVirtualList items={channels} itemsClass="list" debug>
+			{#snippet renderItem(channel)}
+				<article class="item">
 					<p>
 						{getStatusIndicator(channel)}
 						<span class="version">({channel.firebase_id ? 'v1' : 'v2'})</span>
@@ -96,15 +92,13 @@
 						</button>
 					</menu>
 				</article>
-			{/each}
-		</div>
+			{/snippet}
+		</SvelteVirtualList>
 	{/if}
 </section>
 
-<InternetIndicator />
-
 <style>
-	.list > article {
+	.item {
 		padding: 0.5rem 0;
 		display: flex;
 		align-items: center;

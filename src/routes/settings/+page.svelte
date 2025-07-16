@@ -8,34 +8,6 @@
 
 	let syncing = $state(false)
 	let resetting = $state(false)
-	let syncProgress = $state({synced: 0, total: 0})
-
-	// Live query for sync progress
-	$effect(() => {
-		const liveQuery = pg.live.query(
-			`
-			SELECT
-				COUNT(*) FILTER (WHERE tracks_synced_at IS NOT NULL AND firebase_id IS NULL) as synced,
-				COUNT(*) FILTER (WHERE firebase_id IS NULL) as total
-			FROM channels
-		`,
-			[],
-			(result) => {
-				if (result.rows[0]) {
-					const row = result.rows[0]
-					syncProgress = {
-						synced: Number(row.synced),
-						total: Number(row.total)
-					}
-				}
-			}
-		)
-
-		// Cleanup function - unsubscribe when effect re-runs or component unmounts
-		return () => {
-			liveQuery.then(({unsubscribe}) => unsubscribe())
-		}
-	})
 
 	async function handleSync() {
 		syncing = true
@@ -77,9 +49,9 @@
 		</button>
 		<button onclick={handleSync} data-loading={syncing} disabled={syncing}>
 			{#if syncing}
-				Syncing ({syncProgress.synced}/{syncProgress.total})
+				Syncing
 			{:else}
-				Sync {syncProgress.total > 0 ? `(${syncProgress.synced}/${syncProgress.total} synced)` : ''}
+				Sync
 			{/if}
 		</button>
 		<!-- <button disabled>Import local database</button> -->
@@ -94,11 +66,12 @@
 
 	<hr />
 	<ShortcutsEditor />
-	<SyncDebug />
 	<hr />
 	<button onclick={logout}>Logout</button>
 	<hr />
 	<PgliteRepl />
+	<hr />
+	<SyncDebug />
 </article>
 
 <style>
