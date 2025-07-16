@@ -21,7 +21,6 @@ Exports from lib/api.js, sync.js, broadcast.js
 - queryChannelsWithTrackCounts() - aggregates channel statistics
 - queryTrackWithChannel(trackId) - retrieves track with associated channel data
 - readFirebaseChannelTracks(channelId)
-- searchChannelTracks(channelId, searchTerm) - filters tracks by text search
 - subscribeToAppState(callback) - establishes reactive app state subscription
 
 // AUTH

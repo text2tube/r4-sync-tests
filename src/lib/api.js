@@ -126,30 +126,7 @@ export async function getTrackWithChannel(trackId) {
 	return {track, channel}
 }
 
-/**
- * @param {string} channelId
- * @param {string} searchTerm
- */
-export async function searchChannelTracks(channelId, searchTerm = '') {
-	const query =
-		'SELECT id, title, description, created_at, updated_at FROM tracks WHERE channel_id = $1'
-	const {rows} = await pg.query(query, [channelId])
-
-	let filteredTracks = [...rows]
-
-	if (searchTerm.trim()) {
-		const search = searchTerm.toLowerCase()
-		filteredTracks = filteredTracks.filter((track) => {
-			const title = (track.title || '').toLowerCase()
-			const description = (track.description || '').toLowerCase()
-			return title.includes(search) || description.includes(search)
-		})
-	}
-
-	return filteredTracks.map((track) => track.id)
-}
-
-export async function getChannelsWithTrackCounts() {
+export async function queryChannelsWithTrackCounts() {
 	const {rows} = await pg.sql`
 		SELECT
 			c.*,

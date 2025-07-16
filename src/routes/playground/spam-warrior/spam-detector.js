@@ -261,31 +261,6 @@ export function analyzeChannel(channel, tracks = []) {
 }
 
 /**
- * Get channels from database with track counts
- * @param {number} limit
- * @returns {Promise<Array<import('$lib/types').Channel>>}
- */
-export async function getChannels(limit = 3000) {
-	const {rows} = await pg.sql`
-		SELECT
-			c.id,
-			c.name,
-			c.slug,
-			c.description,
-			c.image,
-			c.created_at,
-			c.spam,
-			COUNT(t.id) as track_count
-		FROM channels c
-		LEFT JOIN tracks t ON c.id = t.channel_id
-		GROUP BY c.id, c.name, c.slug, c.description, c.image, c.created_at, c.spam
-		ORDER BY c.created_at DESC
-		LIMIT ${limit}
-	`
-	return rows
-}
-
-/**
  * Update spam status for a channel
  * @param {string} channelId
  * @param {boolean} isSpam

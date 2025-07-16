@@ -1,6 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
-	import {subscribeToAppState, getChannelsWithTrackCounts} from '$lib/api'
+	import {subscribeToAppState} from '$lib/api'
 	import {IconGrid, IconUnorderedList, IconMap} from 'obra-icons-svelte'
 	import ChannelCard from './channel-card.svelte'
 	import Map from './map.svelte'
@@ -26,7 +26,6 @@
 		display = state.channels_display || display
 	})
 
-	// Load channels with track counts
 	$effect(() => {
 		const liveQuery = pg.live.incrementalQuery(
 			'select * from channels order by updated_at desc',
