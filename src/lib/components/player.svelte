@@ -111,6 +111,7 @@
 			return
 		}
 		yt.play()
+		pg.sql`UPDATE app_state SET is_playing = true`
 		console.log('play() -> autoplay=true')
 		autoplay = true
 	}
@@ -141,7 +142,8 @@
 			playlist_track = null,
 			playlist_tracks_shuffled = ${[]},
 			show_video_player = false,
-			shuffle = false
+			shuffle = false,
+			is_playing = false
 			WHERE id = 1`
 	}
 
