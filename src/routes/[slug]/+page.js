@@ -29,7 +29,7 @@ export async function load({parent, params, url}) {
 	}
 
 	// and make sure it's up to date
-	if ((await needsUpdate(slug))) await pullTracks(slug)
+	if (await needsUpdate(slug)) await pullTracks(slug)
 
 	return {
 		channel,

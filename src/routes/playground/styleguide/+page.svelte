@@ -25,8 +25,6 @@
 		'--gray-12'
 	]
 
-
-
 	const fontSizes = [
 		'--font-size-micro',
 		'--font-size-mini',
@@ -91,12 +89,14 @@
 		<h2>A form</h2>
 		<form>
 			<div>
-				<label>Your name
+				<label
+					>Your name
 					<input type="text" />
 				</label>
 			</div>
 			<div>
-				<label>Your age
+				<label
+					>Your age
 					<input type="number" />
 				</label>
 			</div>

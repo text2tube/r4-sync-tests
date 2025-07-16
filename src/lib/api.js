@@ -126,6 +126,12 @@ export async function getTrackWithChannel(trackId) {
 	return {track, channel}
 }
 
+export async function queryTrackWithChannel(trackId) {
+	const track = await pg.sql`select * from tracks where id = ${trackId}`
+	const channel = await pg.sql`select * from channels where id = ${track.channel_id}`
+	return {track, channel}
+}
+
 export async function queryChannelsWithTrackCounts() {
 	const {rows} = await pg.sql`
 		SELECT

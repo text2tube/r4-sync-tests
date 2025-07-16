@@ -3,11 +3,13 @@
 Exports from lib/api.js, sync.js, broadcast.js
 
 // DATABASE
+
 - migrateDb() - initializes the database
 - dropDb() - resets the database
 - exportDb() - exports the database
 
 // DATA
+
 - needsUpdate(slug) - track timestamp comparison for sync necessity
 - pullChannel(slug) - fetches single channel data
 - pullChannels(options) - retrieves channel metadata from remote
@@ -24,9 +26,11 @@ Exports from lib/api.js, sync.js, broadcast.js
 - subscribeToAppState(callback) - establishes reactive app state subscription
 
 // AUTH
+
 - checkUser() - validates authentication and syncs user channels
 
 UI/PLAYER
+
 - closePlayerOverlay() - manipulates player ui state
 - openSearch() - navigates to search with input focus
 - togglePlayPause() - controls youtube player state
@@ -38,6 +42,7 @@ UI/PLAYER
 - playTrack(id, endReason, startReason) - updates current track with history tracking
 
 BROADCAST
+
 - joinBroadcast(channelId) - syncs local player to remote broadcast
 - leaveBroadcast() - disconnects from broadcast listening
 - readBroadcastsWithChannel() - fetches active broadcasts with channel metadata
@@ -48,6 +53,7 @@ BROADCAST
 - syncToBroadcast(broadcast) - synchronizes player to remote broadcast state
 
 KEYBOARD SHORTCUTS
+
 - initializeKeyboardShortcuts() - initializes the keyboard shortcuts
 - loadKeyBindings() - loads the key bindings
 - saveKeyBindings(keyBindings) - saves the key bindings

@@ -55,8 +55,11 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 		updated_at: new Date(track.updated || track.created).toISOString()
 	}))
 
-	const {rows: existingTracks} = await pg.sql`select firebase_id from tracks where channel_id = ${channelId}`
-	const newTracks = tracks.filter((t) => !existingTracks.some((x) => x.firebase_id === t.firebase_id))
+	const {rows: existingTracks} =
+		await pg.sql`select firebase_id from tracks where channel_id = ${channelId}`
+	const newTracks = tracks.filter(
+		(t) => !existingTracks.some((x) => x.firebase_id === t.firebase_id)
+	)
 	for (const item of newTracks) {
 		try {
 			await pg.sql`
@@ -82,9 +85,11 @@ async function readFirebaseChannelTracks(cid) {
 	const toObject = (value, id) => ({...value, id})
 	const toArray = (data) => Object.keys(data).map((id) => toObject(data[id], id))
 	const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${cid}"&endAt="${cid}"`
-	return fetch(url)
-		.then((res) => res.json())
-		.then(toArray)
-		// Firebase queries through REST are not sorted, so we sort..
-		.then((arr) => arr.sort((a, b) => a.created - b.created))
+	return (
+		fetch(url)
+			.then((res) => res.json())
+			.then(toArray)
+			// Firebase queries through REST are not sorted, so we sort..
+			.then((arr) => arr.sort((a, b) => a.created - b.created))
+	)
 }

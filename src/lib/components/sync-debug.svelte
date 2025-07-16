@@ -57,7 +57,6 @@
 		if (!channel.tracks_synced_at) return 'Synced without tracks'
 		return 'Synced'
 	}
-
 </script>
 
 <section>
@@ -89,10 +88,7 @@
 
 					<menu>
 						<button onclick={() => pullTracks(channel.slug)}>&darr; Pull tracks</button>
-						<button
-							onclick={() => deleteTracks(channel.id)}
-							disabled={!channel.tracks_synced_at}
-						>
+						<button onclick={() => deleteTracks(channel.id)} disabled={!channel.tracks_synced_at}>
 							&times; Delete tracks
 						</button>
 						<button onclick={() => deleteChannel(channel.id)} class="danger">
