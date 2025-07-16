@@ -42,10 +42,8 @@ export async function pullV1Channels() {
  */
 export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 	if (!pg) throw new Error('Missing pg')
-	const {rows: existingTracks} =
-		await pg.sql`select firebase_id from tracks where channel_id = ${channelId}`
 
-	const v1Tracks = await fetchV1TracksByChannel(channelFirebaseId)
+	const v1Tracks = await readFirebaseChannelTracks(channelFirebaseId)
 	const tracks = v1Tracks.map((track) => ({
 		firebase_id: track.id,
 		channel_id: channelId,
@@ -57,21 +55,16 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 		updated_at: new Date(track.updated || track.created).toISOString()
 	}))
 
-	const newTracks = tracks.filter(
-		(t) => !existingTracks.some((x) => x.firebase_id === t.firebase_id)
-	)
+	const {rows: existingTracks} = await pg.sql`select firebase_id from tracks where channel_id = ${channelId}`
+	const newTracks = tracks.filter((t) => !existingTracks.some((x) => x.firebase_id === t.firebase_id))
 	for (const item of newTracks) {
 		try {
 			await pg.sql`
 				insert into tracks (firebase_id, channel_id, created_at, updated_at, title, description, url, discogs_url)
 				values (${item.firebase_id}, ${channelId}, ${item.created_at}, ${item.updated_at}, ${item.title}, ${item.description}, ${item.url}, ${item.discogs_url}) on conflict (firebase_id) do nothing;
 			`
-			// Mark as successfully synced
 			await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP where id = ${channelId}`
 		} catch (error) {
-			// console.error(`Failed to insert track ${item.firebase_id}`, error)
-			// On error, just mark as not busy (tracks_synced_at stays NULL for retry)
-			console.log('here?')
 			await pg.sql`update channels set busy = false where id = ${channelId}`
 			throw error
 		}
@@ -83,15 +76,15 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 
 /**
  * Fetches all v1 tracks from a v1 channel id
- * Firebase queries through REST are not sorted.
- * @param {string} id
+ * @param {string} cid
  */
-async function fetchV1TracksByChannel(id) {
+async function readFirebaseChannelTracks(cid) {
 	const toObject = (value, id) => ({...value, id})
 	const toArray = (data) => Object.keys(data).map((id) => toObject(data[id], id))
-	const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${id}"&endAt="${id}"`
+	const url = `https://radio4000.firebaseio.com/tracks.json?orderBy="channel"&startAt="${cid}"&endAt="${cid}"`
 	return fetch(url)
 		.then((res) => res.json())
 		.then(toArray)
+		// Firebase queries through REST are not sorted, so we sort..
 		.then((arr) => arr.sort((a, b) => a.created - b.created))
 }
