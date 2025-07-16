@@ -11,6 +11,7 @@ Broadcasts are stored remotely only - there's no local `broadcasts` table, just 
 The core broadcast logic and remote sync lives in `src/lib/broadcast.js`. The UI for starting and stopping broadcasts is in `src/routes/broadcast/+page.svelte`. The header component that shows live broadcasts is `src/lib/components/live-broadcasts.svelte`. Track availability and sync functions are in `src/lib/api.js`.
 
 key functions:
+
 - startBroadcasting/stopBroadcasting - local app_state updates
 - joinBroadcast/leaveBroadcast - remote sync and cleanup
 - setupBroadcastSync/stopBroadcastSync - reactive sync management

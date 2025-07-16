@@ -5,6 +5,7 @@
 	import {IconSearch, IconMap} from 'obra-icons-svelte'
 	import {pg} from '$lib/db'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
+	import {relativeDate, relativeDateSolar} from '$lib/utils'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
@@ -113,6 +114,13 @@
 				</a>
 			</h1>
 			<p>{channel.description}</p>
+			<p>
+				<small>
+					Last updated {relativeDate(channel.updated_at)}. Broadcasting since {relativeDateSolar(
+						channel.created_at
+					)}.
+				</small>
+			</p>
 		</header>
 		<section>
 			{#if trackIds.length > 0}
@@ -179,10 +187,6 @@
 
 	h1 {
 		padding-top: 1rem;
-	}
-
-	p {
-		color: var(--gray-10);
 	}
 
 	section {
