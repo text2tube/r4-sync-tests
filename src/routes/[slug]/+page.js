@@ -1,4 +1,4 @@
-import {syncChannel, pullChannel} from '$lib/sync'
+import {needsUpdate, pullChannel, pullTracks} from '$lib/sync'
 import {pg} from '$lib/db'
 import {error} from '@sveltejs/kit'
 
@@ -29,7 +29,7 @@ export async function load({parent, params, url}) {
 	}
 
 	// and make sure it's up to date
-	syncChannel(slug)
+	if ((await needsUpdate(slug))) await pullTracks(slug)
 
 	return {
 		channel,

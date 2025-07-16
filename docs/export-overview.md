@@ -20,7 +20,6 @@ Exports from lib/api.js, sync.js, broadcast.js
 - searchChannelTracks(channelId, searchTerm) - filters tracks by text search
 - subscribeToAppState(callback) - establishes reactive app state subscription
 - sync(options) - complete sync orchestrator
-- syncChannel(slug) - single channel sync
 - syncToBroadcast(broadcast) - synchronizes player to remote broadcast state
 
 // AUTH

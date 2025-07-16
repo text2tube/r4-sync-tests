@@ -13,7 +13,6 @@ exports:
 - pullChannel(slug) - fetches single channel data
 - needsUpdate(slug) - timestamp comparison for sync necessity
 - sync(options) - complete sync orchestrator
-- syncChannel(slug) - single channel sync
 
 architecture notes:
 

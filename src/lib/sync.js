@@ -1,33 +1,17 @@
 import {pg, debugLimit} from '$lib/db'
 import {sdk} from '@radio4000/sdk'
 import {pullV1Tracks, pullV1Channels} from '$lib/v1'
-import { err, ok } from '$lib/types'
 
 /**
- * SYNC ARCHITECTURE:
- *
-We have a remote PostgreSQL database on Supabase. This is the source of truth.
-We have a local PostgreSQL database in the browser via PGLite. We pull data from the remote into this.
-Write are done remote. Most reads are local, with on-demand pulling (syncing) in many cases.
-
-```js
-// Main API
-await sync() // Complete sync
-await syncChannel('my-channel') // Single channel sync
-
-// Status & preview
-await needsUpdate('slug') // Check one channel
-
-// Low-level
-await pullChannels() // Always pull N channels
-await pullTracks('slug') // Always pull tracks
-await pullChannel('slug') // Always pull one channel
+	We have a remote PostgreSQL database on Supabase. This is the source of truth.
+	We have a local PostgreSQL database in the browser via PGLite. We pull data from the remote into this.
+	Write are done remote. Most reads are local, with on-demand pulling (syncing) in many cases.
 */
 
 /**
  * Always pull channel metadata from Radio4000 into local database. Does not touch tracks.
  * @param {Object} options
- * @param {number} [options.limit=15] - Number of channels to pull
+ * @param {number} [options.limit=2000] - Number of channels to pull
  */
 export async function pullChannels({limit = debugLimit} = {}) {
 	// Use the channels_with_tracks view to get only channels that have tracks
@@ -37,8 +21,6 @@ export async function pullChannels({limit = debugLimit} = {}) {
 		.order('updated_at', {ascending: false})
 		.limit(limit)
 	if (error) throw error
-
-	console.log('loaded channels', channels)
 
 	await pg.transaction(async (tx) => {
 		for (const channel of channels) {
@@ -51,16 +33,16 @@ export async function pullChannels({limit = debugLimit} = {}) {
           ${channel.latitude}, ${channel.longitude},
           ${channel.url}
         )
-        ON CONFLICT (slug) DO UPDATE SET
+        ON CONFLICT (slug)  DO UPDATE SET
           id = EXCLUDED.id,
           name = EXCLUDED.name,
           description = EXCLUDED.description,
           image = EXCLUDED.image,
           created_at = EXCLUDED.created_at,
           updated_at = EXCLUDED.updated_at,
-          url = EXCLUDED.url,
           latitude = EXCLUDED.latitude,
           longitude = EXCLUDED.longitude,
+          url = EXCLUDED.url,
           firebase_id = NULL;
       `
 		}
@@ -139,7 +121,7 @@ export async function pullTracks(slug) {
  */
 export async function pullChannel(slug) {
 	const {data: channel, error} = await sdk.channels.readChannel(slug)
-	if (error) return err(error)
+	if (error) throw error
 	await pg.sql`
 			INSERT INTO channels (id, name, slug, description, image, created_at, updated_at)
 			VALUES (
@@ -224,12 +206,4 @@ export async function sync() {
 		pullV1Channels().catch((err) => console.error('pull v1 channels failed:', err))
 	])
 	console.timeEnd('sync')
-}
-
-/**
- * Sync for a single channel - only pulls tracks if channel needs updating
- * @param {string} slug - Channel slug
- */
-export async function syncChannel(slug) {
-	if ((await needsUpdate(slug))) await pullTracks(slug)
 }
