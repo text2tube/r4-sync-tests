@@ -39,7 +39,7 @@ export async function playTrack(id, endReason = null, startReason = null) {
 			currentTrack: track,
 			newTrack: id,
 			endReason,
-			startReason,
+			startReason
 		})
 	}
 }
@@ -48,7 +48,9 @@ export async function playTrack(id, endReason = null, startReason = null) {
 export async function playChannel({id, slug}) {
 	await leaveBroadcast() // actually only needed if we're listening
 	if (await needsUpdate(slug)) await pullTracks(slug)
-	const tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
+	const tracks = (
+		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
+	).rows
 	await setPlaylist(tracks.map((t) => t.id))
 	await playTrack(tracks[0].id, null, 'play_channel')
 }
@@ -58,7 +60,7 @@ export async function setPlaylist(ids) {
 	await pg.sql`UPDATE app_state SET playlist_tracks = ${ids}`
 }
 
-/** @param {any} broadcast */
+/** @param {import('$lib/types').Broadcast} broadcast */
 export async function syncToBroadcast(broadcast) {
 	const {track_id, track_played_at} = broadcast
 	const playbackPosition = (Date.now() - new Date(track_played_at).getTime()) / 1000
@@ -71,7 +73,11 @@ export async function syncToBroadcast(broadcast) {
 	try {
 		await playTrack(track_id, null, 'broadcast_sync')
 	} catch {
-		const {data} = await sdk.supabase.from('channel_track').select('channels(slug)').eq('track_id', track_id).single()
+		const {data} = await sdk.supabase
+			.from('channel_track')
+			.select('channels(slug)')
+			.eq('track_id', track_id)
+			.single()
 		// @ts-expect-error supabase query result structure
 		const slug = data?.channels?.slug
 		if (slug) {
@@ -127,7 +133,8 @@ export async function getTrackWithChannel(trackId) {
  * @param {string} searchTerm
  */
 export async function searchChannelTracks(channelId, searchTerm = '') {
-	const query = 'SELECT id, title, description, created_at, updated_at FROM tracks WHERE channel_id = $1'
+	const query =
+		'SELECT id, title, description, created_at, updated_at FROM tracks WHERE channel_id = $1'
 	const {rows} = await pg.query(query, [channelId])
 
 	let filteredTracks = [...rows]
@@ -165,7 +172,6 @@ export async function addToPlaylist(trackIds) {
 	await pg.sql`UPDATE app_state SET playlist_tracks = ${newTracks}`
 }
 
-// Command palette functions
 export async function toggleTheme() {
 	const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
 	const newTheme = currentTheme === 'light' ? 'dark' : 'light'
@@ -184,7 +190,6 @@ export async function toggleQueuePanel() {
 	await pg.sql`UPDATE app_state SET queue_panel_visible = NOT queue_panel_visible WHERE id = 1`
 }
 
-// Shortcut actions
 export function closePlayerOverlay() {
 	const playerCheckbox = document.querySelector('input[name="playerLayout"]')
 	if (playerCheckbox instanceof HTMLInputElement && playerCheckbox.checked) {
