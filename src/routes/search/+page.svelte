@@ -8,7 +8,7 @@
 	import {
 		subscribeToAppState,
 		playTrack,
-		loadTracks,
+		setPlaylist,
 		addToPlaylist,
 		toggleTheme,
 		toggleQueuePanel
@@ -306,7 +306,7 @@
 	</datalist>
 
 	<menu>
-		<button type="button" onclick={() => loadTracks(tracks.map((t) => t.id))}>Play all</button>
+		<button type="button" onclick={() => setPlaylist(tracks.map((t) => t.id))}>Play all</button>
 		<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}
 			>Add to queue</button
 		>
