@@ -4,4 +4,9 @@
 
 export const ssr = false
 
-export async function load() {}
+/** @type {import('./$types').PageLoad} */
+export async function load({url}) {
+	return {
+		display: url.searchParams.get('display')
+	}
+}
