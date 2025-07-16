@@ -1,4 +1,6 @@
-* {
+*,
+*::before,
+*::after {
 	box-sizing: border-box;
 }
 
@@ -23,7 +25,7 @@ body {
 
 html {
 	line-height: 1.5;
-	font-size: var(--font-size-regular);
+	font-size: 16px;
 	/* font-size: calc(clamp(1em, 0.5em + 1vw, 2em)); */
 	font-weight: 400;
 	text-rendering: optimizeLegibility;
@@ -37,6 +39,7 @@ html {
 }
 
 body {
+	font-size: var(--font-size-regular);
 	margin: 0;
 	cursor: default;
 	overflow: hidden;
@@ -68,6 +71,13 @@ h2 {
 h3 {
 	font-size: var(--font-size-title3);
 	margin: 0;
+}
+
+.list {
+	menu,
+	p {
+		margin: 0;
+	}
 }
 
 img {
@@ -118,6 +128,7 @@ figure {
 	padding: 0;
 	list-style: none;
 }
+.list > article,
 .list article:first-of-type {
 	border-bottom: 1px solid var(--gray-4);
 }

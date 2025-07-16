@@ -111,11 +111,10 @@ export async function migrate() {
 		WHERE table_schema = 'public'
 		AND table_type = 'BASE TABLE'
 	`)
-	console.log('Migrations already applied', appliedMigrationNames)
-	console.log(
-		'Local tables',
-		tablesResult.rows.map((r) => r.table_name)
-	)
+	console.log('Migrations already applied', {
+		migrations: appliedMigrationNames,
+		tables: tablesResult.rows.map((r) => r.table_name)
+	})
 
 	// Apply new migrations
 	for (const migration of migrations) {
