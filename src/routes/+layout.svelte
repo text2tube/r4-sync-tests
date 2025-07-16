@@ -153,7 +153,7 @@
 
 	.layout header {
 		padding: 0.5rem;
-		/* border-bottom: 1px solid var(--gray-5); */
+		border-bottom: 1px solid var(--gray-3);
 
 		.right {
 			margin-left: auto;

@@ -47,3 +47,9 @@ export function relativeDateSolar(dateString: string) {
 	const daysString = `${remainingDays} earth rotation${remainingDays > 1 ? 's' : ''}`
 	return `${yearsString}${andString}${daysString}`
 }
+
+export function trimWithEllipsis(text?: string, maxLength: number = 267) {
+	return !text || text.length <= maxLength
+		? text || ''
+		: text.substring(0, maxLength) + '…'
+}

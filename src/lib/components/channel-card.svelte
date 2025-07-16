@@ -1,6 +1,5 @@
 <script>
-	import {pg} from '$lib/db'
-	import {needsUpdate, pullTracks} from '$lib/sync'
+	import {trimWithEllipsis} from '$lib/utils'
 	import ButtonPlay from './button-play.svelte'
 	import ChannelAvatar from './channel-avatar.svelte'
 
@@ -30,7 +29,7 @@
 			{/if}
 		</h3>
 		<p>
-			{channel.description}
+			{trimWithEllipsis(channel.description)}
 			{#if channel.track_count}
 				<small>({channel.track_count})</small>
 			{:else}{/if}

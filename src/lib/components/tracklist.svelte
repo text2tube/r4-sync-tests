@@ -3,10 +3,12 @@
 	import {subscribeToAppState, playTrack} from '$lib/api'
 	import {formatDate} from '$lib/dates'
 
-	/** @type {{tracks?: import('$lib/types').Track[], ids?: string[], footer?: (props: {track: import('$lib/types').Track}) => any}} */
+	/** @typedef {import('$lib/types').Track} Track */
+
+	/** @type {{tracks?: Track[], ids?: string[], footer?: (props: {track: Track}) => any}} */
 	const {tracks: tracksProp, ids, footer} = $props()
 
-	/** @type {import('$lib/types').Track[]}*/
+	/** @type {Track[]}*/
 	let tracks = $state([])
 
 	/** @type {import('$lib/types').AppState} */
@@ -67,7 +69,6 @@
 				<small>{item.description}</small>
 			</div>
 			{@render footer?.({track: item})}
-			<!--<p>{formatDate(item.created_at)}</p>-->
 		</li>
 	{/each}
 </ul>
@@ -77,5 +78,8 @@
 		display: flex;
 		justify-content: space-between;
 		padding-right: 0.5rem;
+	}
+	time a {
+		text-decoration: none;
 	}
 </style>

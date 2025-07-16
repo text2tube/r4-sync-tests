@@ -73,13 +73,6 @@ h3 {
 	margin: 0;
 }
 
-.list {
-	menu,
-	p {
-		margin: 0;
-	}
-}
-
 img {
 	max-width: 100%;
 	display: block;
@@ -172,8 +165,9 @@ input[type='url'] {
 	padding: 0 0.5rem;
 	background: var(--gray-1);
 	color: var(--gray-12);
-	border: 1px solid var(--gray-6);
+	border: .1rem solid var(--gray-6);
 	border-radius: var(--border-radius);
+	box-shadow: inset 2px 2px var(--gray-3);
 }
 
 article:has(media-controller[mediapaused]) .play {
@@ -191,27 +185,31 @@ menu {
 	padding: 0;
 }
 
+.list {
+	menu,
+	p {
+		margin: 0;
+	}
+}
+
 .list.tracks {
 	li {
 		display: grid;
 		grid-template-columns: 2.5rem auto;
 		padding: 0.5rem 0 0.3rem 0.5rem;
 		line-height: 1.2;
+		border-top: 1px solid var(--gray-3);
 	}
 	li > span:first-child {
 		grid-row: span 2;
 		color: var(--gray-6);
-		font-size: var(--font-size-regular);
+		font-size: var(--font-size-micro);
 		text-indent: 0.2em;
-	}
-
-	.title {
-		font-size: var(--font-size-regular);
 	}
 
 	li.current .title {
 		font-weight: 600;
-		/* color: var(--color-accent); */
+		color: var(--color-accent);
 	}
 }
 
