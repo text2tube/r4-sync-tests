@@ -116,15 +116,6 @@ export async function subscribeToAppState(callback) {
 }
 
 /** @param {string} trackId */
-export async function getTrackWithChannel(trackId) {
-	const {rows: trackRows} = await pg.sql`SELECT * FROM tracks WHERE id = ${trackId}`
-	const track = trackRows[0]
-	if (!track) return null
-	const {rows: channelRows} = await pg.sql`SELECT * FROM channels WHERE id = ${track.channel_id}`
-	const channel = channelRows[0]
-	return {track, channel}
-}
-
 export async function queryTrackWithChannel(trackId) {
 	const track = (await pg.sql`select * from tracks where id = ${trackId}`).rows[0]
 	const channel = (await pg.sql`select * from channels where id = ${track.channel_id}`).rows[0]
