@@ -40,6 +40,7 @@ export async function playTrack(id, endReason = null, startReason = null) {
 	await setPlaylist(ids)
 
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
+	await pg.sql`UPDATE app_state SET is_playing = true`
 
 	if (endReason || startReason) {
 		await addPlayHistory({
@@ -194,7 +195,6 @@ export function openSearch() {
 export function togglePlayPause() {
 	const ytPlayer = document.querySelector('youtube-video')
 	if (ytPlayer) {
-		// YouTube video element has paused property
 		if (ytPlayer.paused) {
 			ytPlayer.play()
 		} else {

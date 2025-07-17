@@ -13,6 +13,7 @@
 	let {appState} = $props()
 
 	let autoplay = $state(false)
+	let isPlaying = $state(false)
 
 	let title = $state('')
 	let image = $state('')
@@ -35,9 +36,10 @@
 
 	subscribeToAppState(async (state) => {
 		const tid = state.playlist_track
-		const trackChanged = appState.playlist_track && appState.playlist_track !== state.playlist_track
+		const trackChanged = tid && tid !== track?.id
 		if (tid) await setChannelFromTrack(tid)
 		if (trackChanged) autoplay = true
+		if (state.is_playing) isPlaying = true
 	})
 
 	/** @param {string} tid} */
@@ -101,8 +103,12 @@
 		}
 		yt.play()
 		pg.sql`UPDATE app_state SET is_playing = true`
-		console.log('play() -> autoplay=true')
 		autoplay = true
+	}
+	function pause() {
+		yt.pause()
+		pg.sql`UPDATE app_state SET is_playing = false`
+		autoplay = false
 	}
 
 	function handleError(event) {
@@ -139,6 +145,9 @@
 	function toggleVideo() {
 		pg.sql`UPDATE app_state SET show_video_player = ${!appState.show_video_player}`
 	}
+	function togglePlay() {
+		pg.sql`UPDATE app_state SET is_playing = ${!appState.is_playing}`
+	}
 </script>
 
 <article class={['player', {showVideo: appState.show_video_player}]}>
@@ -172,12 +181,15 @@
 			<button onclick={() => previous('user_prev')} title="Go previous track">
 				<Icon icon={'previous-fill'} />
 			</button>
-			<button class="play" onclick={play}>
-				<Icon icon={'play-fill'} />
-			</button>
-			<button class="pause" onclick={() => yt.pause()}>
-				<Icon icon={'pause'} />
-			</button>
+			{#if !isPlaying}
+				<button class="play" onclick={play}>
+					<Icon icon={'play-fill'} />
+				</button>
+			{:else}
+				<button class="pause" onclick={pause}>
+					<Icon icon={'pause'} />
+				</button>
+			{/if}
 			<button onclick={() => next('user_next')} title="Go next track">
 				<Icon icon={'next-fill'} />
 			</button>
