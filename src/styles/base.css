@@ -170,17 +170,6 @@ input[type='url'] {
 	box-shadow: inset 2px 2px var(--gray-3);
 }
 
-article:has(media-controller[mediapaused]) .play {
-	display: inline-flex;
-}
-article:has(media-controller[mediapaused]) .pause {
-	display: none;
-}
-
-article:not(:has(media-controller[mediapaused])) .play {
-	display: none;
-}
-
 menu {
 	padding: 0;
 }
