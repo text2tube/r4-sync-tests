@@ -118,7 +118,7 @@
 		markerGroup.clearLayers()
 
 		const fill = getCssVar('--gray-12')
-		let activeMarker = null;
+		let activeMarker = null
 		for (const markerData of validMarkers) {
 			const {latitude, longitude, title, href, isActive} = markerData
 			const popup = href ? `<a href="${base}/${href}">${title}</a>` : title

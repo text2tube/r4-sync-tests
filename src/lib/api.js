@@ -43,8 +43,9 @@ export async function playTrack(id, endReason, startReason) {
 
 	console.log('playTrack', {id, endReason, startReason})
 
-	const tracks = (await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`)
-		.rows
+	const tracks = (
+		await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`
+	).rows
 	const ids = tracks.map((t) => t.id)
 	await setPlaylist(ids)
 
@@ -64,7 +65,9 @@ export async function playChannel({id, slug}, index = 0) {
 	console.log('playChannel', id, slug)
 	await leaveBroadcast() // actually only needed if we're listening
 	if (await needsUpdate(slug)) await pullTracks(slug)
-	const tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
+	const tracks = (
+		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
+	).rows
 	const ids = tracks.map((t) => t.id)
 	await setPlaylist(ids)
 	await playTrack(tracks[index].id, null, 'play_channel')
@@ -88,7 +91,11 @@ export async function syncPlayBroadcast(broadcast) {
 	try {
 		await playTrack(track_id, null, 'broadcast_sync')
 	} catch {
-		const {data} = await sdk.supabase.from('channel_track').select('channels(slug)').eq('track_id', track_id).single()
+		const {data} = await sdk.supabase
+			.from('channel_track')
+			.select('channels(slug)')
+			.eq('track_id', track_id)
+			.single()
 		// @ts-expect-error supabase
 		const slug = data?.channels?.slug
 		if (slug) {

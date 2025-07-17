@@ -11,7 +11,9 @@ export async function pullV1Channels() {
 	// Since we don't want to overwrite any existing local channels with v1 channels,
 	// we filter them out here.
 	const {rows} = await pg.sql`select slug from channels`
-	const channels = items.filter((item) => !rows.some((r) => r.slug === item.slug) && item.track_count > 3)
+	const channels = items.filter(
+		(item) => !rows.some((r) => r.slug === item.slug) && item.track_count > 3
+	)
 
 	try {
 		await pg.transaction(async (tx) => {
@@ -52,7 +54,7 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 		description: track.body || '',
 		discogs_url: track.discogsUrl || '',
 		created_at: new Date(track.created).toISOString(),
-		updated_at: new Date(track.updated || track.created).toISOString(),
+		updated_at: new Date(track.updated || track.created).toISOString()
 	}))
 
 	console.log('pullV1Tracks', tracks)
@@ -65,7 +67,7 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 				(item) => tx.sql`
 					insert into tracks (firebase_id, channel_id, created_at, updated_at, title, description, url, discogs_url)
 					values (${item.firebase_id}, ${channelId}, ${item.created_at}, ${item.updated_at}, ${item.title}, ${item.description}, ${item.url}, ${item.discogs_url}) on conflict (firebase_id) do nothing
-				`,
+				`
 			)
 			await Promise.all(inserts)
 
