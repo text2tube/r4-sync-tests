@@ -1,5 +1,5 @@
 <script>
-	import {IconClose} from 'obra-icons-svelte'
+	import Icon from '$lib/components/icon.svelte'
 	let {showModal = $bindable(), header, children} = $props()
 
 	let dialog = $state() // HTMLDialogElement
@@ -22,7 +22,7 @@
 			{@render header?.()}
 			<!-- svelte-ignore a11y_autofocus -->
 			<button autofocus onclick={() => dialog.close()} title="Close modal">
-				<IconClose size={20} />
+				<Icon icon="close" size={20} />
 			</button>
 		</header>
 		{@render children?.()}

@@ -1,20 +1,9 @@
 <script>
 	import {pg} from '$lib/db'
-	import ChannelAvatar from './channel-avatar.svelte'
-	import YoutubePlayer from '$lib/components/youtube-player.svelte'
-	import {
-		IconShuffle,
-		IconPreviousFill,
-		IconNextFill,
-		IconPause,
-		IconPlayFill,
-		IconEject,
-		IconVideo
-		// IconVolume1Fill,
-		// IconVolume2Fill,
-		// IconVolumeOffFill
-	} from 'obra-icons-svelte'
 	import {playTrack, subscribeToAppState, queryTrackWithChannel} from '$lib/api'
+	import Icon from '$lib/components/icon.svelte'
+	import YoutubePlayer from '$lib/components/youtube-player.svelte'
+	import ChannelAvatar from './channel-avatar.svelte'
 
 	/** @typedef {import('$lib/types').Channel} Channel */
 	/** @typedef {import('$lib/types').Track} Track */
@@ -171,29 +160,29 @@
 	<main class="center">
 		<menu>
 			<button onclick={eject} title="Clear queue and stop playback">
-				<IconEject />
+				<Icon icon={'eject'} />
 			</button>
 			<button
 				onclick={toggleShuffle}
 				aria-pressed={appState.shuffle}
 				title={appState.shuffle ? 'Disable shuffle' : 'Enable shuffle'}
 			>
-				<IconShuffle />
+				<Icon icon={'shuffle'} />
 			</button>
 			<button onclick={() => previous('user_prev')} title="Go previous track">
-				<IconPreviousFill />
+				<Icon icon={'previous-fill'} />
 			</button>
 			<button class="play" onclick={play}>
-				<IconPlayFill />
+				<Icon icon={'play-fill'} />
 			</button>
 			<button class="pause" onclick={() => yt.pause()}>
-				<IconPause />
+				<Icon icon={'pause'} />
 			</button>
 			<button onclick={() => next('user_next')} title="Go next track">
-				<IconNextFill />
+				<Icon icon={'next-fill'} />
 			</button>
 			<button onclick={toggleVideo} title="Show/hide video">
-				<IconVideo />
+				<Icon icon={'video'} />
 			</button>
 		</menu>
 
@@ -222,11 +211,11 @@
 
 	<!-- <label class="volume">
 		{#if volume < 1}
-			<IconVolumeOffFill />
+			<Icon icon={"volume-off-fill"} />
 		{:else if volume < 50}
-			<IconVolume1Fill />
+			<Icon icon={"volume1-fill"} />
 		{:else}
-			<IconVolume2Fill />
+			<Icon icon={"volume2-fill"} />
 		{/if}
 		<input type="range" min="0" max="100" name="volume" onchange={setVolume} />
 	</label>

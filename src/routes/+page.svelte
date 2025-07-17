@@ -2,7 +2,7 @@
 	import {page} from '$app/state'
 	import {pg} from '$lib/db'
 	import {sync} from '$lib/sync'
-	import {IconCloudDownloadAlt} from 'obra-icons-svelte'
+	import Icon from '$lib/components/icon.svelte'
 	import Channels from '$lib/components/channels.svelte'
 
 	const {data} = $props()
@@ -32,8 +32,10 @@
 
 {#if channelCount === 0}
 	<menu>
-		<button onclick={pullRadios} disabled={syncing}
-			><IconCloudDownloadAlt />{syncing ? 'Pulling radios...' : 'Pull radios from radio4000.com'}
+		<button onclick={pullRadios} disabled={syncing}>
+			<Icon icon="cloud-download-alt">
+				{syncing ? 'Pulling radios...' : 'Pull radios from radio4000.com'}
+			</Icon>
 		</button>
 	</menu>
 {/if}

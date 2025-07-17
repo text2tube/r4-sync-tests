@@ -1,7 +1,7 @@
 <script>
 	import {goto} from '$app/navigation'
 	import {page} from '$app/state'
-	import {IconSearch} from 'obra-icons-svelte'
+	import Icon from "$lib/components/icon"
 
 	let {search = '', order = 'created', dir = 'desc', onSearchChange, onOrderChange} = $props()
 
@@ -39,7 +39,7 @@
 </script>
 
 <form onsubmit={handleSubmit}>
-	<IconSearch />
+	<Icon icon="search" />
 	<input
 		type="search"
 		placeholder="Search tracks..."
@@ -49,7 +49,7 @@
 	<!--<button type="button" onclick={clearSearch}>Search</button>-->
 
 	<!--<label>
-		<IconSort />
+		<Icon icon="sort" />
 		<select bind:value={sortField}>
 			<option value="created">Created</option>
 			<option value="updated">Updated</option>
@@ -58,9 +58,9 @@
 	</label>
 	<button type="button" onclick={toggleSortDirection}>
 		{#if sortDirection === 'asc'}
-			<IconFunnelAscending />
+			<Icon icon="funnel-ascending" />
 		{:else}
-			<IconFunnelDescending />
+			<Icon icon="funnel-descending" />
 		{/if}
 	</button>-->
 </form>

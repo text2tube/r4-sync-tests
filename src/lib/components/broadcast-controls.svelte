@@ -1,7 +1,7 @@
 <script>
-	import {IconSignal} from 'obra-icons-svelte'
 	import {startBroadcasting, stopBroadcasting} from '$lib/broadcast'
 	import {goto} from '$app/navigation'
+	import Icon from '$lib/components/icon.svelte'
 
 	const {appState} = $props()
 
@@ -23,18 +23,12 @@
 	{#if appState.broadcasting_channel_id}
 		<button onclick={() => stopBroadcasting()}>🔴 Stop broadcasting</button>
 	{:else}
-		<button onclick={start}
-			><IconSignal size={20} strokeWidth={1.7} /> <span>Broadcast</span></button
-		>
+		<button onclick={start}>
+			<Icon icon="signal" size={20} strokeWidth={1.7}>Broadcast</Icon>
+		</button>
 	{/if}
 {:else}
 	<a class="btn" href="/login">
-		<IconSignal size={20} strokeWidth={1.7} /> <span>Broadcast</span>
+		<Icon icon="signal" size={20} strokeWidth={1.7}>Broadcast</Icon>
 	</a>
 {/if}
-
-<style>
-	span {
-		padding-left: 0.3em;
-	}
-</style>

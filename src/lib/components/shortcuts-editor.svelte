@@ -5,7 +5,7 @@
 		DEFAULT_KEY_BINDINGS,
 		initializeKeyboardShortcuts
 	} from '$lib/shortcuts'
-	import {IconDelete} from 'obra-icons-svelte'
+	import Icon from '$lib/components/icon.svelte'
 
 	const uid = $props.id()
 
@@ -133,7 +133,7 @@
 						{/each}
 					</select>
 					<button type="button" onclick={() => removeKeyBinding(key)}>
-						<IconDelete size={20} />
+						<Icon icon="delete" size={20} />
 					</button>
 				</div>
 			{/each}

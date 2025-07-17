@@ -2,7 +2,6 @@
 	import {onMount} from 'svelte'
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
-	import {IconSearch} from 'obra-icons-svelte'
 	import fuzzysort from 'fuzzysort'
 	import {pg} from '$lib/db'
 	import {
@@ -13,6 +12,7 @@
 		toggleTheme,
 		toggleQueuePanel
 	} from '$lib/api'
+	import Icon from '$lib/components/icon.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 
 	/** @type {import('$lib/types.ts').AppState} */
@@ -288,7 +288,7 @@
 </svelte:head>
 
 <form onsubmit={handleSubmit}>
-	<IconSearch />
+	<Icon icon="search" />
 	<input
 		type="search"
 		list="command-suggestions"

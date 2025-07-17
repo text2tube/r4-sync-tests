@@ -1,6 +1,6 @@
 <script>
 	import {playChannel} from '$lib/api'
-	import {IconPlayFill} from 'obra-icons-svelte'
+	import Icon from '$lib/components/icon.svelte'
 
 	/** @type {{channel: import('$lib/types').Channel}} */
 	let {channel} = $props()
@@ -15,5 +15,5 @@
 </script>
 
 <button data-loading={loading} disabled={loading} onclick={play} title={`Play ${channel.name}`}>
-	<IconPlayFill size={32} />
+	<Icon icon="play-fill" size={32} />
 </button>

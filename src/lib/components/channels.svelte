@@ -1,7 +1,7 @@
 <script>
 	import {pg} from '$lib/db'
 	import {subscribeToAppState} from '$lib/api'
-	import {IconGrid, IconUnorderedList, IconMap} from 'obra-icons-svelte'
+	import Icon from "./icon.svelte"
 	import ChannelCard from './channel-card.svelte'
 	import Map from './map.svelte'
 	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
@@ -51,15 +51,15 @@
 </script>
 
 <menu>
-	<button title="View as list" class:active={display === 'list'} onclick={() => setDisplay('list')}
-		><IconUnorderedList /></button
-	>
-	<button title="View as grid" class:active={display === 'grid'} onclick={() => setDisplay('grid')}
-		><IconGrid /></button
-	>
-	<button title="View as map" class:active={display === 'map'} onclick={() => setDisplay('map')}
-		><IconMap /></button
-	>
+	<button title="View as list" class:active={display === 'list'} onclick={() => setDisplay('list')}>
+		<Icon icon={'unordered-list'} />
+	</button>
+	<button title="View as grid" class:active={display === 'grid'} onclick={() => setDisplay('grid')}>
+		<Icon icon={'grid'} />
+	</button>
+	<button title="View as map" class:active={display === 'map'} onclick={() => setDisplay('map')}>
+		<Icon icon={'map'} />
+	</button>
 </menu>
 
 {#if display === 'map'}

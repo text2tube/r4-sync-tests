@@ -2,10 +2,10 @@
 	import {onMount} from 'svelte'
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
-	import {IconSearch, IconMap} from 'obra-icons-svelte'
 	import {pg} from '$lib/db'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
 	import {relativeDate, relativeDateSolar} from '$lib/utils'
+	import Icon from '$lib/components/icon.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
@@ -90,7 +90,7 @@
 
 <header>
 	<form onsubmit={handleSubmit}>
-		<IconSearch />
+		<Icon icon="search" />
 		<input
 			type="search"
 			placeholder="Search tracks in {channel?.name || 'channel'}..."
@@ -111,7 +111,7 @@
 					<a
 						href={`/?display=map&slug=${channel.slug}&longitude=${channel.longitude}&latitude=${channel.latitude}&zoom=15`}
 					>
-						<IconMap />
+						<Icon icon="map" />
 					</a>
 				{/if}
 			</h1>

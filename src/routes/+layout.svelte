@@ -12,13 +12,7 @@
 	import LiveChat from '$lib/components/live-chat.svelte'
 	import DraggablePanel from '$lib/components/draggable-panel.svelte'
 	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte'
-	import {
-		IconSearch,
-		IconChevronUp,
-		IconChevronDown,
-		IconSettings,
-		IconSidebarFillRight
-	} from 'obra-icons-svelte'
+	import Icon from '$lib/components/icon.svelte'
 	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
 	import '@radio4000/components'
 
@@ -63,7 +57,7 @@
 				<TestCounter />
 			{/if}
 		</a>
-		<a href="/search" class="btn" title="cmd/ctrl+k"><IconSearch size={20} /></a>
+		<a href="/search" class="btn" title="cmd/ctrl+k"><Icon icon="search" size={20} /></a>
 		<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
 		<div class="row right">
@@ -74,13 +68,13 @@
 			{/if}
 			{#if appState}
 				<button onclick={toggleQueuePanel} class="btn">
-					<IconSidebarFillRight size={20} />
+					<Icon icon="sidebar-fill-right" size={20} />
 				</button>
 				<!-- <button onclick={toggleChatPanel}>Chat</button> -->
 				<ThemeToggle />
 			{/if}
 			<a href="/settings" class="btn">
-				<IconSettings size={20} />
+				<Icon icon="settings" size={20} />
 			</a>
 		</div>
 	</header>
@@ -109,8 +103,8 @@
 
 	<footer>
 		<label class="playerToggle">
-			<IconChevronUp size={24} strokeWidth={2} />
-			<IconChevronDown size={24} strokeWidth={2} />
+			<Icon icon="chevron-up" size={24} strokeWidth={2} />
+			<Icon icon="chevron-down" size={24} strokeWidth={2} />
 			<input type="checkbox" name="playerLayout" checked={playerLayoutCheckbox} />
 		</label>
 		{#if !preloading}

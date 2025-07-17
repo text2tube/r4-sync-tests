@@ -1,5 +1,5 @@
 <script>
-	import {IconWifi, IconWifiOff} from 'obra-icons-svelte'
+	import Icon from '$lib/components/icon.svelte'
 
 	let online = $state(navigator.onLine)
 
@@ -17,10 +17,10 @@
 
 <div data-online={online}>
 	{#if online}
-		<IconWifi />
+		<Icon icon="wifi" />
 		<p>Online</p>
 	{:else}
-		<IconWifiOff />
+		<Icon icon="wifi-off" />
 		<p>Offline</p>
 	{/if}
 </div>

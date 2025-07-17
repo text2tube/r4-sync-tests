@@ -1,10 +1,10 @@
 <script>
 	import {pg} from '$lib/db'
 	import {toggleTheme as toggleThemeApi} from '$lib/api'
-	import {IconSun, IconMoon} from 'obra-icons-svelte'
+	import Icon from '$lib/components/icon.svelte'
 
 	let theme = $state()
-	const Icon = $derived(theme === 'light' ? IconMoon : IconSun)
+	const icon = $derived(theme === 'light' ? 'moon' : 'sun')
 
 	// on load, set theme based on uer's preference
 	$effect(() => {
@@ -35,5 +35,5 @@
 </script>
 
 <button onclick={toggleTheme}>
-	<Icon size={20} />
+	<Icon {icon} size={20} />
 </button>
