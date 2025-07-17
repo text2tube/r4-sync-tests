@@ -1,6 +1,7 @@
 import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
 import type {PGliteWithLive} from '@electric-sql/pglite/live'
+import {pg_trgm} from '@electric-sql/pglite/contrib/pg_trgm'
 import {logger} from '$lib/logger'
 
 const log = logger.ns('db').seal()
@@ -12,6 +13,7 @@ import migration04sql from '$lib/migrations/04-add_shuffle_queue.sql?raw'
 import migration05sql from '$lib/migrations/05-add_shortcuts.sql?raw'
 import migration06sql from '$lib/migrations/06-add_play_history.sql?raw'
 import migration07sql from '$lib/migrations/07-add_channel-coordinates-url.sql?raw'
+import migration08sql from '$lib/migrations/08-enable_pg_trgm.sql?raw'
 
 // This will limit the amount of channels pulled.
 export const debugLimit = 2000
@@ -23,7 +25,8 @@ const migrations = [
 	{name: '04-add_shuffle_queue', sql: migration04sql},
 	{name: '05-add_shortcuts', sql: migration05sql},
 	{name: '06-add_play_history', sql: migration06sql},
-	{name: '07-add_channel-coordinates-url', sql: migration07sql}
+	{name: '07-add_channel-coordinates-url', sql: migration07sql},
+	{name: '08-enable_pg_trgm', sql: migration08sql}
 ]
 
 // Switch between in-memory and OPFS persisted indexeddb for PostgreSQL
@@ -40,7 +43,8 @@ async function createPg(): Promise<PGliteWithLive> {
 			dataDir: dataDir,
 			relaxedDurability: true,
 			extensions: {
-				live
+				live,
+				pg_trgm
 			}
 		})
 	}

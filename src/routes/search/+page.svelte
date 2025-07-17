@@ -2,7 +2,6 @@
 	import {onMount} from 'svelte'
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
-	import fuzzysort from 'fuzzysort'
 	import {pg} from '$lib/db'
 	import {
 		subscribeToAppState,
@@ -14,6 +13,7 @@
 	} from '$lib/api'
 	import Icon from '$lib/components/icon.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
+	import TrackCard from '$lib/components/track-card.svelte'
 
 	/** @type {import('$lib/types.ts').AppState} */
 	let appState = $state({})
@@ -28,29 +28,20 @@
 	let tracks = $state([])
 
 	/** @type {import('$lib/types.ts').Channel[]} */
-	let channelSummary = $state([])
-
-	/** @type {import('$lib/types.ts').Channel[]} */
 	let allChannels = $state([])
 
-	// Fuzzy filtered channels for @mention autocomplete
+	// Filtered channels for @mention autocomplete
 	let filteredChannels = $derived.by(() => {
 		if (!searchQuery.includes('@')) return allChannels
-
-		// Extract the @mention query part
-		const atIndex = searchQuery.lastIndexOf('@')
-		const mentionQuery = searchQuery.slice(atIndex + 1)
-
+		const mentionQuery = searchQuery.slice(searchQuery.lastIndexOf('@') + 1)
 		if (mentionQuery.length < 1) return allChannels
-
-		// Use fuzzysort to search both slug and name
-		const results = fuzzysort.go(mentionQuery, allChannels, {
-			keys: ['slug', 'name'],
-			limit: 10,
-			threshold: 0.1
-		})
-
-		return results.map((result) => result.obj)
+		return allChannels
+			.filter(
+				(c) =>
+					c.slug.includes(mentionQuery.toLowerCase()) ||
+					c.name.toLowerCase().includes(mentionQuery.toLowerCase())
+			)
+			.slice(0, 10)
 	})
 
 	let searchQuery = $state('')
@@ -62,28 +53,11 @@
 	const commands = $derived.by(() => {
 		/** @type {Command[]} */
 		return [
-			//{id: 'add-track', title: 'Add track', type: 'link', target: '/add'},
 			{id: 'settings', title: 'Go to Settings', type: 'link', target: '/settings'},
-			//{id: 'start-broadcasting', title: 'Start broadcasting', type: 'command', action: startBroadcasting},
-			//{id: 'stop-broadcasting', title: 'Stop broadcasting', type: 'command', action: stopBroadcasting},
 			{id: 'toggle-theme', title: 'Toggle theme', type: 'command', action: toggleTheme},
 			{id: 'toggle-queue', title: 'Toggle queue panel', type: 'command', action: toggleQueuePanel}
-			//doesnt work
-			//{id: 'clear-player', title: 'Clear player', type: 'command', action: async () => {
-			//await pg.sql`UPDATE app_state SET playlist_track = null, playlist_tracks = null where id = 1`
-			//}}
 		]
 	})
-
-	/** Parse search tokens from query @param {string} query */
-	function parseSearchTokens(query) {
-		const mentions = query.match(/@\w+/g) || []
-		const cleanQuery = query.replace(/@\w+/g, '').trim()
-		return {
-			text: cleanQuery,
-			mentions: mentions.map((m) => m.slice(1)) // remove @
-		}
-	}
 
 	onMount(() => {
 		const urlSearch = page.url.searchParams.get('search')
@@ -91,11 +65,10 @@
 			searchQuery = urlSearch
 			performSearch()
 		}
-		// Load all channels for autocomplete
-		loadAllChannels()
+		queryChannels()
 	})
 
-	async function loadAllChannels() {
+	async function queryChannels() {
 		try {
 			const result = await pg.query('SELECT id, name, slug FROM channels ORDER BY name')
 			allChannels = result.rows
@@ -109,103 +82,55 @@
 		debounceTimer = setTimeout(performSearch, 200)
 	}
 
-	async function performSearch() {
-		if (!searchQuery.trim()) {
-			channels = []
-			tracks = []
-			channelSummary = []
-			return
-		}
+	function clear() {
+		channels = []
+		tracks = []
+	}
 
-		// Skip database search for short queries (but still allow command execution)
-		if (searchQuery.trim().length < 2) {
-			channels = []
-			tracks = []
-			channelSummary = []
-			return
-		}
+	async function performSearch() {
+		if (searchQuery.trim().length < 2) return clear()
 
 		isLoading = true
-		const tokens = parseSearchTokens(searchQuery)
-		const query = `%${tokens.text.toLowerCase()}%`
-		const mention = tokens.mentions[0] // Use first mention for now
 
-		console.log('search:perform ', {tokens, query, mention})
+		// Handle @mention searches
+		const isMention = searchQuery.startsWith('@')
+		const query = isMention
+			? `%${searchQuery.slice(1).toLowerCase()}%` // Remove @ and search slug
+			: `%${searchQuery.toLowerCase()}%`
 
 		try {
-			// Only search channels by name/description if no mention (since @mention targets specific channel)
-			let channelResults = {rows: []}
-			if (!mention) {
-				channelResults = await pg.query(
-					`
-					SELECT id, name, slug, description, image
-					FROM channels
-					WHERE LOWER(name) LIKE $1
-					   OR LOWER(slug) LIKE $1
-					   OR LOWER(description) LIKE $1
-					ORDER BY name
-				`,
-					[query]
-				)
-			}
-
-			// Track search with optional channel filter
-			const trackQuery = mention
-				? `
-					SELECT t.id, t.title, t.description, t.url, t.channel_id,
-					       c.name as channel_name, c.slug as channel_slug
-					FROM tracks t
-					JOIN channels c ON t.channel_id = c.id
-					WHERE c.slug = $2
-					  AND (LOWER(t.title) LIKE $1
-					       OR LOWER(t.description) LIKE $1
-					       OR LOWER(t.url) LIKE $1)
-					ORDER BY t.title
+			// Channel search with fuzzy matching using pg_trgm
+			const channelResults = await pg.query(
 				`
-				: `
-					SELECT t.id, t.title, t.description, t.url, t.channel_id,
-					       c.name as channel_name, c.slug as channel_slug
-					FROM tracks t
-					JOIN channels c ON t.channel_id = c.id
-					WHERE LOWER(t.title) LIKE $1
-					   OR LOWER(t.description) LIKE $1
-					   OR LOWER(t.url) LIKE $1
-					ORDER BY t.title
-				`
+				SELECT id, name, slug, description, image,
+				       GREATEST(
+				         similarity(name, $2),
+				         similarity(description, $2),
+				         similarity(slug, $2)
+				       ) as similarity_score
+				FROM channels
+				WHERE LOWER(name) LIKE $1 OR LOWER(description) LIKE $1 OR LOWER(slug) LIKE $1
+				   OR name % $2 OR description % $2 OR slug % $2
+				ORDER BY similarity_score DESC, name
+			`,
+				[query, isMention ? searchQuery.slice(1) : searchQuery]
+			)
 
-			const trackParams = mention ? [query, mention] : [query]
-			const trackResults = await pg.query(trackQuery, trackParams)
-
-			// Channel summary with optional filter
-			const summaryQuery = mention
-				? `
-					SELECT c.id, c.name, c.slug, c.description, c.image, COUNT(t.id) as track_count
-					FROM channels c
-					JOIN tracks t ON c.id = t.channel_id
-					WHERE c.slug = $2
-					  AND (LOWER(t.title) LIKE $1
-					       OR LOWER(t.description) LIKE $1
-					       OR LOWER(t.url) LIKE $1)
-					GROUP BY c.id, c.name, c.slug, c.description, c.image
-					ORDER BY COUNT(t.id) DESC, c.name
+			// Track search on title and description
+			const trackResults = await pg.query(
 				`
-				: `
-					SELECT c.id, c.name, c.slug, c.description, c.image, COUNT(t.id) as track_count
-					FROM channels c
-					JOIN tracks t ON c.id = t.channel_id
-					WHERE LOWER(t.title) LIKE $1
-					   OR LOWER(t.description) LIKE $1
-					   OR LOWER(t.url) LIKE $1
-					GROUP BY c.id, c.name, c.slug, c.description, c.image
-					ORDER BY COUNT(t.id) DESC, c.name
-				`
-
-			const summaryParams = mention ? [query, mention] : [query]
-			const channelSummaryResults = await pg.query(summaryQuery, summaryParams)
+				SELECT t.id, t.title, t.description, t.url, t.channel_id, t.created_at, t.updated_at,
+				       c.name as channel_name, c.slug as channel_slug
+				FROM tracks t
+				JOIN channels c ON t.channel_id = c.id
+				WHERE LOWER(t.title) LIKE $1 OR LOWER(t.description) LIKE $1
+				ORDER BY t.title
+			`,
+				[query]
+			)
 
 			channels = channelResults.rows
 			tracks = trackResults.rows
-			channelSummary = channelSummaryResults.rows
 		} catch (error) {
 			console.error('search:error', error)
 		} finally {
@@ -215,19 +140,6 @@
 
 	function handleSubmit(event) {
 		event.preventDefault()
-
-		// Try smart execution first
-		if (executeCommand(searchQuery)) {
-			// Clear search query after successful command execution
-			searchQuery = ''
-			// Clear search results to avoid showing "No results found"
-			channels = []
-			tracks = []
-			channelSummary = []
-			return
-		}
-
-		// Fall back to regular search
 		updateURL()
 	}
 
@@ -240,46 +152,6 @@
 		const newUrl = `/search${queryString ? `?${queryString}` : ''}`
 		goto(newUrl, {replaceState: true})
 	}
-
-	/** @param {string} query */
-	function executeCommand(query) {
-		const trimmed = query.trim().toLowerCase()
-
-		// Check if it's a command (starts with >)
-		if (trimmed.startsWith('/')) {
-			const commandQuery = trimmed.slice(1)
-			const command = commands.find(
-				(cmd) =>
-					cmd.title.toLowerCase().includes(commandQuery) ||
-					cmd.id === commandQuery ||
-					commandQuery.includes(cmd.id.replace('-', ' '))
-			)
-
-			if (command) {
-				if (command.type === 'link' && command.target) {
-					goto(command.target)
-				} else if (command.type === 'command' && command.action) {
-					command.action()
-				}
-				return true
-			}
-		}
-
-		// Check if it's a bare channel mention (no additional text after @channel)
-		if (trimmed.startsWith('@') && !trimmed.includes(' ')) {
-			const slug = trimmed.slice(1)
-			goto(`/${slug}`)
-			return true
-		}
-
-		// Check if it's a direct page
-		if (trimmed === 'settings') {
-			goto('/settings')
-			return true
-		}
-
-		return false
-	}
 </script>
 
 <svelte:head>
@@ -287,7 +159,7 @@
 </svelte:head>
 
 <form onsubmit={handleSubmit}>
-	<Icon icon="search" />
+	<Icon icon="search" size={20} />
 	<input
 		type="search"
 		list="command-suggestions"
@@ -317,14 +189,9 @@
 {/if}
 
 {#if searchQuery && !isLoading}
-	{@const tokens = parseSearchTokens(searchQuery)}
-	{#if tokens.mentions.length > 0}
-		<p><small>Found {tracks.length} tracks from @{tokens.mentions[0]}</small></p>
-	{:else}
-		<p><small>Found {channels.length} channels and {tracks.length} tracks</small></p>
-	{/if}
+	<p><small>Found {channels.length} channels and {tracks.length} tracks</small></p>
 
-	{#if channels.length === 0 && tracks.length === 0 && channelSummary.length === 0}
+	{#if channels.length === 0 && tracks.length === 0}
 		<p>No results found for "{searchQuery}"</p>
 	{/if}
 
@@ -341,37 +208,14 @@
 		</section>
 	{/if}
 
-	{#if channelSummary.length > 0}
-		<section>
-			<h2>{channelSummary.length} Channels with tracks <em>"{searchQuery}"</em></h2>
-			<ul class="list">
-				{#each channelSummary as channel (channel.id)}
-					<li>
-						<ChannelCard channel={{...channel, track_count: channel.track_count}} />
-					</li>
-				{/each}
-			</ul>
-		</section>
-	{/if}
-
 	{#if tracks.length > 0}
 		<section>
-			<header>
-				<h2>Tracks ({tracks.length})</h2>
-			</header>
+			<h2>Tracks ({tracks.length})</h2>
 
-			<ul class="list tracks">
+			<ul class="list">
 				{#each tracks as track, index (track.id)}
-					<li
-						class={track.id === appState.playlist_track ? 'current' : ''}
-						ondblclick={() => playTrack(track.id, '', 'user_click')}
-					>
-						<span>{index + 1}.</span>
-						<div class="title">{track.title}</div>
-						<div class="description">
-							<small><a href="/{track.channel_slug}">@{track.channel_slug}</a></small>
-							<small>{track.description}</small>
-						</div>
+					<li>
+						<TrackCard {track} {index} {appState} />
 					</li>
 				{/each}
 			</ul>
@@ -392,9 +236,10 @@
 		top: 0.5rem;
 		z-index: 10;
 		display: flex;
-		gap: 1rem;
+		gap: 0.5rem;
 		margin: 0.5rem 0.5rem 2rem;
 		align-items: center;
+		max-width: 100ch;
 
 		& + p {
 			margin-top: -1rem;
@@ -402,9 +247,17 @@
 		}
 	}
 
+	form > :global(.icon) {
+		position: relative;
+		z-index: 10;
+		left: 0.2em;
+		opacity: 0.5;
+	}
+
 	input[type='search'] {
-		margin-left: -0.5rem;
 		flex: 1;
+		margin-left: -2rem;
+		padding-left: 2rem;
 	}
 
 	section {
@@ -414,20 +267,5 @@
 	h2 {
 		font-size: var(--font-size-regular);
 		margin: 0.5rem;
-	}
-
-	header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-right: 0.5rem;
-		border-bottom: 1px solid var(--gray-5);
-	}
-
-	menu {
-		display: flex;
-		gap: 0.5rem;
-		margin: 0;
-		padding: 0;
 	}
 </style>
