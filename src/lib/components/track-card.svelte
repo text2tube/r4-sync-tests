@@ -48,7 +48,7 @@
 	a {
 		display: grid;
 		grid-template-columns: var(--indexSize) 1fr auto;
-		padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+		padding: 0.6rem 0.5rem 0.5rem 0.25rem;
 		line-height: 1.2;
 		text-decoration: none;
 		cursor: default;
@@ -75,7 +75,8 @@
 	time {
 		display: flex;
 		flex-flow: column;
-		align-items: flex-end;
+		place-items: flex-end;
+		place-content: center;
 		/* because this is the actual link with some trickery */
 		cursor: pointer;
 	}

@@ -86,6 +86,10 @@
 			bind:value={searchQuery}
 			oninput={debouncedSearch}
 		/>
+		<menu>
+			<button onclick={() => setPlaylist(trackIds)}>Play All</button>
+			<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
+		</menu>
 	</form>
 </header>
 
@@ -115,15 +119,14 @@
 		</header>
 		<section>
 			{#if trackIds.length > 0}
-				{#if searchQuery}
-					<header>
-						<h2>Tracks ({trackIds.length})</h2>
-						<menu>
-							<button onclick={() => setPlaylist(trackIds)}>Play All</button>
-							<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
-						</menu>
-					</header>
-				{/if}
+				<header>
+					<h2>
+						{channel.track_count} tracks
+						{#if searchQuery}
+							({trackIds.length} results for "<em>{searchQuery}</em>")
+						{/if}
+					</h2>
+				</header>
 				<Tracklist ids={trackIds} />
 			{:else}
 				<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
