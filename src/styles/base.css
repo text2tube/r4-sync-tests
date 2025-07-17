@@ -25,7 +25,7 @@ body {
 
 html {
 	line-height: 1.5;
-	font-size: 16px;
+	font-size: 15px;
 	/* font-size: calc(clamp(1em, 0.5em + 1vw, 2em)); */
 	font-weight: 400;
 	text-rendering: optimizeLegibility;

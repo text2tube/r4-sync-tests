@@ -138,7 +138,7 @@
 	}
 
 	.content:global(:has(aside)) {
-		grid-template-columns: 1fr minmax(400px, 25vw);
+		grid-template-columns: 1fr minmax(460px, 25vw);
 	}
 
 	.scroll {
@@ -163,7 +163,7 @@
 
 	.layout header {
 		padding: 0.5rem;
-		border-bottom: 1px solid var(--gray-3);
+		border-bottom: 1px solid var(--gray-5);
 
 		.right {
 			margin-left: auto;

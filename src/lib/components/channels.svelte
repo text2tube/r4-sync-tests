@@ -123,11 +123,10 @@
 	menu {
 		position: sticky;
 		top: 0.5rem;
-		right: 0;
 		display: flex;
 		align-items: center;
 		justify-content: flex-end;
-		margin: 0.5rem 0;
+		margin: 0.5rem;
 		gap: 0.25rem;
 		z-index: 1;
 
