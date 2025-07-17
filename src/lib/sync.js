@@ -49,7 +49,7 @@ export async function pullChannels({limit = debugLimit} = {}) {
       `
 		}
 	})
-	log.info('pull_channels', channels?.length)
+	log.log('pull_channels', channels?.length)
 }
 
 /**
@@ -100,7 +100,7 @@ export async function pullTracks(slug) {
 					await new Promise((resolve) => setTimeout(resolve, 0))
 				}
 			}
-			log.info('pull_tracks', channel.slug, tracks?.length)
+			log.log('pull_tracks', channel.slug, tracks?.length)
 		})
 		// Mark as successfully synced
 		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracks.length} where slug = ${slug}`
@@ -165,7 +165,7 @@ export async function needsUpdate(slug) {
 		if (firebase_id) {
 			// v1 channels dont need updating because it is in read-only state since before this project
 			// @todo fetch tracks from v1 and pull to local??
-			log.info('sync:needs_update channel do we want to fetch tracks for v1 channel?', localLatest)
+			log.log('sync:needs_update channel do we want to fetch tracks for v1 channel?', localLatest)
 			if (!localLatest) return true
 		}
 

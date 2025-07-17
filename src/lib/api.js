@@ -14,12 +14,12 @@ const log = logger.ns('api').seal()
 export async function checkUser() {
 	try {
 		const {data: user, error} = await sdk.users.readUser()
-		log.info('check_user', user, error)
+		log.log('check_user', user, error)
 		if (!user) {
 			await pg.sql`update app_state set channels = null`
 		} else {
 			const {data: channels} = await sdk.channels.readUserChannels()
-			log.info('check_user', {channels})
+			log.log('check_user', {channels})
 			if (channels) {
 				await pg.sql`update app_state set channels = ${channels.map((/** @type {any} */ c) => c.id)}`
 			}
@@ -36,7 +36,7 @@ export async function checkUser() {
  * @param {string} startReason
  */
 export async function playTrack(id, endReason, startReason) {
-	log.info('play_track', {id, endReason, startReason})
+	log.log('play_track', {id, endReason, startReason})
 
 	const track = (await pg.sql`SELECT * FROM tracks WHERE id = ${id}`).rows[0]
 	if (!track) throw new Error(`play_track:error Failed to play track: ${id}`)
@@ -60,7 +60,7 @@ export async function playTrack(id, endReason, startReason) {
  * @param {number} index
  */
 export async function playChannel({id, slug}, index = 0) {
-	log.info('play_channel', {id, slug})
+	log.log('play_channel', {id, slug})
 	await leaveBroadcast() // actually only needed if we're listening
 	if (await needsUpdate(slug)) await pullTracks(slug)
 	const tracks = (
@@ -82,7 +82,7 @@ export async function syncPlayBroadcast(broadcast) {
 	const playbackPosition = (Date.now() - new Date(track_played_at).getTime()) / 1000
 
 	if (playbackPosition > 600) {
-		log.info('sync_play_broadcast_ignored_stale', {playbackPosition, track_id})
+		log.log('sync_play_broadcast_ignored_stale', {playbackPosition, track_id})
 		return
 	}
 
@@ -101,7 +101,7 @@ export async function syncPlayBroadcast(broadcast) {
 			await pullTracks(slug)
 			await playTrack(track_id, '', 'broadcast_sync')
 			await pg.sql`UPDATE app_state SET listening_to_channel_id = ${broadcast.channel_id} WHERE id = 1`
-			log.info('sync_play_broadcast', track_id)
+			log.log('sync_play_broadcast', track_id)
 			return true
 		}
 	}

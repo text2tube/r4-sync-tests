@@ -58,7 +58,7 @@ export async function dropDb() {
 	await pg.sql`drop table if exists tracks CASCADE;`
 	await pg.sql`drop table if exists channels CASCADE;`
 	await pg.sql`drop table if exists migrations CASCADE;`
-	log.info('drop_tables')
+	log.log('drop_tables')
 }
 
 export async function exportDb() {
@@ -96,7 +96,7 @@ export async function migrateDb() {
 		WHERE table_schema = 'public'
 		AND table_type = 'BASE TABLE'
 	`)
-	log.info('migrate_applied', {
+	log.log('migrate_applied', {
 		migrations: appliedMigrationNames,
 		tables: tablesResult.rows.map((r) => r.table_name)
 	})
@@ -109,7 +109,7 @@ export async function migrateDb() {
 			try {
 				await pg.exec(migration.sql)
 				await pg.query('insert into migrations (name) values ($1);', [migration.name])
-				log.info(`migrate_applied ${migration.name}`)
+				log.log(`migrate_applied ${migration.name}`)
 			} catch (err) {
 				log.error('migrate_error', err, migration, appliedMigrationNames)
 				throw err

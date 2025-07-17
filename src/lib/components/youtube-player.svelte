@@ -29,8 +29,8 @@
 		muted
 		{autoplay}
 		playsinline={1}
-		onplay={() => log.info('play')}
-		onpause={() => log.info('pause')}
+		onplay={() => log.log('play')}
+		onpause={() => log.log('pause')}
 		{onended}
 		{onerror}
 		onvolumechange={check}

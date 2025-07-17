@@ -98,7 +98,7 @@
 
 	function play() {
 		if (!track) {
-			log.info('play_no_track')
+			log.log('play_no_track')
 			return
 		}
 		yt.play()
@@ -114,7 +114,7 @@
 	function handleError(event) {
 		const code = event.target.error.code
 		if (code === 150) {
-			log.info('youtube_error_150')
+			log.log('youtube_error_150')
 			next('youtube_error')
 		} else {
 			log.warn('Unhandled player error', code)
@@ -122,7 +122,7 @@
 	}
 
 	function handleEndTrack() {
-		log.info('track_completed')
+		log.log('track_completed')
 		next('track_completed')
 	}
 

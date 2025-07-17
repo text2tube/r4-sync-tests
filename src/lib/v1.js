@@ -33,7 +33,7 @@ export async function pullV1Channels() {
 	} catch (err) {
 		log.error('pull_v1_channels_error', err)
 	}
-	log.info('pull_v1_channels', channels)
+	log.log('pull_v1_channels', channels)
 }
 
 /**
@@ -81,7 +81,7 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 		await tx.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracks.length} where id = ${channelId}`
 	})
 
-	log.info('pull_v1_tracks', tracks.length)
+	log.log('pull_v1_tracks', tracks.length)
 }
 
 /**

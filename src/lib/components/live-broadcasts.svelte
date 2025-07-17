@@ -51,10 +51,10 @@
 
 			if (isUserBroadcasting && !hasLocalBroadcastState) {
 				await pg.sql`UPDATE app_state SET broadcasting_channel_id = ${userChannelId} WHERE id = 1`
-				log.info('start', {channelId: userChannelId})
+				log.log('start', {channelId: userChannelId})
 			} else if (!isUserBroadcasting && hasLocalBroadcastState) {
 				await pg.sql`UPDATE app_state SET broadcasting_channel_id = NULL WHERE id = 1`
-				log.info('clear')
+				log.log('clear')
 			}
 		}
 	}
@@ -73,7 +73,7 @@
 				'postgres_changes',
 				{event: '*', schema: 'public', table: 'broadcast'},
 				async (payload) => {
-					log.info('detected_remote_change', payload)
+					log.log('detected_remote_change', payload)
 
 					// If broadcast was deleted, clear listening state for that channel
 					if (payload.eventType === 'DELETE' && payload.old?.channel_id) {
@@ -82,7 +82,7 @@
 						const currentListeningTo = rows[0]?.listening_to_channel_id
 						if (currentListeningTo === deletedChannelId) {
 							await pg.sql`UPDATE app_state SET listening_to_channel_id = NULL WHERE id = 1`
-							log.info('clear_listening_state', {channelId: deletedChannelId})
+							log.log('clear_listening_state', {channelId: deletedChannelId})
 						}
 					}
 

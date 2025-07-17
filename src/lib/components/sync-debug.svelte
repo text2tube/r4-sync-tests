@@ -10,7 +10,7 @@
 
 	// Live query for channels with track counts
 	$effect(() => {
-		log.info('create_live_query')
+		log.log('create_live_query')
 		let cleanup
 
 		pg.live
@@ -21,7 +21,7 @@
 		`,
 				[],
 				(result) => {
-					log.info('query_result', result)
+					log.log('query_result', result)
 					// @ts-expect-error rows are not typed
 					channels = result.rows
 				}

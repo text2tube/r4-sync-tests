@@ -15,12 +15,12 @@ let broadcastSyncChannel = null
 /** @param {string} channelId */
 export async function startBroadcasting(channelId) {
 	await pg.sql`UPDATE app_state SET broadcasting_channel_id = ${channelId} WHERE id = 1`
-	log.info('start', {channelId})
+	log.log('start', {channelId})
 }
 
 export async function stopBroadcasting() {
 	await pg.sql`UPDATE app_state SET broadcasting_channel_id = NULL WHERE id = 1`
-	log.info(':stop')
+	log.log(':stop')
 }
 
 /** @param {string} channelId */
@@ -33,7 +33,7 @@ export async function joinBroadcast(channelId) {
 			.single()
 		if (error) throw error
 		await syncPlayBroadcast(data)
-		log.info('broadcast:join', {channelId})
+		log.log('broadcast:join', {channelId})
 	} catch (error) {
 		log.error('broadcast:join_error', {
 			channelId,
@@ -86,7 +86,7 @@ async function createRemoteBroadcast(channelId, trackId) {
 			track_played_at: new Date().toISOString()
 		})
 		if (error) throw error
-		log.info('create', {channelId, trackId})
+		log.log('create', {channelId, trackId})
 	} catch (error) {
 		log.error('create_error', {
 			channelId,
@@ -102,7 +102,7 @@ async function deleteRemoteBroadcast(channelId) {
 	if (!channelId) return
 	try {
 		await sdk.supabase.from('broadcast').delete().eq('channel_id', channelId)
-		log.info('delete', {channelId})
+		log.log('delete', {channelId})
 	} catch (error) {
 		log.error('delete_error', {
 			channelId,
@@ -124,7 +124,7 @@ async function updateRemoteBroadcastTrack(channelId, trackId) {
 				track_played_at: new Date().toISOString()
 			})
 			.eq('channel_id', channelId)
-		log.info('update', {channelId, trackId})
+		log.log('update', {channelId, trackId})
 	} catch (error) {
 		log.error('update_error', {
 			channelId,

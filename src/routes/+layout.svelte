@@ -44,7 +44,7 @@
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
 	$effect(async () => {
 		window.addEventListener('beforeunload', async (event) => {
-			log.info('beforeunload_closing_db')
+			log.log('beforeunload_closing_db')
 			// event.preventDefault()
 			await stopBroadcasting()
 			await pg.sql`UPDATE app_state SET is_playing = false`

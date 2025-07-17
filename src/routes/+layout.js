@@ -10,7 +10,7 @@ export const ssr = false
 
 /** @type {import('./$types').LayoutLoad} */
 export async function load() {
-	log.info('load')
+	log.log('load')
 	let preloading = true
 
 	if (browser) {
@@ -23,7 +23,7 @@ export async function load() {
 			log.error('load_error_migrate')
 		} finally {
 			preloading = false
-			log.info('load_done')
+			log.log('load_done')
 		}
 	}
 

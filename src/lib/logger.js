@@ -13,7 +13,7 @@ export const store = setup({
  *
  * Namespaced usage:
  * const slog = logger.ns('sync').seal()
- * slog.info('start') --> info #sync start
+ * slog.log('start') --> info #sync start
  */
 // export const logger = adze.withEmoji.seal()
 export const logger = adze.seal()
