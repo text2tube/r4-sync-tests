@@ -13,7 +13,6 @@
 	let {appState} = $props()
 
 	let autoplay = $state(false)
-	let isPlaying = $state(false)
 
 	let title = $state('')
 	let image = $state('')
@@ -39,7 +38,6 @@
 		const trackChanged = tid && tid !== track?.id
 		if (tid) await setChannelFromTrack(tid)
 		if (trackChanged) autoplay = true
-		isPlaying = state.is_playing
 	})
 
 	/** @param {string} tid} */
@@ -181,7 +179,7 @@
 			<button onclick={() => previous('user_prev')} title="Go previous track">
 				<Icon icon={'previous-fill'} />
 			</button>
-			{#if isPlaying}
+			{#if appState.is_playing}
 				<button class="pause" onclick={pause}>
 					<Icon icon={'pause'} />
 				</button>
