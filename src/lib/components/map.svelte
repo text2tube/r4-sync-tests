@@ -10,7 +10,8 @@
 		markers = [],
 		center = [0, 0],
 		zoom,
-		selectMode = false
+		selectMode = false,
+		urlMode = false
 	} = $props()
 
 	$effect(() => {
@@ -32,9 +33,9 @@
 
 	function createIcon(color) {
 		const svg =
-					`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\">` +
-					`<circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"${color}\" stroke=\"white\" stroke-width=\"2\"/>` +
-					`</svg>`
+			`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\">` +
+			`<circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"${color}\" stroke=\"white\" stroke-width=\"2\"/>` +
+			`</svg>`
 		return L.icon({
 			iconUrl: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
 			iconSize: [24, 24],
@@ -43,13 +44,15 @@
 	}
 
 	function setup(node) {
-		const fill = getCssVar('--c-fg')
-		const fillNew = getCssVar('--c-link')
+		const fill = getCssVar('--gray-12')
+		const fillNew = getCssVar('--color-accent')
 
 		map = L.map(node)
 
-		map.on('moveend', handleChange)
-		map.on('zoomend', handleChange)
+		if (urlMode) {
+			map.on('moveend', handleChange)
+			map.on('zoomend', handleChange)
+		}
 
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 			attribution: '&copy; OpenStreetMap contributors',
@@ -95,16 +98,16 @@
 		if (debounceTimer) {
 			clearTimeout(debounceTimer)
 		}
-		
+
 		// Set a new timer to update the URL after a delay
 		debounceTimer = setTimeout(() => {
 			const {lat, lng} = map.getCenter()
 			const newZoom = map.getZoom()
-			let query = new URLSearchParams(page.url.searchParams.toString());
-			query.set('latitude', lat.toFixed(5));
-			query.set("longitude", lng.toFixed(5))
-			query.set("zoom", newZoom)
-			goto(`?${query.toString()}`);
+			let query = new URLSearchParams(page.url.searchParams.toString())
+			query.set('latitude', lat.toFixed(5))
+			query.set('longitude', lng.toFixed(5))
+			query.set('zoom', newZoom)
+			goto(`?${query.toString()}`)
 		}, 500) // Wait 500ms after the last change before updating URL
 	}
 
@@ -114,24 +117,28 @@
 
 		markerGroup.clearLayers()
 
-		const fill = getCssVar('--c-link')
-		for (const {latitude, longitude, title, href, isActive} of validMarkers) {
+		const fill = getCssVar('--gray-12')
+		let activeMarker = null;
+		for (const markerData of validMarkers) {
+			const {latitude, longitude, title, href, isActive} = markerData
 			const popup = href ? `<a href="${base}/${href}">${title}</a>` : title
 			const marker = L.marker([latitude, longitude], {icon: createIcon(fill), title})
-						.addTo(markerGroup)
-						.bindPopup(popup)
-			
+				.addTo(markerGroup)
+				.bindPopup(popup)
+
 			if (isActive) {
 				// Use setTimeout to ensure the marker is fully rendered before opening popup
+				activeMarker = markerData
 				setTimeout(() => {
 					marker.openPopup()
 				}, 100)
 			}
 		}
-
 		if (validMarkers.length === 1) {
 			const {latitude, longitude} = validMarkers[0]
 			map.setView([latitude, longitude], zoom)
+		} else if (activeMarker) {
+			map.setView([activeMarker.latitude, activeMarker.longitude], zoom)
 		} else if (validMarkers.length > 1 && !zoom) {
 			map.fitBounds(markerGroup.getBounds().pad(0.2))
 		}
@@ -154,23 +161,19 @@
 			brightness(0.7);
 		width: 100%;
 		height: 100%;
-		z-index: 1;
-		border: 1px solid var(--c-border);
-		border-radius: var(--border-radius);
 		:global(.leaflet-container) {
-			background-color: transparent;
 		}
 		:global(.leaflet-popup-content a) {
-			color: var(--c-link);
+			color: var(--gray-12);
+			font-size: 1rem;
+			white-space: pre;
 		}
 		:global(.leaflet-popup-content) {
-			color: var(--c-fg);
 		}
 		:global(.leaflet-popup-content-wrapper, .leaflet-popup-tip) {
-			background: var(--c-bg);
+			background-color: var(--gray-2);
 		}
 		:global(.leaflet-popup a.leaflet-popup-close-button) {
-			color: var(--c-fg);
 		}
 		@media (prefers-color-scheme: dark) {
 			:global(.Map-tiles) {

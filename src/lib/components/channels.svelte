@@ -22,7 +22,6 @@
 			}))
 	)
 
-
 	/** @type {'list' | 'grid' | 'map'}*/
 	let display = $state(initialDisplay || 'list')
 	let center = $derived(latitude && longitude ? [latitude, longitude] : null)
@@ -65,7 +64,7 @@
 
 {#if display === 'map'}
 	{#if mapChannels}
-		<Map markers={mapChannels} {center} {zoom}></Map>
+		<Map urlMode markers={mapChannels} {center} {zoom}></Map>
 	{/if}
 {:else}
 	<SvelteVirtualList items={channels} itemsClass={display}>
