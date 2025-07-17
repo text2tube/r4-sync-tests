@@ -1,15 +1,12 @@
 <script>
 	import {page} from '$app/state'
-	import {pg} from '$lib/db'
 	import {sync} from '$lib/sync'
 	import Icon from '$lib/components/icon.svelte'
 	import Channels from '$lib/components/channels.svelte'
 	import {liveQuery} from '$lib/live-query'
 
-	const {data} = $props()
-
 	const slug = $derived(page?.url?.searchParams?.get('slug'))
-	const display = $derived(page?.url?.searchParams?.get('display') || 'list')
+	const display = $derived(page?.url?.searchParams?.get('display') || 'grid')
 	const longitude = $derived(Number(page?.url?.searchParams?.get('longitude')))
 	const latitude = $derived(Number(page?.url?.searchParams?.get('latitude')))
 	const zoom = $derived(Number(page?.url?.searchParams?.get('zoom')))
