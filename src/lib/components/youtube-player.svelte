@@ -38,6 +38,9 @@
 
 <style>
 	media-controller {
+		/* to allow loading indicator to be absolute */
+		position: static;
+
 		/* width: 100%; */
 		--media-control-height: 2rem;
 		--media-background-color: none;
@@ -50,7 +53,17 @@
 		--media-icon-color: var(--gray-12);
 		--media-range-track-background: hsla(0, 0%, 0%, 0.2);
 		--media-range-track-background: var(--gray-11);
-		/* --media-loading-indicator-icon-height: 2rem; */
+
+		--media-loading-indicator-icon-width: 4rem;
+		--media-loading-indicator-icon-height: 4rem;
+	}
+
+	:global(media-loading-indicator) {
+		position: absolute;
+		left: 0.5rem;
+		top: 50%;
+		transform: translateY(-50%);
+		z-index: 1;
 	}
 
 	youtube-video {
