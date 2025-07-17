@@ -1,7 +1,7 @@
 <script>
 	import {pg} from '$lib/db'
 	import Modal from '$lib/components/modal.svelte'
-	import Icon from "$lib/components/icon.svelte"
+	import Icon from '$lib/components/icon.svelte'
 
 	let showModal = $state(false)
 	let channelId = $state()
@@ -29,11 +29,11 @@
 
 {#if channelId}
 	<button onclick={() => (showModal = true)}>
-		<Icon icon="add" size={20} /> Track
+		<Icon icon="add" size={20}>Track</Icon>
 	</button>
 {:else}
 	<a class="btn" href="/login">
-		<Icon icon="add" size={20} /> Track
+		<Icon icon="add" size={20}>Track</Icon>
 	</a>
 {/if}
 

@@ -29,6 +29,6 @@
 	.icon {
 		display: flex;
 		align-items: center;
-		gap: var(--s);
+		gap: 0.4rem;
 	}
 </style>
