@@ -4,13 +4,14 @@
 	/* --red: hsl(11, 78%, 38%); */
 	/* --yellow: hsl(33, 82%, 58%); */
 
-	--color-lavender: #c6b6ee;
-	--color-light-gray: #e8e8d3;
-	--color-light-blue: #8fbfdc;
-	--color-slate: #668799;
 	--color-green: #799d6a;
-	--color-red: #cf6a4c;
+	--color-lavender: #c6b6ee;
+	--color-light-blue: #8fbfdc;
+	--color-light-gray: #e8e8d3;
 	--color-orange: #ffb964;
+	--color-purple: hsl(259.7, 80.3%, 50.2%);
+	--color-red: #cf6a4c;
+	--color-slate: #668799;
 	--color-tan: #c59f6f;
 
 	--border-radius: 0.4rem;
@@ -36,7 +37,7 @@
 	--gray-11: light-dark(lch(20% 1 282), lch(90% 1.35 272));
 	--gray-12: light-dark(lch(10% 0 282), lch(95% 0 272));
 
-	--color-accent: light-dark(var(--color-red), var(--color-red));
+	--color-accent: light-dark(var(--color-purple), var(--color-red));
 	--color-accent-light1: color-mix(in lab, white, var(--color-accent) 20%);
 	--color-accent-light2: color-mix(in lab, white, var(--color-accent) 10%);
 	--color-accent-light3: color-mix(in lab, white, var(--color-accent) 5%);

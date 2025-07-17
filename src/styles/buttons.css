@@ -43,6 +43,11 @@ button:disabled,
 	background: var(--gray-1);
 }
 
+button.active,
+.btn.active {
+	border-color: var(--color-accent);
+}
+
 .IconBtn {
 	border: 0;
 	background: none;
