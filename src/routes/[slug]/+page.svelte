@@ -99,50 +99,46 @@
 	</form>
 </header>
 
-{#if channel}
-	<article>
-		<header>
-			<ChannelAvatar id={channel.image} alt={channel.name} />
-			<h1>
-				{channel.name}
-				<ButtonPlay {channel} />
-				{#if channel.longitude && channel.latitude}
-					<a
-						href={`/?display=map&slug=${channel.slug}&longitude=${channel.longitude}&latitude=${channel.latitude}&zoom=15`}
-					>
-						<Icon icon="map" />
-					</a>
-				{/if}
-			</h1>
-			<p>{channel.description}</p>
-			<p>
-				<small>
-					Last updated {relativeDate(channel.updated_at)}. Broadcasting since {relativeDateSolar(
-						channel.created_at
-					)}.
-				</small>
-			</p>
-		</header>
-		<section>
-			{#if trackIds.length > 0}
-				{#if searchQuery}
-					<header>
-						<h2>Tracks ({trackIds.length})</h2>
-						<menu>
-							<button onclick={() => setPlaylist(trackIds)}>Play All</button>
-							<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
-						</menu>
-					</header>
-				{/if}
-				<Tracklist ids={trackIds} />
-			{:else}
-				<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
+<article>
+	<header>
+		<ChannelAvatar id={channel.image} alt={channel.name} />
+		<h1>
+			{channel.name}
+			<ButtonPlay {channel} />
+			{#if channel.longitude && channel.latitude}
+				<a
+					href={`/?display=map&slug=${channel.slug}&longitude=${channel.longitude}&latitude=${channel.latitude}&zoom=15`}
+				>
+					<Icon icon="map" />
+				</a>
 			{/if}
-		</section>
-	</article>
-{:else}
-	<p>Channel error</p>
-{/if}
+		</h1>
+		<p>{channel.description}</p>
+		<p>
+			<small>
+				Last updated {relativeDate(channel.updated_at)}. Broadcasting since {relativeDateSolar(
+					channel.created_at
+				)}.
+			</small>
+		</p>
+	</header>
+	<section>
+		{#if trackIds.length > 0}
+			{#if searchQuery}
+				<header>
+					<h2>Tracks ({trackIds.length})</h2>
+					<menu>
+						<button onclick={() => setPlaylist(trackIds)}>Play All</button>
+						<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
+					</menu>
+				</header>
+			{/if}
+			<Tracklist ids={trackIds} />
+		{:else}
+			<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
+		{/if}
+	</section>
+</article>
 
 <style>
 	header {

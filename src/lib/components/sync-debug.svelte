@@ -10,23 +10,25 @@
 	$effect(() => {
 		console.log('new sync-debug live query')
 		let cleanup
-		
-		pg.live.query(
-			`
+
+		pg.live
+			.query(
+				`
 			SELECT * FROM channels
 			ORDER BY name
 		`,
-			[],
-			(result) => {
-				console.log('sync-debug query callback', result)
+				[],
+				(result) => {
+					console.log('sync-debug query callback', result)
+					// @ts-expect-error rows are not typed
+					channels = result.rows
+				}
+			)
+			.then(({initialResults, unsubscribe}) => {
 				// @ts-expect-error rows are not typed
-				channels = result.rows
-			}
-		).then(({initialResults, unsubscribe}) => {
-			// @ts-expect-error rows are not typed
-			channels = initialResults.rows
-			cleanup = unsubscribe
-		})
+				channels = initialResults.rows
+				cleanup = unsubscribe
+			})
 
 		return () => cleanup?.()
 	})

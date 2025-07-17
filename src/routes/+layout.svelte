@@ -171,7 +171,6 @@
 
 	main {
 		/* space for fixed, bottom player */
-		padding-bottom: 12rem;
 	}
 
 	@media (max-width: 768px) {
@@ -185,6 +184,7 @@
 		left: 1.5rem;
 		right: 1.5rem;
 		bottom: 1rem;
+		z-index: 10;
 
 		border: 1px solid var(--gray-5);
 		border-radius: var(--border-radius);
