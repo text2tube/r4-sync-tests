@@ -179,13 +179,14 @@
 			<button onclick={() => previous('user_prev')} title="Go previous track">
 				<Icon icon={'previous-fill'} />
 			</button>
+			{appState.is_playing}
 			{#if appState.is_playing}
 				<button class="pause" onclick={pause}>
 					<Icon icon={'pause'} />
 				</button>
 			{:else}
 				<button class="play" onclick={play}>
-					<Icon icon={'play'} />
+					<Icon icon={'play-fill'} />
 				</button>
 			{/if}
 			<button onclick={() => next('user_next')} title="Go next track">

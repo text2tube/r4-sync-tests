@@ -17,7 +17,6 @@ export async function startBroadcasting(channelId) {
 
 export async function stopBroadcasting() {
 	await pg.sql`UPDATE app_state SET broadcasting_channel_id = NULL WHERE id = 1`
-	console.log('stopped broadcasting')
 }
 
 /** @param {string} channelId */

@@ -1,6 +1,8 @@
 <script>
 	import '../styles/style.css'
 	import 'leaflet/dist/leaflet.css'
+	import {pg} from '$lib/db'
+	import {stopBroadcasting} from '$lib/broadcast'
 	import Player from '$lib/components/player.svelte'
 	import QueuePanel from '$lib/components/queue-panel.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
@@ -37,11 +39,13 @@
 	}
 
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
-	$effect(() => {
+	$effect(async () => {
 		window.addEventListener('beforeunload', async (event) => {
 			console.log('maybe close pglite?')
 			// event.preventDefault()
 			// await pg.close()
+			await pg.sql`UPDATE app_state SET is_playing = false`
+			await stopBroadcasting()
 		})
 	})
 </script>
