@@ -28,14 +28,23 @@ export async function checkUser() {
 	}
 }
 
-/** @param {string} id @param {string|null} [endReason] @param {string|null} [startReason] */
-export async function playTrack(id, endReason = null, startReason = null) {
+/**
+ * @param {string} id
+ * @param {string} endReason
+ * @param {string} startReason
+ */
+export async function playTrack(id, endReason, startReason) {
 	const track = (await pg.sql`SELECT * FROM tracks WHERE id = ${id}`).rows[0]
 	if (!track) throw new Error(`failed to play track: ${id}`)
 
-	const tracks = (
-		await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`
-	).rows
+	// Get current track before we change it
+	const {rows} = await pg.sql`SELECT playlist_track FROM app_state WHERE id = 1`
+	const previousTrackId = rows[0]?.playlist_track
+
+	console.log('playTrack', {id, endReason, startReason})
+
+	const tracks = (await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`)
+		.rows
 	const ids = tracks.map((t) => t.id)
 	await setPlaylist(ids)
 
@@ -43,12 +52,7 @@ export async function playTrack(id, endReason = null, startReason = null) {
 	await pg.sql`UPDATE app_state SET is_playing = true`
 
 	if (endReason || startReason) {
-		await addPlayHistory({
-			currentTrack: track,
-			newTrack: id,
-			endReason,
-			startReason
-		})
+		await addPlayHistory({nextTrackId: id, previousTrackId, endReason, startReason})
 	}
 }
 
@@ -60,9 +64,7 @@ export async function playChannel({id, slug}, index = 0) {
 	console.log('playChannel', id, slug)
 	await leaveBroadcast() // actually only needed if we're listening
 	if (await needsUpdate(slug)) await pullTracks(slug)
-	const tracks = (
-		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
-	).rows
+	const tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
 	const ids = tracks.map((t) => t.id)
 	await setPlaylist(ids)
 	await playTrack(tracks[index].id, null, 'play_channel')
@@ -86,11 +88,7 @@ export async function syncPlayBroadcast(broadcast) {
 	try {
 		await playTrack(track_id, null, 'broadcast_sync')
 	} catch {
-		const {data} = await sdk.supabase
-			.from('channel_track')
-			.select('channels(slug)')
-			.eq('track_id', track_id)
-			.single()
+		const {data} = await sdk.supabase.from('channel_track').select('channels(slug)').eq('track_id', track_id).single()
 		// @ts-expect-error supabase
 		const slug = data?.channels?.slug
 		if (slug) {
@@ -119,6 +117,7 @@ export async function readBroadcastsWithChannel() {
 		)
 	`)
 	if (error) throw error
+	// @ts-expect-error supabase typing issue with nested relations
 	return data || []
 }
 
@@ -193,6 +192,7 @@ export function openSearch() {
 }
 
 export function togglePlayPause() {
+	/** @type {HTMLElement & {paused: boolean, play(): void, pause(): void} | null} */
 	const ytPlayer = document.querySelector('youtube-video')
 	if (ytPlayer) {
 		if (ytPlayer.paused) {
@@ -203,25 +203,29 @@ export function togglePlayPause() {
 	}
 }
 
-/** @param {object} data @param {string|null} data.currentTrack @param {string} data.newTrack @param {string|null} data.endReason @param {string|null} data.startReason */
-export async function addPlayHistory({currentTrack, newTrack, endReason, startReason}) {
-	// Get current shuffle state
+/**
+ * @param {object} options
+ * @param {string} options.previousTrackId
+ * @param {string} options.nextTrackId
+ * @param {string} options.endReason
+ * @param {string} options.startReason
+ */
+export async function addPlayHistory({previousTrackId, nextTrackId, endReason, startReason}) {
 	const {rows} = await pg.sql`SELECT shuffle FROM app_state WHERE id = 1`
 	const shuffleState = rows[0]?.shuffle || false
 
-	// End current track if switching tracks
-	if (currentTrack && currentTrack !== newTrack && endReason) {
-		// Get actual playback time from media controller
+	// If an
+	if (previousTrackId && previousTrackId !== nextTrackId && endReason) {
 		const mediaController = document.querySelector('media-controller#r5')
 		const actualPlayTime = mediaController?.getAttribute('mediacurrenttime')
-		const msPlayed = actualPlayTime ? Math.round(parseFloat(actualPlayTime) * 1000) : 0
+		const msPlayed = actualPlayTime ? Math.round(Number.parseFloat(actualPlayTime) * 1000) : 0
 
 		await pg.sql`
 			UPDATE play_history
 			SET ended_at = CURRENT_TIMESTAMP,
 				ms_played = ${msPlayed},
 				reason_end = ${endReason}
-			WHERE track_id = ${currentTrack} AND ended_at IS NULL
+			WHERE track_id = ${previousTrackId} AND ended_at IS NULL
 		`
 	}
 
@@ -232,7 +236,7 @@ export async function addPlayHistory({currentTrack, newTrack, endReason, startRe
 				track_id, started_at, ended_at, ms_played,
 				reason_start, reason_end, shuffle, skipped
 			) VALUES (
-				${newTrack}, CURRENT_TIMESTAMP, NULL, 0,
+				${nextTrackId}, CURRENT_TIMESTAMP, NULL, 0,
 				${startReason}, NULL, ${shuffleState}, FALSE
 			)
 		`
