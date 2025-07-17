@@ -76,7 +76,7 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 		}
 
 		// Mark as successfully synced
-		await tx.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP where id = ${channelId}`
+		await tx.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracks.length} where id = ${channelId}`
 	})
 	console.log(`Pulled v1 tracks`, tracks.length)
 }

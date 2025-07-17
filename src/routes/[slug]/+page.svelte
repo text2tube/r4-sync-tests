@@ -35,7 +35,6 @@
 					[channel.id],
 					(res) => {
 						trackIds = res.rows.map((row) => row.id)
-						pg.sql`update channels set track_count = ${trackIds.length} where id = ${channel.id}`
 					}
 				)
 			} else {

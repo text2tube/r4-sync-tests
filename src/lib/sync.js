@@ -101,7 +101,7 @@ export async function pullTracks(slug) {
 			console.log('Pulled tracks', tracks?.length)
 		})
 		// Mark as successfully synced
-		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP where slug = ${slug}`
+		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracks.length} where slug = ${slug}`
 	} catch (error) {
 		// On error, just mark as not busy (tracks_synced_at stays NULL for retry)
 		await pg.sql`update channels set busy = false where slug = ${slug}`
