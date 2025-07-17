@@ -17,9 +17,11 @@
 				longitude,
 				latitude,
 				title: name,
-				href: slug
+				href: slug,
+				isActive: slug === initialSlug
 			}))
 	)
+
 
 	/** @type {'list' | 'grid' | 'map'}*/
 	let display = $state(initialDisplay || 'list')

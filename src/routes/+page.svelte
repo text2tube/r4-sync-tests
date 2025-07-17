@@ -1,5 +1,4 @@
 <script>
-	import {goto} from '$app/navigation'
 	import {page} from '$app/state'
 	import {pg} from '$lib/db'
 	import {sync} from '$lib/sync'
@@ -8,13 +7,14 @@
 
 	const {data} = $props()
 
-	let channelCount = $state(0)
-	let syncing = $state(false)
-
-	const display = $derived(data.display || 'list')
+	const slug = $derived(page?.url?.searchParams?.get('slug'))
+	const display = $derived(page?.url?.searchParams?.get('display') || 'list')
 	const longitude = $derived(Number(page?.url?.searchParams?.get('longitude')))
 	const latitude = $derived(Number(page?.url?.searchParams?.get('latitude')))
 	const zoom = $derived(Number(page?.url?.searchParams?.get('zoom')))
+
+	let channelCount = $state(0)
+	let syncing = $state(false)
 
 	pg.live.query('SELECT COUNT(*) as count FROM channels', [], (result) => {
 		channelCount = result.rows[0]?.count || 0
@@ -38,7 +38,7 @@
 	</menu>
 {/if}
 
-<Channels {display} {longitude} {latitude} {zoom} />
+<Channels {slug} {display} {longitude} {latitude} {zoom} />
 
 <style>
 	menu {

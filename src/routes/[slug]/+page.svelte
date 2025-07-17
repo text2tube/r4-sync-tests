@@ -109,7 +109,7 @@
 				<ButtonPlay {channel} />
 				{#if channel.longitude && channel.latitude}
 					<a
-						href={`/?display=map&slug=${channel.slug}&longitude=${channel.longitude}&latitude=${channel.latitude}&zoom=10`}
+						href={`/?display=map&slug=${channel.slug}&longitude=${channel.longitude}&latitude=${channel.latitude}&zoom=15`}
 					>
 						<IconMap />
 					</a>

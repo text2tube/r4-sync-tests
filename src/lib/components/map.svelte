@@ -1,5 +1,6 @@
 <script>
 	import {base} from '$app/paths'
+	import {page} from '$app/state'
 	import {createEventDispatcher} from 'svelte'
 	import L from 'leaflet'
 	import {goto} from '$app/navigation'
@@ -20,6 +21,7 @@
 	let map
 	let markerGroup
 	let newMarker
+	let debounceTimer
 
 	// Derive only the valid markers
 	const validMarkers = $derived(markers.filter((m) => m.latitude && m.longitude && m.title))
@@ -30,9 +32,9 @@
 
 	function createIcon(color) {
 		const svg =
-			`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\">` +
-			`<circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"${color}\" stroke=\"white\" stroke-width=\"2\"/>` +
-			`</svg>`
+					`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\">` +
+					`<circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"${color}\" stroke=\"white\" stroke-width=\"2\"/>` +
+					`</svg>`
 		return L.icon({
 			iconUrl: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
 			iconSize: [24, 24],
@@ -77,26 +79,33 @@
 			map.setView(center, zoom)
 		}
 
-		console.log(map)
-
 		return {
 			destroy() {
 				map.remove()
+				// Clear any pending debounced calls
+				if (debounceTimer) {
+					clearTimeout(debounceTimer)
+				}
 			}
 		}
 	}
 
 	function handleChange() {
-		const {lat, lng} = map.getCenter()
-		const newZoom = map.getZoom()
-		goto(`?latitude=${lat.toFixed(5)}&longitude=${lng.toFixed(5)}&zoom=${newZoom}`)
-		/*
-		dispatch('change', {
-			latitude: lat,
-			longitude: lng,
-			zoom: newZoom
-		});
-			 */
+		// Clear any existing timer
+		if (debounceTimer) {
+			clearTimeout(debounceTimer)
+		}
+		
+		// Set a new timer to update the URL after a delay
+		debounceTimer = setTimeout(() => {
+			const {lat, lng} = map.getCenter()
+			const newZoom = map.getZoom()
+			let query = new URLSearchParams(page.url.searchParams.toString());
+			query.set('latitude', lat.toFixed(5));
+			query.set("longitude", lng.toFixed(5))
+			query.set("zoom", newZoom)
+			goto(`?${query.toString()}`);
+		}, 500) // Wait 500ms after the last change before updating URL
 	}
 
 	// Redraw markers whenever validMarkers change
@@ -106,11 +115,18 @@
 		markerGroup.clearLayers()
 
 		const fill = getCssVar('--c-link')
-		for (const {latitude, longitude, title, href} of validMarkers) {
+		for (const {latitude, longitude, title, href, isActive} of validMarkers) {
 			const popup = href ? `<a href="${base}/${href}">${title}</a>` : title
-			L.marker([latitude, longitude], {icon: createIcon(fill), title})
-				.addTo(markerGroup)
-				.bindPopup(popup)
+			const marker = L.marker([latitude, longitude], {icon: createIcon(fill), title})
+						.addTo(markerGroup)
+						.bindPopup(popup)
+			
+			if (isActive) {
+				// Use setTimeout to ensure the marker is fully rendered before opening popup
+				setTimeout(() => {
+					marker.openPopup()
+				}, 100)
+			}
 		}
 
 		if (validMarkers.length === 1) {
