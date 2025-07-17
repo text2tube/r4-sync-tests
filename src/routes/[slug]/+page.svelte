@@ -3,6 +3,7 @@
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
 	import {pg} from '$lib/db'
+	import {liveQuery, incrementalLiveQuery} from '$lib/live-query'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
 	import {relativeDate, relativeDateSolar} from '$lib/utils'
 	import Icon from '$lib/components/icon.svelte'
@@ -25,37 +26,49 @@
 		debounceTimer = setTimeout(performSearch, 200)
 	}
 
+	$effect(() => {
+		if (!channel?.id) return
+
+		const search = searchQuery?.trim()
+		if (search) {
+			// Use regular query for search (non-reactive)
+			performSearch()
+			return
+		}
+
+		// Use liveQuery for default track loading (reactive)
+		return incrementalLiveQuery(
+			'SELECT id FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
+			[channel.id],
+			'id',
+			(res) => {
+				console.log('res', res, channel.id)
+				trackIds = res.rows.map((row) => row.id)
+			}
+		)
+	})
+
 	onMount(() => {
 		const urlSearch = page.url.searchParams.get('search')
 		if (urlSearch) {
 			searchQuery = urlSearch
 		}
-		performSearch()
 	})
 
 	async function performSearch() {
-		if (!channel?.id) return
+		if (!channel?.id || !searchQuery?.trim()) return
 
 		isLoading = true
 		try {
-			const search = searchQuery?.trim()
-			if (search) {
-				const query = `%${search.toLowerCase()}%`
-				const result = await pg.query(
-					`SELECT id FROM tracks
-					 WHERE channel_id = $1
-					   AND (LOWER(title) LIKE $2 OR LOWER(description) LIKE $2 OR LOWER(url) LIKE $2)
-					 ORDER BY created_at DESC`,
-					[channel.id, query]
-				)
-				trackIds = result.rows.map((row) => row.id)
-			} else {
-				const result = await pg.query(
-					'SELECT id FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
-					[channel.id]
-				)
-				trackIds = result.rows.map((row) => row.id)
-			}
+			const query = `%${searchQuery.toLowerCase()}%`
+			const result = await pg.query(
+				`SELECT id FROM tracks
+				 WHERE channel_id = $1
+				   AND (LOWER(title) LIKE $2 OR LOWER(description) LIKE $2 OR LOWER(url) LIKE $2)
+				 ORDER BY created_at DESC`,
+				[channel.id, query]
+			)
+			trackIds = result.rows.map((row) => row.id)
 		} catch (error) {
 			console.error('Failed to load tracks:', error)
 		} finally {

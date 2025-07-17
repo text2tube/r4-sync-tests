@@ -17,13 +17,9 @@ export async function load({parent, params, url}) {
 	/** @type {import('$lib/types').Channel} */
 	let channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
 
-	console.log('channel_page:load', channel, {slug, search, order, dir})
-
 	if (!channel) {
 		try {
 			await pullChannel(slug)
-			channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
-			if (channel && (await needsUpdate(slug))) await pullTracks(slug)
 			channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
 		} catch (err) {
 			console.error('channel_page:load_error', err)
@@ -32,11 +28,15 @@ export async function load({parent, params, url}) {
 
 	if (!channel) error(404, 'Channel not found')
 
+	if (channel && (await needsUpdate(slug))) await pullTracks(slug)
+
+	// console.log('channel_page:load', channel, {slug, search, order, dir})
+
 	return {
 		channel,
 		slug,
 		search,
 		order,
-		dir
+		dir,
 	}
 }
