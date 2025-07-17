@@ -58,7 +58,7 @@
 
 <div class="layout">
 	<header class="row">
-		<a href="/">
+		<a href="/" class:active={page.route.id === '/'}>
 			{#if preloading}
 				R0
 			{:else}

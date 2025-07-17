@@ -21,4 +21,8 @@
 	button {
 		min-width: 2.5rem;
 	}
+
+	:global(a.active) button {
+		border-color: var(--color-accent);
+	}
 </style>
