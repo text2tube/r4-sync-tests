@@ -1,6 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
-	import {setupLiveQuery, setupIncrementalLiveQuery} from '$lib/live-query'
+	import {liveQuery, incrementalLiveQuery} from '$lib/live-query'
 	import Tracklist from './tracklist.svelte'
 
 	/** @typedef {import('$lib/types').AppState} AppState */
@@ -25,7 +25,7 @@
 		}
 
 		const uniqueIds = [...new Set(trackIds)]
-		return setupIncrementalLiveQuery(
+		return incrementalLiveQuery(
 			`SELECT * FROM tracks WHERE id IN (select unnest($1::uuid[]))`,
 			[uniqueIds],
 			'id',
@@ -37,7 +37,7 @@
 	})
 
 	$effect(() => {
-		return setupLiveQuery(
+		return liveQuery(
 			`SELECT t.*, h.started_at, h.ended_at, h.ms_played, h.reason_start, h.reason_end, h.skipped 
 			 FROM play_history h 
 			 JOIN tracks t ON h.track_id = t.id 

@@ -3,7 +3,7 @@
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
 	import {pg} from '$lib/db'
-	import {setupLiveQuery} from '$lib/live-query'
+	import {liveQuery} from '$lib/live-query'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
 	import {relativeDate, relativeDateSolar} from '$lib/utils'
 	import Icon from '$lib/components/icon.svelte'
@@ -33,7 +33,7 @@
 
 		if (!search) {
 			// Use live query for all tracks
-			return setupLiveQuery(
+			return liveQuery(
 				'SELECT id FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
 				[channel.id],
 				(res) => {
@@ -43,7 +43,7 @@
 		} else {
 			// Search tracks within this channel
 			const query = `%${search.toLowerCase()}%`
-			return setupLiveQuery(
+			return liveQuery(
 				`
 				SELECT id FROM tracks
 				WHERE channel_id = $1

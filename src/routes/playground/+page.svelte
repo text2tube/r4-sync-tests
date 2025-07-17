@@ -1,12 +1,12 @@
 <script>
 	import {pg} from '$lib/db'
-	import {setupLiveQuery} from '$lib/live-query'
+	import {liveQuery} from '$lib/live-query'
 
 	let count = $state()
 	const double = $derived(count * 2)
 
 	$effect(() => {
-		return setupLiveQuery(`select counter from app_state where id = 1`, [], (stuff) => {
+		return liveQuery(`select counter from app_state where id = 1`, [], (stuff) => {
 			console.log('app state live query from /playground ran')
 			count = stuff.rows[0].counter
 		})

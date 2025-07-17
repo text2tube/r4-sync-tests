@@ -4,7 +4,7 @@
 	import {sync} from '$lib/sync'
 	import Icon from '$lib/components/icon.svelte'
 	import Channels from '$lib/components/channels.svelte'
-	import {setupLiveQuery} from '$lib/live-query'
+	import {liveQuery} from '$lib/live-query'
 
 	const {data} = $props()
 
@@ -18,7 +18,7 @@
 	let syncing = $state(false)
 
 	$effect(() => {
-		return setupLiveQuery('SELECT COUNT(*) as count FROM channels', [], (result) => {
+		return liveQuery('SELECT COUNT(*) as count FROM channels', [], (result) => {
 			channelCount = result.rows[0]?.count || 0
 		})
 	})
