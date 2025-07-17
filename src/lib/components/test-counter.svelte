@@ -15,4 +15,10 @@
 	}
 </script>
 
-<button onclick={inc}>R{count}</button>
+<button onclick={inc}> R{count}</button>
+
+<style>
+	button {
+		min-width: 2.5rem;
+	}
+</style>

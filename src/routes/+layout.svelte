@@ -65,7 +65,7 @@
 				<TestCounter />
 			{/if}
 		</a>
-		<a href="/search" class="btn" title="cmd/ctrl+k"><Icon icon="search" size={20} /></a>
+		<a href="/search" class="btn" class:active={page.route.id === '/search'} title="cmd/ctrl+k"><Icon icon="search" size={20} /></a>
 		<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
 		<div class="row right">
