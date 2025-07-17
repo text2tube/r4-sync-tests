@@ -1,8 +1,7 @@
 <script>
-	import {pg} from '$lib/db'
 	import {incrementalLiveQuery} from '$lib/live-query'
-	import {subscribeToAppState, playTrack} from '$lib/api'
-	import {formatDate} from '$lib/dates'
+	import {subscribeToAppState} from '$lib/api'
+	import TrackCard from '$lib/components/track-card.svelte'
 
 	/** @typedef {import('$lib/types').Track} Track */
 
@@ -49,38 +48,13 @@
 	})
 </script>
 
-<ul class="list tracks">
-	{#each tracks as item, index (index)}
-		<li
-			class={item.id === appState.playlist_track ? 'current' : ''}
-			ondblclick={() => playTrack(item.id, null, 'user_click')}
-		>
-			<span>{index + 1}.</span>
-			<div class="title">
-				{item.title}
-				<time>
-					<a href={`/${item.channel_slug}/tracks/${item.id}`}>
-						<small>
-							{formatDate(item.created_at)}
-						</small>
-					</a>
-				</time>
-			</div>
-			<div class="description">
-				<small>{item.description}</small>
-			</div>
-			{@render footer?.({track: item})}
-		</li>
-	{/each}
-</ul>
-
-<style>
-	.title {
-		display: flex;
-		justify-content: space-between;
-		padding-right: 0.5rem;
-	}
-	time a {
-		text-decoration: none;
-	}
-</style>
+{#if tracks.length}
+	<ul class="list tracks">
+		{#each tracks as track, index (index)}
+			<li>
+				<TrackCard {track} {index} {appState} />
+				{@render footer?.({track})}
+			</li>
+		{/each}
+	</ul>
+{/if}

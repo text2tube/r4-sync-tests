@@ -15,34 +15,49 @@
 </script>
 
 <article ondblclick={doubleclick} data-busy={channel.busy}>
-	<figure>
-		<a href={`/${channel.slug}`}>
+	<ButtonPlay {channel} class="play-button" />
+	<a href={`/${channel.slug}`}>
+		<figure>
 			<ChannelAvatar id={channel.image} alt={channel.name} />
-		</a>
-	</figure>
-	<ButtonPlay {channel} />
-	<div>
-		<h3>
-			<a href={`/${channel.slug}`}>{channel.name}</a>
-			{#if channel.broadcasting}
-				<span class="live-indicator">🔴 LIVE</span>
-			{/if}
-		</h3>
-		<p>
-			{trimWithEllipsis(channel.description)}
-			{#if channel.track_count}
-				<small>({channel.track_count})</small>
-			{:else}{/if}
-		</p>
-	</div>
+		</figure>
+		<div>
+			<h3>
+				{channel.name}
+				{#if channel.broadcasting}
+					<span class="live-indicator">🔴 LIVE</span>
+				{/if}
+			</h3>
+			<p class="desc">
+				{trimWithEllipsis(channel.description)}
+				{#if channel.track_count}
+					<small>({channel.track_count})</small>
+				{:else}{/if}
+			</p>
+		</div>
+	</a>
 </article>
 
 <style>
+	article > a {
+		text-decoration: none;
+		h3 {
+			text-decoration-line: underline;
+			text-decoration-thickness: 0.1px;
+			text-decoration-color: var(--gray-10);
+			text-underline-offset: max(0.1em, 2px);
+		}
+	}
 	article {
 		position: relative;
 		display: flex;
 		flex-flow: row nowrap;
 		gap: 0.5rem;
+
+		> a {
+			display: flex;
+			flex-flow: column nowrap;
+			gap: 0.5rem;
+		}
 
 		:global(.list) & {
 			display: grid;
@@ -54,22 +69,20 @@
 		:global(.grid) & {
 			display: flex;
 			flex-flow: column nowrap;
-			/* hide channel description in grid view */
-			h3 + p {
-				display: none;
-			}
 		}
 	}
 
 	figure {
 		max-width: 50vw;
 		aspect-ratio: 1/1;
+		background: var(--gray-2);
+		width: 100%;
+		border-radius: var(--border-radius);
 		/* for channels with no image */
 		min-height: 2rem;
-		background: var(--gray-2);
 	}
 
-	article :global(figure + button) {
+	article :global(button) {
 		position: absolute;
 		top: 0.5rem;
 		left: 0.5rem;
@@ -101,6 +114,7 @@
 	h3 + p {
 		color: var(--gray-10);
 		font-size: var(--font-size-regular);
+		/* margin-top: 0.25rem; */
 	}
 
 	.live-indicator {

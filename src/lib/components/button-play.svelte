@@ -3,7 +3,7 @@
 	import Icon from '$lib/components/icon.svelte'
 
 	/** @type {{channel: import('$lib/types').Channel}} */
-	let {channel} = $props()
+	let {channel, ...rest} = $props()
 
 	let loading = $state(false)
 
@@ -14,6 +14,12 @@
 	}
 </script>
 
-<button data-loading={loading} disabled={loading} onclick={play} title={`Play ${channel.name}`}>
+<button
+	data-loading={loading}
+	disabled={loading}
+	onclick={play}
+	title={`Play ${channel.name}`}
+	{...rest}
+>
 	<Icon icon="play-fill" size={32} />
 </button>

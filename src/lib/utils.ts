@@ -51,3 +51,12 @@ export function relativeDateSolar(dateString: string) {
 export function trimWithEllipsis(text?: string, maxLength: number = 267) {
 	return !text || text.length <= maxLength ? text || '' : text.substring(0, maxLength) + '…'
 }
+
+export function parseSearchTokens(query) {
+	const mentions = query.match(/@\w+/g) || []
+	const cleanQuery = query.replace(/@\w+/g, '').trim()
+	return {
+		text: cleanQuery,
+		mentions: mentions.map((m) => m.slice(1)) // remove @
+	}
+}

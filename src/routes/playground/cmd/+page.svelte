@@ -1,7 +1,8 @@
 <script lang="ts">
 	import {focusable_children, trap} from '$lib/focus.ts'
+	//import SearchControls from '$lib/components/search-controls.svelte'
 
-	let container: HTMLElement| null = $state(null)
+	let container: HTMLElement | null = $state(null)
 
 	const mockResults = $state([
 		{id: 1, type: 'channel', title: 'Radio Paradise', slug: 'radio-paradise'},
@@ -14,7 +15,6 @@
 	function handleResultClick(result) {
 		$inspect({result})
 	}
-
 </script>
 
 <div bind:this={container} use:trap>

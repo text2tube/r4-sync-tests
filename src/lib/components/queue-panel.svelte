@@ -2,6 +2,7 @@
 	import {pg} from '$lib/db'
 	import {liveQuery, incrementalLiveQuery} from '$lib/live-query'
 	import Tracklist from './tracklist.svelte'
+	import TrackCard from './track-card.svelte'
 
 	/** @typedef {import('$lib/types').AppState} AppState */
 
@@ -26,7 +27,11 @@
 
 		const uniqueIds = [...new Set(trackIds)]
 		return incrementalLiveQuery(
-			`SELECT * FROM tracks WHERE id IN (select unnest($1::uuid[]))`,
+			`SELECT t.id, t.title, t.description, t.url, t.channel_id, t.created_at, t.updated_at,
+			        c.name as channel_name, c.slug as channel_slug
+			 FROM tracks t
+			 JOIN channels c ON t.channel_id = c.id
+			 WHERE t.id IN (select unnest($1::uuid[]))`,
 			[uniqueIds],
 			'id',
 			(res) => {
@@ -38,9 +43,11 @@
 
 	$effect(() => {
 		return liveQuery(
-			`SELECT t.*, h.started_at, h.ended_at, h.ms_played, h.reason_start, h.reason_end, h.skipped 
+			`SELECT t.*, h.started_at, h.ended_at, h.ms_played, h.reason_start, h.reason_end, h.skipped ,
+			        c.name as channel_name, c.slug as channel_slug
 			 FROM play_history h 
 			 JOIN tracks t ON h.track_id = t.id 
+			 JOIN channels c ON t.channel_id = c.id
 			 ORDER BY h.started_at ASC LIMIT 50`,
 			[],
 			(res) => {
@@ -83,20 +90,17 @@
 		{:else if playHistory.length > 0}
 			<ul class="list tracks">
 				{#each playHistory as entry, index}
-					<li
-						class={entry.id === appState.playlist_track ? 'current' : ''}
-						ondblclick={() => playTrack(entry.id, null, 'user_click')}
-					>
-						<span>{index + 1}.</span>
-						<div class="title">{entry.title}</div>
-						<div class="description">
-							<small>
-								{new Date(entry.started_at).toLocaleTimeString()}
-								{#if entry.reason_start}• {entry.reason_start}{/if}
-								{#if entry.reason_end}→ {entry.reason_end}{/if}
-								{#if entry.ms_played}• {Math.round(entry.ms_played / 1000)}s{/if}
-							</small>
-						</div>
+					<li>
+						<TrackCard track={entry} {index} {appState}>
+							<p class="history">
+								<small>
+									{new Date(entry.started_at).toLocaleTimeString()}
+									{#if entry.reason_start}• {entry.reason_start}{/if}
+									{#if entry.reason_end}→ {entry.reason_end}{/if}
+									{#if entry.ms_played}• {Math.round(entry.ms_played / 1000)}s{/if}
+								</small>
+							</p>
+						</TrackCard>
 					</li>
 				{/each}
 			</ul>
@@ -129,6 +133,10 @@
 		border-bottom: 1px solid var(--gray-5);
 		background: light-dark(var(--gray-2), var(--gray-3));
 		font-size: var(--font-size-regular);
+	}
+
+	p.history {
+		margin: 0 0 0 0.5rem;
 	}
 
 	.view-buttons {
