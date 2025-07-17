@@ -4,6 +4,7 @@
 	import {sync} from '$lib/sync'
 	import Icon from '$lib/components/icon.svelte'
 	import Channels from '$lib/components/channels.svelte'
+	import {liveQuery} from '$lib/live-query'
 
 	const {data} = $props()
 
@@ -16,8 +17,10 @@
 	let channelCount = $state(0)
 	let syncing = $state(false)
 
-	pg.live.query('SELECT COUNT(*) as count FROM channels', [], (result) => {
-		channelCount = result.rows[0]?.count || 0
+	$effect(() => {
+		return liveQuery('SELECT COUNT(*) as count FROM channels', [], (result) => {
+			channelCount = result.rows[0]?.count || 0
+		})
 	})
 
 	async function pullRadios() {

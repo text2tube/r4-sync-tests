@@ -3,6 +3,7 @@
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
 	import {pg} from '$lib/db'
+	import {liveQuery} from '$lib/live-query'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
 	import {relativeDate, relativeDateSolar} from '$lib/utils'
 	import Icon from '$lib/components/icon.svelte'
@@ -21,45 +22,43 @@
 
 	function debouncedSearch() {
 		clearTimeout(debounceTimer)
-		debounceTimer = setTimeout(performSearch, 200)
+		debounceTimer = setTimeout(updateURL, 200)
 	}
 
-	async function performSearch() {
+	// Effect to handle live query for tracks based on search
+	$effect(() => {
 		if (!channel?.id) return
+
 		const search = searchQuery?.trim() || ''
-		try {
-			if (!search) {
-				// Use live query for all tracks
-				pg.live.query(
-					'SELECT id FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
-					[channel.id],
-					(res) => {
-						trackIds = res.rows.map((row) => row.id)
-					}
-				)
-			} else {
-				// Search tracks within this channel
-				const query = `%${search.toLowerCase()}%`
-				pg.live.query(
-					`
-					SELECT id FROM tracks
-					WHERE channel_id = $1
-					  AND (LOWER(title) LIKE $2
-					       OR LOWER(description) LIKE $2
-					       OR LOWER(url) LIKE $2)
-					ORDER BY created_at DESC
-				`,
-					[channel.id, query],
-					(res) => {
-						trackIds = res.rows.map((row) => row.id)
-					}
-				)
-			}
-		} catch (err) {
-			console.error('Error searching tracks:', err)
-			trackIds = []
+
+		if (!search) {
+			// Use live query for all tracks
+			return liveQuery(
+				'SELECT id FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
+				[channel.id],
+				(res) => {
+					trackIds = res.rows.map((row) => row.id)
+				}
+			)
+		} else {
+			// Search tracks within this channel
+			const query = `%${search.toLowerCase()}%`
+			return liveQuery(
+				`
+				SELECT id FROM tracks
+				WHERE channel_id = $1
+				  AND (LOWER(title) LIKE $2
+				       OR LOWER(description) LIKE $2
+				       OR LOWER(url) LIKE $2)
+				ORDER BY created_at DESC
+			`,
+				[channel.id, query],
+				(res) => {
+					trackIds = res.rows.map((row) => row.id)
+				}
+			)
 		}
-	}
+	})
 
 	function handleSubmit(event) {
 		event.preventDefault()
@@ -81,9 +80,7 @@
 		if (urlSearch) {
 			searchQuery = urlSearch
 		}
-		if (channel) {
-			performSearch()
-		}
+		// The effect will handle the search automatically
 	})
 </script>
 

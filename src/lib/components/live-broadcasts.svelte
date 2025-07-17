@@ -12,8 +12,12 @@
 	/** @type {import('$lib/types').BroadcastWithChannel[]} */
 	let activeBroadcasts = $state([])
 
-	$effect(async () => {
-		await setupBroadcastSync()
+	$effect(() => {
+		let subscription = null
+		setupBroadcastSync().then((sub) => {
+			subscription = sub
+		})
+		return () => subscription?.unsubscribe()
 	})
 
 	/**

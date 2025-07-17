@@ -49,9 +49,9 @@ export async function leaveBroadcast() {
 
 /* Watches for changes to app_state.{broadcasting_channel_id,playlist_track},
  * and creates, deletes or updates remote broadcast as needed */
-export function setupBroadcastSync() {
+export async function setupBroadcastSync() {
 	log.log('setup')
-	pg.live.query('SELECT * FROM app_state WHERE id = 1', [], async (res) => {
+	return pg.live.query('SELECT * FROM app_state WHERE id = 1', [], async (res) => {
 		const state = res.rows[0]
 		if (!state) return
 		const {broadcasting_channel_id, playlist_track} = state
