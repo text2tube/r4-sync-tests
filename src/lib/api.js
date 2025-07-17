@@ -68,7 +68,7 @@ export async function playChannel({id, slug}, index = 0) {
 	).rows
 	const ids = tracks.map((t) => t.id)
 	await setPlaylist(ids)
-	await playTrack(tracks[index].id, null, 'play_channel')
+	await playTrack(tracks[index].id, '', 'play_channel')
 }
 
 /** @param {string[]} ids */
@@ -87,7 +87,7 @@ export async function syncPlayBroadcast(broadcast) {
 	}
 
 	try {
-		await playTrack(track_id, null, 'broadcast_sync')
+		await playTrack(track_id, '', 'broadcast_sync')
 	} catch {
 		const {data} = await sdk.supabase
 			.from('channel_track')

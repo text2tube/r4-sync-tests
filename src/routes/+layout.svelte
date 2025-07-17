@@ -65,7 +65,9 @@
 				<TestCounter />
 			{/if}
 		</a>
-		<a href="/search" class="btn" class:active={page.route.id === '/search'} title="cmd/ctrl+k"><Icon icon="search" size={20} /></a>
+		<a href="/search" class="btn" class:active={page.route.id === '/search'} title="cmd/ctrl+k"
+			><Icon icon="search" size={20} /></a
+		>
 		<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
 		<div class="row right">
@@ -111,8 +113,8 @@
 
 	<footer>
 		<label class="playerToggle">
-			<Icon icon="chevron-up" size={24} strokeWidth={2} />
-			<Icon icon="chevron-down" size={24} strokeWidth={2} />
+			<Icon icon="chevron-up" size={24} />
+			<Icon icon="chevron-down" size={24} />
 			<input type="checkbox" name="playerLayout" checked={playerLayoutCheckbox} />
 		</label>
 		{#if !preloading && playerLoaded}
@@ -176,10 +178,6 @@
 		:global(.live-broadcasts) {
 			margin-right: 0.5rem;
 		}
-	}
-
-	main {
-		/* space for fixed, bottom player */
 	}
 
 	@media (max-width: 768px) {

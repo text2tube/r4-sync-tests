@@ -7,7 +7,7 @@ import {pg} from '$lib/db'
  * @param {any[]} params - Query parameters
  * @param {(result: any) => void} callback - Callback for query results
  */
-export function liveQuery(query, params = [], callback) {
+export function liveQuery(query, params, callback) {
 	let cancelled = false
 	let subscription = null
 
@@ -37,7 +37,7 @@ export function liveQuery(query, params = [], callback) {
  * @param {string} key - Key field for incremental updates
  * @param {(result: any) => void} callback - Callback for query results
  */
-export function incrementalLiveQuery(query, params = [], key, callback) {
+export function incrementalLiveQuery(query, params, key, callback) {
 	let cancelled = false
 	let subscription = null
 

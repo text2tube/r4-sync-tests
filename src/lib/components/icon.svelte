@@ -1,7 +1,8 @@
 <script>
 	import * as icons from 'obra-icons-svelte'
 
-	const {children, icon = '', title = '', className = '', ...rest} = $props()
+	/** @type {{icon: string, title?: string, className?: string, size?: number, children?: any}} */
+	const {children, icon = '', title = '', className = '', size, ...rest} = $props()
 
 	function toImportName(str, prefix = 'Icon') {
 		const parts = str.split('-')
@@ -18,7 +19,7 @@
 
 <i class={`icon ${className}`} class:icon {title}>
 	{#if Icon}
-		<Icon {...rest} />
+		<Icon {size} {...rest} />
 	{/if}
 	{#if children}
 		{@render children()}

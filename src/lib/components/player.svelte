@@ -59,7 +59,7 @@
 
 		// If current track exists, put it first in shuffle queue
 		if (track?.id && shuffled.includes(track.id)) {
-			const filtered = shuffled.filter((id) => id !== track.id)
+			const filtered = shuffled.filter((id) => id !== track?.id)
 			return [track.id, ...filtered]
 		}
 		return shuffled
@@ -128,10 +128,10 @@
 
 	function eject() {
 		yt?.pause()
-		image = null
-		title = null
-		slug = null
-		track = null
+		image = ''
+		title = ''
+		slug = ''
+		track = undefined
 		pg.sql`UPDATE app_state SET
 			playlist_tracks = ${[]},
 			playlist_track = null,

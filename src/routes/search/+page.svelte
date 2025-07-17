@@ -241,7 +241,7 @@
 		goto(newUrl, {replaceState: true})
 	}
 
-	// Smart execution - handle different input types
+	/** @param {string} query */
 	function executeCommand(query) {
 		const trimmed = query.trim().toLowerCase()
 
@@ -256,9 +256,9 @@
 			)
 
 			if (command) {
-				if (command.type === 'link') {
+				if (command.type === 'link' && command.target) {
 					goto(command.target)
-				} else if (command.type === 'command') {
+				} else if (command.type === 'command' && command.action) {
 					command.action()
 				}
 				return true
@@ -364,7 +364,7 @@
 				{#each tracks as track, index (track.id)}
 					<li
 						class={track.id === appState.playlist_track ? 'current' : ''}
-						ondblclick={() => playTrack(track.id, null, 'user_click')}
+						ondblclick={() => playTrack(track.id, '', 'user_click')}
 					>
 						<span>{index + 1}.</span>
 						<div class="title">{track.title}</div>

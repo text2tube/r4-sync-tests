@@ -20,7 +20,7 @@ export async function load() {
 			window.r5 = {pg, sdk}
 		} catch (err) {
 			// console.error('Failed to initialize database:', err)
-			log.error('load_error_migrate')
+			log.error('load_error_migrate', err)
 		} finally {
 			preloading = false
 			log.log('load_done')
