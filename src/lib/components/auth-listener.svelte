@@ -1,19 +1,20 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
 	import {pg} from '$lib/db'
+	import {logger} from '$lib/logger'
+	const log = logger.ns('auth').seal()
 
 	$effect(() => {
 		sdk.supabase.auth.onAuthStateChange(change)
 	})
 
 	async function change(detail) {
-		console.log('auth change', detail)
+		log.info('change', detail)
 		if (detail === 'signed out') {
 			try {
 				await pg.sql`update app_state set channels = null where id = 1`
-				console.log('okok')
 			} catch (err) {
-				console.error(err)
+				log.error('change_error', err)
 			}
 		}
 

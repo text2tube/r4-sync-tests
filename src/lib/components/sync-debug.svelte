@@ -2,13 +2,15 @@
 	import {pg} from '$lib/db'
 	import {pullTracks} from '$lib/sync'
 	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
+	import {logger} from '$lib/logger'
+	const log = logger.ns('sync-debug').seal()
 
 	/** @type {import('$lib/types').Channel[]} */
 	let channels = $state([])
 
 	// Live query for channels with track counts
 	$effect(() => {
-		console.log('new sync-debug live query')
+		log.info('create_live_query')
 		let cleanup
 
 		pg.live
@@ -19,7 +21,7 @@
 		`,
 				[],
 				(result) => {
-					console.log('sync-debug query callback', result)
+					log.info('query_result', result)
 					// @ts-expect-error rows are not typed
 					channels = result.rows
 				}

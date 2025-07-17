@@ -25,7 +25,7 @@ export async function load({parent, params, url}) {
 		if (channel && (await needsUpdate(slug))) await pullTracks(slug)
 		channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
 	} catch (err) {
-		console.log(err)
+		console.error('channel_page:load_error', err)
 	}
 
 	return {

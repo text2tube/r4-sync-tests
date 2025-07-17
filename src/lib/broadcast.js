@@ -1,6 +1,9 @@
 import {sdk} from '@radio4000/sdk'
 import {pg} from '$lib/db'
 import {syncPlayBroadcast} from '$lib/api.js'
+import {logger} from '$lib/logger'
+
+const log = logger.ns('broadcast').seal()
 
 /** @type {string|null} */
 let lastBroadcastingChannelId = null
@@ -12,11 +15,12 @@ let broadcastSyncChannel = null
 /** @param {string} channelId */
 export async function startBroadcasting(channelId) {
 	await pg.sql`UPDATE app_state SET broadcasting_channel_id = ${channelId} WHERE id = 1`
-	console.log('started broadcasting', {channelId})
+	log.info('start', {channelId})
 }
 
 export async function stopBroadcasting() {
 	await pg.sql`UPDATE app_state SET broadcasting_channel_id = NULL WHERE id = 1`
+	log.info(':stop')
 }
 
 /** @param {string} channelId */
@@ -29,9 +33,9 @@ export async function joinBroadcast(channelId) {
 			.single()
 		if (error) throw error
 		await syncPlayBroadcast(data)
-		console.log('joined broadcast', {channelId})
+		log.info('broadcast:join', {channelId})
 	} catch (error) {
-		console.log('join broadcast failed', {
+		log.error('broadcast:join_error', {
 			channelId,
 			error: /** @type {Error} */ (error).message
 		})
@@ -40,11 +44,13 @@ export async function joinBroadcast(channelId) {
 
 export async function leaveBroadcast() {
 	await pg.sql`UPDATE app_state SET listening_to_channel_id = NULL WHERE id = 1`
-	console.log('left broadcast')
+	log.log('broadcast:leave')
 }
 
+/* Watches for changes to app_state.{broadcasting_channel_id,playlist_track},
+ * and creates, deletes or updates remote broadcast as needed */
 export function setupBroadcastSync() {
-	console.log('setup broadast sync')
+	log.log('setup')
 	pg.live.query('SELECT * FROM app_state WHERE id = 1', [], async (res) => {
 		const state = res.rows[0]
 		if (!state) return
@@ -80,9 +86,9 @@ async function createRemoteBroadcast(channelId, trackId) {
 			track_played_at: new Date().toISOString()
 		})
 		if (error) throw error
-		console.log('created remote broadcast', {channelId, trackId})
+		log.info('create', {channelId, trackId})
 	} catch (error) {
-		console.warn('failed to create remote broadcast', {
+		log.error('create_error', {
 			channelId,
 			error: /** @type {Error} */ (error).message
 		})
@@ -96,9 +102,9 @@ async function deleteRemoteBroadcast(channelId) {
 	if (!channelId) return
 	try {
 		await sdk.supabase.from('broadcast').delete().eq('channel_id', channelId)
-		console.log('deleted remote broadcast', {channelId})
+		log.info('delete', {channelId})
 	} catch (error) {
-		console.warn('failed deleting remote broadcast', {
+		log.error('delete_error', {
 			channelId,
 			error: /** @type {Error} */ (error).message
 		})
@@ -118,9 +124,9 @@ async function updateRemoteBroadcastTrack(channelId, trackId) {
 				track_played_at: new Date().toISOString()
 			})
 			.eq('channel_id', channelId)
-		console.log('updated remote broadcast track', {channelId, trackId})
+		log.info('update', {channelId, trackId})
 	} catch (error) {
-		console.log('failed updating remote broadcast track', {
+		log.error('update_error', {
 			channelId,
 			trackId,
 			error: /** @type {Error} */ (error).message

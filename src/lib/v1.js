@@ -1,4 +1,6 @@
 import {pg, debugLimit} from '$lib/db'
+import {logger} from '$lib/logger'
+const log = logger.ns('sync').seal()
 
 /**
  * Imports a local export of v1 channels, imports them
@@ -24,14 +26,14 @@ export async function pullV1Channels() {
 					values (${item.created_at}, ${item.updated_at || item.created_at}, ${item.slug}, ${item.name}, ${item.description}, ${item.image}, ${item.firebase_id}) on conflict (slug) do nothing
 					`
 				} catch (err) {
-					console.warn('Failed to insert v1 channel', item.slug, err)
+					log.error('pull_v1_channels_error', item.slug, err)
 				}
 			}
 		})
 	} catch (err) {
-		console.warn('Failed to insert v1 channels', err)
+		log.error('pull_v1_channels_error', err)
 	}
-	console.log('Pulled v1 channels', channels)
+	log.info('pull_v1_channels', channels)
 }
 
 /**
@@ -57,8 +59,6 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 		updated_at: new Date(track.updated || track.created).toISOString()
 	}))
 
-	console.log('pullV1Tracks', tracks)
-
 	await pg.transaction(async (tx) => {
 		const CHUNK_SIZE = 50
 		for (let i = 0; i < tracks.length; i += CHUNK_SIZE) {
@@ -80,7 +80,8 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 		// Mark as successfully synced
 		await tx.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracks.length} where id = ${channelId}`
 	})
-	console.log(`Pulled v1 tracks`, tracks.length)
+
+	log.info('pull_v1_tracks', tracks.length)
 }
 
 /**

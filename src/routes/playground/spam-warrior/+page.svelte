@@ -69,13 +69,10 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 			const spamChannels = rawChannels.filter((ch) => ch.spam === true)
 			const nonSpamChannels = rawChannels.filter((ch) => ch.spam === false)
 			console.log(
-				`Loaded ${rawChannels.length} channels, ${spamChannels.length} marked as spam, ${nonSpamChannels.length} marked as not spam`
+				`spam_warrior:load_channels ${rawChannels.length} channels, ${spamChannels.length} marked as spam, ${nonSpamChannels.length} marked as not spam`
 			)
-			if (spamChannels.length > 0) {
-				console.log('Sample spam channel:', spamChannels[0])
-			}
 		} catch (error) {
-			console.error('Failed to load channels:', error)
+			console.error('spam_warrior:load_channels_error', error)
 		} finally {
 			loading = false
 		}
@@ -139,7 +136,10 @@ DELETE FROM channels WHERE id = '${channel.id}';`
 					// Update the stored track_count for faster future queries
 					await pg.sql`UPDATE channels SET track_count = ${newCount} WHERE id = ${channel.id}`
 				} catch (error) {
-					console.error(`Failed to fetch tracks for ${channel.slug}:`, error)
+					console.error(
+						`batch_fetch_tracks_error: Failed to fetch tracks for ${channel.slug}:`,
+						error
+					)
 				}
 
 				// Small delay to avoid overwhelming the API

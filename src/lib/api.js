@@ -3,6 +3,8 @@ import {needsUpdate, pullTracks, pullChannel} from '$lib/sync'
 import {sdk} from '@radio4000/sdk'
 import {leaveBroadcast} from '$lib/broadcast'
 import {goto} from '$app/navigation'
+import {logger} from '$lib/logger'
+const log = logger.ns('api').seal()
 
 /** @typedef {object} User
  * @prop {string} id
@@ -12,19 +14,19 @@ import {goto} from '$app/navigation'
 export async function checkUser() {
 	try {
 		const {data: user, error} = await sdk.users.readUser()
-		console.log('checkUser', user, error)
+		log.info('check_user', user, error)
 		if (!user) {
 			await pg.sql`update app_state set channels = null`
 		} else {
 			const {data: channels} = await sdk.channels.readUserChannels()
-			console.log('checkUser channels', channels)
+			log.info('check_user', {channels})
 			if (channels) {
 				await pg.sql`update app_state set channels = ${channels.map((/** @type {any} */ c) => c.id)}`
 			}
 			return user
 		}
 	} catch (err) {
-		console.log('check user error', err)
+		log.error('check_user_error', err)
 	}
 }
 
@@ -34,27 +36,23 @@ export async function checkUser() {
  * @param {string} startReason
  */
 export async function playTrack(id, endReason, startReason) {
+	log.info('play_track', {id, endReason, startReason})
+
 	const track = (await pg.sql`SELECT * FROM tracks WHERE id = ${id}`).rows[0]
-	if (!track) throw new Error(`failed to play track: ${id}`)
+	if (!track) throw new Error(`play_track:error Failed to play track: ${id}`)
 
 	// Get current track before we change it
 	const {rows} = await pg.sql`SELECT playlist_track FROM app_state WHERE id = 1`
 	const previousTrackId = rows[0]?.playlist_track
-
-	console.log('playTrack', {id, endReason, startReason})
 
 	const tracks = (
 		await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`
 	).rows
 	const ids = tracks.map((t) => t.id)
 	await setPlaylist(ids)
-
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
 	await pg.sql`UPDATE app_state SET is_playing = true`
-
-	if (endReason || startReason) {
-		await addPlayHistory({nextTrackId: id, previousTrackId, endReason, startReason})
-	}
+	await addPlayHistory({nextTrackId: id, previousTrackId, endReason, startReason})
 }
 
 /**
@@ -62,7 +60,7 @@ export async function playTrack(id, endReason, startReason) {
  * @param {number} index
  */
 export async function playChannel({id, slug}, index = 0) {
-	console.log('playChannel', id, slug)
+	log.info('play_channel', {id, slug})
 	await leaveBroadcast() // actually only needed if we're listening
 	if (await needsUpdate(slug)) await pullTracks(slug)
 	const tracks = (
@@ -84,7 +82,7 @@ export async function syncPlayBroadcast(broadcast) {
 	const playbackPosition = (Date.now() - new Date(track_played_at).getTime()) / 1000
 
 	if (playbackPosition > 600) {
-		console.log('ignoring stale broadcast', {playbackPosition, track_id})
+		log.info('sync_play_broadcast_ignored_stale', {playbackPosition, track_id})
 		return
 	}
 
@@ -101,9 +99,9 @@ export async function syncPlayBroadcast(broadcast) {
 		if (slug) {
 			await pullChannel(slug)
 			await pullTracks(slug)
-			await playTrack(track_id, null, 'broadcast_sync')
+			await playTrack(track_id, '', 'broadcast_sync')
 			await pg.sql`UPDATE app_state SET listening_to_channel_id = ${broadcast.channel_id} WHERE id = 1`
-			console.log('synced to broadcast track change', track_id)
+			log.info('sync_play_broadcast', track_id)
 			return true
 		}
 	}

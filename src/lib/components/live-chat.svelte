@@ -18,7 +18,7 @@
 			})
 			.subscribe((status) => {
 				if (status === 'SUBSCRIBED') {
-					console.log('Connected to chat')
+					console.log('chat:subscribed')
 				}
 			})
 

@@ -1,6 +1,8 @@
 import {pg, debugLimit} from '$lib/db'
 import {sdk} from '@radio4000/sdk'
 import {pullV1Tracks, pullV1Channels} from '$lib/v1'
+import {logger} from '$lib/logger'
+const log = logger.ns('sync').seal()
 
 /**
 	We have a remote PostgreSQL database on Supabase. This is the source of truth.
@@ -47,7 +49,7 @@ export async function pullChannels({limit = debugLimit} = {}) {
       `
 		}
 	})
-	console.log('Pulled channels', channels?.length)
+	log.info('pull_channels', channels?.length)
 }
 
 /**
@@ -59,7 +61,7 @@ export async function pullTracks(slug) {
 		// Get the channel
 		const channel = (await pg.sql`update channels set busy = true where slug = ${slug} returning *`)
 			.rows[0]
-		if (!channel) throw new Error(`Channel not found: ${slug}`)
+		if (!channel) throw new Error(`sync:pull_tracks_error_404: ${slug}`)
 
 		if (channel.firebase_id) return await pullV1Tracks(channel.id, channel.firebase_id, pg)
 		const {data, error} = await sdk.channels.readChannelTracks(slug)
@@ -98,7 +100,7 @@ export async function pullTracks(slug) {
 					await new Promise((resolve) => setTimeout(resolve, 0))
 				}
 			}
-			console.log('Pulled tracks', tracks?.length)
+			log.info('pull_tracks', tracks?.length)
 		})
 		// Mark as successfully synced
 		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracks.length} where slug = ${slug}`
@@ -163,7 +165,7 @@ export async function needsUpdate(slug) {
 		if (firebase_id) {
 			// v1 channels dont need updating because it is in read-only state since before this project
 			// @todo fetch tracks from v1 and pull to local??
-			console.log('v1 channel do we want to fetch tracks?', localLatest)
+			log.info('sync:needs_update channel do we want to fetch tracks for v1 channel?', localLatest)
 			if (!localLatest) return true
 		}
 
@@ -184,7 +186,7 @@ export async function needsUpdate(slug) {
 		const x = remoteMsRemoved - localMsRemoved > toleranceMs
 		return x
 	} catch (error) {
-		console.error('Error checking for updates', error)
+		log.error('needs_update_error', error)
 		return true // On error, suggest update to be safe
 	}
 }
@@ -193,8 +195,8 @@ export async function needsUpdate(slug) {
 export async function sync() {
 	console.time('sync')
 	await Promise.all([
-		pullChannels().catch((err) => console.error('pull channels failed:', err)),
-		pullV1Channels().catch((err) => console.error('pull v1 channels failed:', err))
+		pullChannels().catch((err) => console.error('sync:pull_channels_error', err)),
+		pullV1Channels().catch((err) => console.error('sync:pull_v1_channels_error', err))
 	])
 	console.timeEnd('sync')
 }

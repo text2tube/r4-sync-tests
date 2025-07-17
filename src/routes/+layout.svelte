@@ -17,6 +17,8 @@
 	import Icon from '$lib/components/icon.svelte'
 	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
 	import '@radio4000/components'
+	import {logger} from '$lib/logger'
+	const log = logger.ns('layout').seal()
 
 	const {data, children} = $props()
 
@@ -41,11 +43,11 @@
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
 	$effect(async () => {
 		window.addEventListener('beforeunload', async (event) => {
-			console.log('maybe close pglite?')
+			log.info('beforeunload_closing_db')
 			// event.preventDefault()
-			// await pg.close()
-			await pg.sql`UPDATE app_state SET is_playing = false`
 			await stopBroadcasting()
+			await pg.sql`UPDATE app_state SET is_playing = false`
+			// await pg.close()
 		})
 	})
 </script>

@@ -20,8 +20,6 @@ export async function load({parent, params}) {
 		error(404, 'Track not found')
 	}
 
-	console.log({track})
-
 	// Get channel info
 	const {rows: channelRows} = await pg.query('SELECT * FROM channels WHERE id = $1', [
 		track.channel_id
@@ -33,7 +31,7 @@ export async function load({parent, params}) {
 		error(404, 'Track not found in this channel')
 	}
 
-	console.log({channel})
+	console.log('track_page:load', {track, channel})
 
 	return {
 		track,

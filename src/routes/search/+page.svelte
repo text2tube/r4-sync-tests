@@ -130,7 +130,7 @@
 		const query = `%${tokens.text.toLowerCase()}%`
 		const mention = tokens.mentions[0] // Use first mention for now
 
-		console.log('querying', {query, mention, tokens})
+		console.log('search:perform ', {tokens, query, mention})
 
 		try {
 			// Only search channels by name/description if no mention (since @mention targets specific channel)
@@ -206,9 +206,8 @@
 			channels = channelResults.rows
 			tracks = trackResults.rows
 			channelSummary = channelSummaryResults.rows
-			console.log({channelSummary})
 		} catch (error) {
-			console.error('Search error:', error)
+			console.error('search:error', error)
 		} finally {
 			isLoading = false
 		}

@@ -118,7 +118,7 @@
 			searchMusicBrainz(track.title).then((result) => {
 				if (result) {
 					searchInfo = result
-					console.log('MusicBrainz metadata for:', track.title, result)
+					console.log('track_meta:musicbrainz_result:', track.title, result)
 				} else {
 					error = 'No matches found'
 				}

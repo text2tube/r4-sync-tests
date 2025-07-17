@@ -37,7 +37,6 @@
 	}
 
 	async function logout() {
-		console.log('logout button clicked')
 		await sdk.auth.signOut()
 	}
 </script>

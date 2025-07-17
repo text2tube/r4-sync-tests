@@ -4,6 +4,8 @@
 	import Icon from '$lib/components/icon.svelte'
 	import YoutubePlayer from '$lib/components/youtube-player.svelte'
 	import ChannelAvatar from './channel-avatar.svelte'
+	import {logger} from '$lib/logger'
+	const log = logger.ns('player').seal()
 
 	/** @typedef {import('$lib/types').Channel} Channel */
 	/** @typedef {import('$lib/types').Track} Track */
@@ -96,7 +98,7 @@
 
 	function play() {
 		if (!track) {
-			console.log('Play called without track')
+			log.info('play_no_track')
 			return
 		}
 		yt.play()
@@ -112,15 +114,15 @@
 	function handleError(event) {
 		const code = event.target.error.code
 		if (code === 150) {
-			console.log('YouTube player error 150 -> next()')
+			log.info('youtube_error_150')
 			next('youtube_error')
 		} else {
-			console.warn('Unhandled player error', code)
+			log.warn('Unhandled player error', code)
 		}
 	}
 
 	function handleEndTrack() {
-		console.log('player track_completed')
+		log.info('track_completed')
 		next('track_completed')
 	}
 

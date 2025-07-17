@@ -1,6 +1,9 @@
 import {PGlite} from '@electric-sql/pglite'
 import {live} from '@electric-sql/pglite/live'
 import type {PGliteWithLive} from '@electric-sql/pglite/live'
+import {logger} from '$lib/logger'
+
+const log = logger.ns('db').seal()
 
 import migrationsql from '$lib/migrations/01-create_tables.sql?raw'
 import migration02sql from '$lib/migrations/02-add_queue_panel_visibility.sql?raw'
@@ -46,7 +49,6 @@ async function createPg(): Promise<PGliteWithLive> {
 
 export async function dropDb() {
 	if (!pg) pg = await createPg()
-	console.log('Dropping all tables')
 	// Clear tables
 	await pg.sql`DELETE FROM app_state;`
 	await pg.sql`DELETE FROM tracks;`
@@ -56,7 +58,7 @@ export async function dropDb() {
 	await pg.sql`drop table if exists tracks CASCADE;`
 	await pg.sql`drop table if exists channels CASCADE;`
 	await pg.sql`drop table if exists migrations CASCADE;`
-	console.log('Dropped all tables')
+	log.info('drop_tables')
 }
 
 export async function exportDb() {
@@ -94,7 +96,7 @@ export async function migrateDb() {
 		WHERE table_schema = 'public'
 		AND table_type = 'BASE TABLE'
 	`)
-	console.log('Migrations already applied', {
+	log.info('migrate_applied', {
 		migrations: appliedMigrationNames,
 		tables: tablesResult.rows.map((r) => r.table_name)
 	})
@@ -107,9 +109,9 @@ export async function migrateDb() {
 			try {
 				await pg.exec(migration.sql)
 				await pg.query('insert into migrations (name) values ($1);', [migration.name])
-				console.log(`Applied migration: ${migration.name}`)
+				log.info(`migrate_applied ${migration.name}`)
 			} catch (err) {
-				console.error('Failed migration', err, migration, appliedMigrationNames)
+				log.error('migrate_error', err, migration, appliedMigrationNames)
 				throw err
 			}
 		}

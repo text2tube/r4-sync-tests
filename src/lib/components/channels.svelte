@@ -41,11 +41,10 @@
 
 		pg.live
 			.incrementalQuery('select * from channels order by updated_at desc', [], 'id', (results) => {
-				console.log('overwriting channels')
 				channels = results.rows
 			})
 			.then(({initialResults, unsubscribe}) => {
-				channels = initialResults.rows
+				// channels = initialResults.rows
 				cleanup = unsubscribe
 			})
 
