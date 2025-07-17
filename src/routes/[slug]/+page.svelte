@@ -3,7 +3,6 @@
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
 	import {pg} from '$lib/db'
-	import {liveQuery} from '$lib/live-query'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
 	import {relativeDate, relativeDateSolar} from '$lib/utils'
 	import Icon from '$lib/components/icon.svelte'
@@ -18,47 +17,51 @@
 	/** @type {string[]} */
 	let trackIds = $state([])
 	let searchQuery = $state(data.search || '')
+	let isLoading = $state(false)
 	let debounceTimer = $state()
 
 	function debouncedSearch() {
 		clearTimeout(debounceTimer)
-		debounceTimer = setTimeout(updateURL, 200)
+		debounceTimer = setTimeout(performSearch, 200)
 	}
 
-	// Effect to handle live query for tracks based on search
-	$effect(() => {
+	onMount(() => {
+		const urlSearch = page.url.searchParams.get('search')
+		if (urlSearch) {
+			searchQuery = urlSearch
+		}
+		performSearch()
+	})
+
+	async function performSearch() {
 		if (!channel?.id) return
 
-		const search = searchQuery?.trim() || ''
-
-		if (!search) {
-			// Use live query for all tracks
-			return liveQuery(
-				'SELECT id FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
-				[channel.id],
-				(res) => {
-					trackIds = res.rows.map((row) => row.id)
-				}
-			)
-		} else {
-			// Search tracks within this channel
-			const query = `%${search.toLowerCase()}%`
-			return liveQuery(
-				`
-				SELECT id FROM tracks
-				WHERE channel_id = $1
-				  AND (LOWER(title) LIKE $2
-				       OR LOWER(description) LIKE $2
-				       OR LOWER(url) LIKE $2)
-				ORDER BY created_at DESC
-			`,
-				[channel.id, query],
-				(res) => {
-					trackIds = res.rows.map((row) => row.id)
-				}
-			)
+		isLoading = true
+		try {
+			const search = searchQuery?.trim()
+			if (search) {
+				const query = `%${search.toLowerCase()}%`
+				const result = await pg.query(
+					`SELECT id FROM tracks
+					 WHERE channel_id = $1
+					   AND (LOWER(title) LIKE $2 OR LOWER(description) LIKE $2 OR LOWER(url) LIKE $2)
+					 ORDER BY created_at DESC`,
+					[channel.id, query]
+				)
+				trackIds = result.rows.map((row) => row.id)
+			} else {
+				const result = await pg.query(
+					'SELECT id FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
+					[channel.id]
+				)
+				trackIds = result.rows.map((row) => row.id)
+			}
+		} catch (error) {
+			console.error('Failed to load tracks:', error)
+		} finally {
+			isLoading = false
 		}
-	})
+	}
 
 	function handleSubmit(event) {
 		event.preventDefault()
@@ -67,21 +70,11 @@
 
 	function updateURL() {
 		const params = new URLSearchParams()
-		if (searchQuery.trim()) {
-			params.set('search', searchQuery.trim())
-		}
-		const queryString = params.toString()
-		const newUrl = `/${data.slug}${queryString ? `?${queryString}` : ''}`
-		goto(newUrl, {replaceState: true})
+		const search = searchQuery.trim()
+		if (search) params.set('search', search)
+		const url = `/${data.slug}${params.toString() ? `?${params}` : ''}`
+		goto(url, {replaceState: true})
 	}
-
-	onMount(() => {
-		const urlSearch = page.url.searchParams.get('search')
-		if (urlSearch) {
-			searchQuery = urlSearch
-		}
-		// The effect will handle the search automatically
-	})
 </script>
 
 <header>
