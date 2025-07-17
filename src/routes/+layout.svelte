@@ -23,6 +23,7 @@
 
 	/** @type {import('$lib/types').AppState} */
 	let appState = $state({})
+	const playerLoaded = $derived(appState.playlist_track)
 
 	// true until the database is initialized.
 	const preloading = $derived(data.preloading)
@@ -107,7 +108,7 @@
 			<Icon icon="chevron-down" size={24} strokeWidth={2} />
 			<input type="checkbox" name="playerLayout" checked={playerLayoutCheckbox} />
 		</label>
-		{#if !preloading}
+		{#if !preloading && playerLoaded}
 			<Player {appState} />
 		{/if}
 	</footer>
