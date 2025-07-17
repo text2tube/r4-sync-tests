@@ -8,6 +8,10 @@ export default defineConfig({
 		// https://pglite.dev/docs/bundler-support#vite
 		exclude: ['@electric-sql/pglite']
 	},
-	worker: {format: 'es'},
-	build: {target: 'esnext'}
+	worker: {
+		format: 'es'
+	},
+	build: {
+		target: 'esnext'
+	}
 })
