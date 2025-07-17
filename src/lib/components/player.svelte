@@ -39,7 +39,7 @@
 		const trackChanged = tid && tid !== track?.id
 		if (tid) await setChannelFromTrack(tid)
 		if (trackChanged) autoplay = true
-		if (state.is_playing) isPlaying = true
+		isPlaying = state.is_playing
 	})
 
 	/** @param {string} tid} */
@@ -181,13 +181,13 @@
 			<button onclick={() => previous('user_prev')} title="Go previous track">
 				<Icon icon={'previous-fill'} />
 			</button>
-			{#if !isPlaying}
-				<button class="play" onclick={play}>
-					<Icon icon={'play-fill'} />
-				</button>
-			{:else}
+			{#if isPlaying}
 				<button class="pause" onclick={pause}>
 					<Icon icon={'pause'} />
+				</button>
+			{:else}
+				<button class="play" onclick={play}>
+					<Icon icon={'play'} />
 				</button>
 			{/if}
 			<button onclick={() => next('user_next')} title="Go next track">
