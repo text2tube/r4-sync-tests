@@ -1,5 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
+	import {setupLiveQuery} from '$lib/live-query'
 	import Modal from '$lib/components/modal.svelte'
 	import Icon from '$lib/components/icon.svelte'
 
@@ -13,9 +14,11 @@
 	}
 
 	// Listen to app state updates and update UI.
-	pg.live.query('select * from app_state where id = 1', [], (res) => {
-		const appState = res.rows[0]
-		channelId = appState?.channels ? appState.channels[0] : undefined
+	$effect(() => {
+		return setupLiveQuery('select * from app_state where id = 1', [], (res) => {
+			const appState = res.rows[0]
+			channelId = appState?.channels ? appState.channels[0] : undefined
+		})
 	})
 
 	function submit(event) {

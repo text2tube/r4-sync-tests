@@ -1,5 +1,6 @@
 <script>
 	import {pg} from '$lib/db'
+	import {setupIncrementalLiveQuery} from '$lib/live-query'
 	import {subscribeToAppState, playTrack} from '$lib/api'
 	import {formatDate} from '$lib/dates'
 
@@ -29,7 +30,7 @@
 		}
 
 		// Turn the list of ids into real tracks.
-		pg.live.incrementalQuery(
+		return setupIncrementalLiveQuery(
 			`
 		SELECT t.id, t.title, t.description, t.url, t.channel_id, t.created_at, t.updated_at, c.name as channel_name, c.slug as channel_slug
 		FROM tracks t
