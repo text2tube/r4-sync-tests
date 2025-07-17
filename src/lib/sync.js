@@ -61,7 +61,6 @@ export async function pullTracks(slug) {
 			.rows[0]
 		if (!channel) throw new Error(`Channel not found: ${slug}`)
 
-		// Pull tracks
 		if (channel.firebase_id) return await pullV1Tracks(channel.id, channel.firebase_id, pg)
 		const {data, error} = await sdk.channels.readChannelTracks(slug)
 		if (error) throw error

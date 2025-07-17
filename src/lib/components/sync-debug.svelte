@@ -9,7 +9,9 @@
 	// Live query for channels with track counts
 	$effect(() => {
 		console.log('new sync-debug live query')
-		const liveQuery = pg.live.query(
+		let cleanup
+		
+		pg.live.query(
 			`
 			SELECT * FROM channels
 			ORDER BY name
@@ -20,11 +22,13 @@
 				// @ts-expect-error rows are not typed
 				channels = result.rows
 			}
-		)
+		).then(({initialResults, unsubscribe}) => {
+			// @ts-expect-error rows are not typed
+			channels = initialResults.rows
+			cleanup = unsubscribe
+		})
 
-		return () => {
-			liveQuery.then(({unsubscribe}) => unsubscribe())
-		}
+		return () => cleanup?.()
 	})
 
 	/** * @param {string} id */
@@ -65,7 +69,7 @@
 	</h3>
 
 	{#if channels.length === 0}{:else}
-		<SvelteVirtualList items={channels} itemsClass="list" debug>
+		<SvelteVirtualList items={channels} itemsClass="list">
 			{#snippet renderItem(channel)}
 				<article class="item">
 					<p>

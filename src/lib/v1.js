@@ -11,9 +11,7 @@ export async function pullV1Channels() {
 	// Since we don't want to overwrite any existing local channels with v1 channels,
 	// we filter them out here.
 	const {rows} = await pg.sql`select slug from channels`
-	const channels = items.filter(
-		(item) => !rows.some((r) => r.slug === item.slug) && item.track_count > 3
-	)
+	const channels = items.filter((item) => !rows.some((r) => r.slug === item.slug) && item.track_count > 3)
 
 	try {
 		await pg.transaction(async (tx) => {
@@ -44,6 +42,8 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 	if (!pg) throw new Error('Missing pg')
 
 	const v1Tracks = await readFirebaseChannelTracks(channelFirebaseId)
+
+	/** @type {import('$lib/types').Track[]} */
 	const tracks = v1Tracks.map((track) => ({
 		firebase_id: track.id,
 		channel_id: channelId,
@@ -52,29 +52,33 @@ export async function pullV1Tracks(channelId, channelFirebaseId, pg) {
 		description: track.body || '',
 		discogs_url: track.discogsUrl || '',
 		created_at: new Date(track.created).toISOString(),
-		updated_at: new Date(track.updated || track.created).toISOString()
+		updated_at: new Date(track.updated || track.created).toISOString(),
 	}))
 
-	const {rows: existingTracks} =
-		await pg.sql`select firebase_id from tracks where channel_id = ${channelId}`
-	const newTracks = tracks.filter(
-		(t) => !existingTracks.some((x) => x.firebase_id === t.firebase_id)
-	)
-	for (const item of newTracks) {
-		try {
-			await pg.sql`
-				insert into tracks (firebase_id, channel_id, created_at, updated_at, title, description, url, discogs_url)
-				values (${item.firebase_id}, ${channelId}, ${item.created_at}, ${item.updated_at}, ${item.title}, ${item.description}, ${item.url}, ${item.discogs_url}) on conflict (firebase_id) do nothing;
-			`
-			await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP where id = ${channelId}`
-		} catch (error) {
-			await pg.sql`update channels set busy = false where id = ${channelId}`
-			throw error
-		}
-	}
+	console.log('pullV1Tracks', tracks)
 
-	await pg.sql`update channels set busy = false where id = ${channelId}`
-	console.log(`Pulled v1 tracks (${existingTracks.length} existing skipped)`, newTracks.length)
+	await pg.transaction(async (tx) => {
+		const CHUNK_SIZE = 50
+		for (let i = 0; i < tracks.length; i += CHUNK_SIZE) {
+			const chunk = tracks.slice(i, i + CHUNK_SIZE)
+			const inserts = chunk.map(
+				(item) => tx.sql`
+					insert into tracks (firebase_id, channel_id, created_at, updated_at, title, description, url, discogs_url)
+					values (${item.firebase_id}, ${channelId}, ${item.created_at}, ${item.updated_at}, ${item.title}, ${item.description}, ${item.url}, ${item.discogs_url}) on conflict (firebase_id) do nothing
+				`,
+			)
+			await Promise.all(inserts)
+
+			// Yield to UI thread between chunks
+			if (i + CHUNK_SIZE < tracks.length) {
+				await new Promise((resolve) => setTimeout(resolve, 0))
+			}
+		}
+
+		// Mark as successfully synced
+		await tx.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP where id = ${channelId}`
+	})
+	console.log(`Pulled v1 tracks`, tracks.length)
 }
 
 /**

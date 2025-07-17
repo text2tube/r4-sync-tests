@@ -18,11 +18,14 @@ export async function load({parent, params, url}) {
 	let channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
 
 	try {
+		if (!channel) {
+			await pullChannel(slug)
+			channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
+		}
 		if (channel && (await needsUpdate(slug))) await pullTracks(slug)
-		if (!channel) await pullChannel(slug)
 		channel = (await pg.query('SELECT * FROM channels WHERE slug = $1', [slug])).rows[0]
 	} catch (err) {
-		// console.log(err)
+		console.log(err)
 	}
 
 	return {

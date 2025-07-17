@@ -11,6 +11,9 @@ export interface Channel {
 	track_count?: number
 	busy: boolean
 
+	latitude?: number
+	longitude?: number
+
 	// Link to v1 channel  (locally only channels that did not migrate to v2 will have this field)
 	firebase_id?: string
 
@@ -34,7 +37,7 @@ export type Track = {
 	description?: string
 	discogs_url?: string
 	// custom ones
-	busy: boolean
+	busy?: boolean
 	// sometimes we join and add this to the track
 	channel_slug?: string
 }
