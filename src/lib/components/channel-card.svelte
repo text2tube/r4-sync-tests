@@ -47,6 +47,13 @@
 			text-underline-offset: max(0.1em, 2px);
 		}
 	}
+
+	article > a:focus,
+	article :global(button):focus {
+		outline: 3px solid var(--color-accent);
+		outline-offset: -2px;
+	}
+
 	article {
 		position: relative;
 		display: flex;

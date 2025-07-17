@@ -52,6 +52,11 @@
 		line-height: 1.2;
 		text-decoration: none;
 		cursor: default;
+
+		&:focus {
+			outline: 3px solid var(--color-accent);
+			outline-offset: -2px;
+		}
 	}
 
 	a > span:first-child {

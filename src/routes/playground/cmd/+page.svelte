@@ -1,6 +1,5 @@
 <script lang="ts">
-	import {focusable_children, trap} from '$lib/focus.ts'
-	//import SearchControls from '$lib/components/search-controls.svelte'
+	import {focusable_children, trap} from '$lib/focus'
 
 	let container: HTMLElement | null = $state(null)
 

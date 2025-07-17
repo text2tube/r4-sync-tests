@@ -1,11 +1,11 @@
 <script>
+	import {trap} from '$lib/focus'
 	import {onMount} from 'svelte'
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
 	import {pg} from '$lib/db'
 	import {
 		subscribeToAppState,
-		playTrack,
 		setPlaylist,
 		addToPlaylist,
 		toggleTheme,
@@ -158,77 +158,79 @@
 	<title>Search - Radio4000</title>
 </svelte:head>
 
-<form onsubmit={handleSubmit}>
-	<Icon icon="search" size={20} />
-	<input
-		type="search"
-		list="command-suggestions"
-		placeholder="Search or jump to…"
-		bind:value={searchQuery}
-		oninput={debouncedSearch}
-	/>
-	<datalist id="command-suggestions">
-		{#each commands as command (command.id)}
-			<option value="/{command.id}">/{command.title}</option>
-		{/each}
-		{#each filteredChannels as channel (channel.id)}
-			<option value="@{channel.slug}">@{channel.slug} - {channel.name}</option>
-		{/each}
-	</datalist>
+<div use:trap>
+	<form onsubmit={handleSubmit}>
+		<Icon icon="search" size={20} />
+		<input
+			type="search"
+			list="command-suggestions"
+			placeholder="Search or jump to…"
+			bind:value={searchQuery}
+			oninput={debouncedSearch}
+		/>
+		<datalist id="command-suggestions">
+			{#each commands as command (command.id)}
+				<option value="/{command.id}">/{command.title}</option>
+			{/each}
+			{#each filteredChannels as channel (channel.id)}
+				<option value="@{channel.slug}">@{channel.slug} - {channel.name}</option>
+			{/each}
+		</datalist>
 
-	<menu>
-		<button type="button" onclick={() => setPlaylist(tracks.map((t) => t.id))}>Play all</button>
-		<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}
-			>Add to queue</button
-		>
-	</menu>
-</form>
+		<menu>
+			<button type="button" onclick={() => setPlaylist(tracks.map((t) => t.id))}>Play all</button>
+			<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}
+				>Add to queue</button
+			>
+		</menu>
+	</form>
 
-{#if isLoading}
-	<p>Searching...</p>
-{/if}
-
-{#if searchQuery && !isLoading}
-	<p><small>Found {channels.length} channels and {tracks.length} tracks</small></p>
-
-	{#if channels.length === 0 && tracks.length === 0}
-		<p>No results found for "{searchQuery}"</p>
+	{#if isLoading}
+		<p>Searching...</p>
 	{/if}
 
-	{#if channels.length > 0}
-		<section>
-			<h2>{channels.length} Channels</h2>
-			<ul class="grid">
-				{#each channels as channel (channel.id)}
-					<li>
-						<ChannelCard {channel} />
-					</li>
-				{/each}
-			</ul>
-		</section>
-	{/if}
+	{#if searchQuery && !isLoading}
+		<p><small>Found {channels.length} channels and {tracks.length} tracks</small></p>
 
-	{#if tracks.length > 0}
-		<section>
-			<h2>Tracks ({tracks.length})</h2>
+		{#if channels.length === 0 && tracks.length === 0}
+			<p>No results found for "{searchQuery}"</p>
+		{/if}
 
-			<ul class="list">
-				{#each tracks as track, index (track.id)}
-					<li>
-						<TrackCard {track} {index} {appState} />
-					</li>
-				{/each}
-			</ul>
-		</section>
+		{#if channels.length > 0}
+			<section>
+				<h2>{channels.length} Channels</h2>
+				<ul class="grid">
+					{#each channels as channel (channel.id)}
+						<li>
+							<ChannelCard {channel} />
+						</li>
+					{/each}
+				</ul>
+			</section>
+		{/if}
+
+		{#if tracks.length > 0}
+			<section>
+				<h2>Tracks ({tracks.length})</h2>
+
+				<ul class="list">
+					{#each tracks as track, index (track.id)}
+						<li>
+							<TrackCard {track} {index} {appState} />
+						</li>
+					{/each}
+				</ul>
+			</section>
+		{/if}
+	{:else}
+		<p>
+			TIP:
+			<br /> press cmd/ctrl+k to come here.
+			<br /> <code>@</code> to search channels
+			<br /><code>/</code> for commands
+		</p>
 	{/if}
-{:else}
-	<p>
-		TIP:
-		<br /> press cmd/ctrl+k to come here.
-		<br /> <code>@</code> to search channels
-		<br /><code>/</code> for commands
-	</p>
-{/if}
+</div>
 
 <style>
 	form {
