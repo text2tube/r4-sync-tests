@@ -139,7 +139,7 @@
 			map.setView([latitude, longitude], zoom)
 		} else if (activeMarker) {
 			map.setView([activeMarker.latitude, activeMarker.longitude], zoom)
-		} else if (validMarkers.length > 1 && !zoom) {
+		} else if (validMarkers.length > 1 || !zoom) {
 			map.fitBounds(markerGroup.getBounds().pad(0.2))
 		}
 	})
@@ -161,6 +161,7 @@
 			brightness(0.7);
 		width: 100%;
 		height: 100%;
+		background-color: transparent;
 		:global(.leaflet-container) {
 		}
 		:global(.leaflet-popup-content a) {
