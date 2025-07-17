@@ -96,6 +96,7 @@
 	</form>
 </header>
 
+{#if channel}
 <article>
 	<header>
 		<ChannelAvatar id={channel.image} alt={channel.name} />
@@ -136,6 +137,9 @@
 		{/if}
 	</section>
 </article>
+{:else}
+	<p>No channel</p>
+{/if}
 
 <style>
 	header {
