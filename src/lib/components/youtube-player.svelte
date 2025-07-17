@@ -33,7 +33,7 @@
 		{onerror}
 		onvolumechange={check}
 	></youtube-video>
-	<media-loading-indicator slot="centered-chrome" noautohide></media-loading-indicator>
+	<media-loading-indicator slot="centered-chrome"></media-loading-indicator>
 </media-controller>
 
 <style>
