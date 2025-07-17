@@ -18,6 +18,7 @@
 	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
 	import '@radio4000/components'
 	import {logger} from '$lib/logger'
+	import {page} from '$app/state'
 	const log = logger.ns('layout').seal()
 
 	const {data, children} = $props()
@@ -74,13 +75,13 @@
 				<AddTrackModal />
 			{/if}
 			{#if appState}
-				<button onclick={toggleQueuePanel} class="btn">
+				<button onclick={toggleQueuePanel} class="btn" class:active={appState.queue_panel_visible}>
 					<Icon icon="sidebar-fill-right" size={20} />
 				</button>
 				<!-- <button onclick={toggleChatPanel}>Chat</button> -->
 				<ThemeToggle />
 			{/if}
-			<a href="/settings" class="btn">
+			<a href="/settings" class="btn" class:active={page.route.id === '/settings'}>
 				<Icon icon="settings" size={20} />
 			</a>
 		</div>

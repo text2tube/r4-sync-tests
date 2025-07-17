@@ -100,7 +100,7 @@ export async function pullTracks(slug) {
 					await new Promise((resolve) => setTimeout(resolve, 0))
 				}
 			}
-			log.info('pull_tracks', tracks?.length)
+			log.info('pull_tracks', channel.slug, tracks?.length)
 		})
 		// Mark as successfully synced
 		await pg.sql`update channels set busy = false, tracks_synced_at = CURRENT_TIMESTAMP, track_count = ${tracks.length} where slug = ${slug}`
