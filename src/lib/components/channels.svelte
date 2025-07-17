@@ -65,7 +65,7 @@
 	}
 </script>
 
-<div class="layout">
+<div class={`layout layout--${display}`}>
 	<menu>
 		<label>
 			Only images
@@ -114,6 +114,11 @@
 <style>
 	.layout {
 		position: relative;
+		&.layout--map {
+			display: flex;
+			flex-direction: column;
+			flex-grow: 1;
+		}
 	}
 	menu {
 		position: sticky;

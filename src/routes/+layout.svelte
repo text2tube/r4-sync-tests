@@ -139,6 +139,12 @@
 		grid-template-columns: 1fr minmax(400px, 25vw);
 	}
 
+	.scroll {
+		display: flex;
+		flex-direction: column;
+		flex-grow: 1;
+	}
+
 	.layout {
 		header,
 		footer {
