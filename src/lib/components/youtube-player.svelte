@@ -3,6 +3,8 @@
 	import 'youtube-video-element'
 	// import '$lib/youtube-video-element-custom.js'
 	import {pg} from '$lib/db'
+	import {logger} from '$lib/logger'
+	const log = logger.ns('youtube_player').seal()
 
 	// https://www.media-chrome.org/docs/en/get-started
 	// https://www.media-chrome.org/docs/en/media-elements/youtube-video
@@ -27,8 +29,8 @@
 		muted
 		{autoplay}
 		playsinline={1}
-		onplay={() => console.log('play')}
-		onpause={() => console.log('pause')}
+		onplay={() => log.info('play')}
+		onpause={() => log.info('pause')}
 		{onended}
 		{onerror}
 		onvolumechange={check}

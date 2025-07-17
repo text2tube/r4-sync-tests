@@ -101,10 +101,12 @@
 			{/each}
 		</div>
 		<footer>
+			{#if filteredChannels?.length > 0}
 			<p>
 				Showing {limit} channels.
 				<button onclick={() => (limit = limit + perPage)}>Load {perPage} more</button>
 			</p>
+			{/if}
 		</footer>
 	{/if}
 </div>
