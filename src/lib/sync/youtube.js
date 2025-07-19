@@ -2,21 +2,44 @@ import {pg} from '$lib/db'
 import {batcher} from '$lib/batcher'
 
 /**
- * Pulls track metadata (duration, etc.) from YouTube API
- * Updates the local track_meta table with duration and youtube_data
+ * Pulls track metadata from YouTube API for all tracks in a channel
  * @param {string} channelId */
-export async function pullTrackYouTubeMeta(channelId) {
-	// Find tracks in a channel without youtube_data
+export async function pullTrackMetaYouTubeFromChannel(channelId) {
+	// Find tracks in channel that need YouTube metadata
 	const tracksNeedingUpdate = (
 		await pg.sql`
-			SELECT id, url, ytid(url) as ytid
+			SELECT ytid(url) as ytid
 			FROM tracks_with_meta 
 			WHERE channel_id = ${channelId} 
 			AND youtube_data IS NULL
 	`
 	).rows
+
 	if (tracksNeedingUpdate.length === 0) return {updated: 0, total: 0}
-	console.log('pull_track_durations', {channelId, total: tracksNeedingUpdate.length})
+
+	console.log('pulling yt meta for tracks in channel', {
+		channelId,
+		total: tracksNeedingUpdate.length
+	})
+
+	const ytids = tracksNeedingUpdate.map((t) => t.ytid)
+	return pullTrackMetaYouTube(ytids)
+}
+
+/**
+ * Pulls track metadata from YouTube API for specific ytids
+ * @param {string[]} ytids */
+export async function pullTrackMetaYouTube(ytids) {
+	const tracksNeedingUpdate = (
+		await pg.sql`
+			SELECT id, url, ytid(url) as ytid
+			FROM tracks_with_meta 
+			WHERE ytid(url) = ANY(${ytids})
+			AND youtube_data IS NULL
+	`
+	).rows
+
+	if (tracksNeedingUpdate.length === 0) return {updated: 0, total: 0}
 
 	// Batch fetch YouTube metadata
 	const results = await batcher(
@@ -67,7 +90,7 @@ export async function pullTrackYouTubeMeta(channelId) {
 	console.log(
 		`pull_track_durations:complete ${totalUpdated}/${tracksNeedingUpdate.length} videos processed`,
 		{
-			channelId
+			ytids
 		}
 	)
 	return {updated: totalUpdated, total: tracksNeedingUpdate.length}

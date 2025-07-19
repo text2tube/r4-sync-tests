@@ -1,5 +1,76 @@
 import {pg} from '$lib/db'
 
+/**
+ * @param {string} ytid
+ * @param {string} title
+ */
+export async function pullMusicBrainz(ytid, title) {
+	if (!ytid || !title) return null
+
+	const musicbrainzData = await searchMusicBrainz(title)
+	if (!musicbrainzData) return null
+
+	try {
+		await pg.sql`
+			INSERT INTO track_meta (ytid, musicbrainz_data, musicbrainz_updated_at, updated_at)
+			VALUES (${ytid}, ${JSON.stringify(musicbrainzData)}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+			ON CONFLICT (ytid) DO UPDATE SET
+				musicbrainz_data = EXCLUDED.musicbrainz_data,
+				musicbrainz_updated_at = EXCLUDED.musicbrainz_updated_at,
+				updated_at = EXCLUDED.updated_at
+		`
+		console.log('pull_musicbrainz:updated', musicbrainzData)
+		return musicbrainzData
+	} catch (error) {
+		console.error('pull_musicbrainz:error', {ytid, error})
+		return null
+	}
+}
+
+function cleanTitle(title) {
+	return (
+		title
+			// Remove everything after // or similar separators (album info, etc.)
+			.replace(/\s*(\/\/|\\\\|\|\||--)\s*.+$/, '')
+			// Remove parenthetical info at end
+			.replace(/\s*\([^)]+\)$/, '')
+			// Remove bracketed info at end
+			.replace(/\s*\[[^\]]+\]$/, '')
+			// Remove feat/featuring info
+			.replace(/\s*(feat\.?|ft\.?|featuring|with)\s+.+$/i, '')
+			// Remove remix/edit info
+			.replace(/\s*(remix|edit|version|mix|dub)\s*.+$/i, '')
+			.trim()
+	)
+}
+
+function parseTrackTitle(title) {
+	const cleanedTitle = cleanTitle(title)
+
+	// Try different separators
+	const separators = [' - ', ' – ', ': ', ' | ', ' by ']
+
+	for (const sep of separators) {
+		const parts = cleanedTitle.split(sep)
+		if (parts.length === 2) {
+			return {
+				artist: parts[0].trim(),
+				title: parts[1].trim(),
+				cleaned: cleanedTitle
+			}
+		}
+	}
+
+	return {
+		artist: null,
+		title: cleanedTitle,
+		cleaned: cleanedTitle
+	}
+}
+
+/** Searches MusicBrainz for a track
+ * Tries to be smart with the title parsing
+ */
 export async function searchMusicBrainz(title) {
 	if (!title) return null
 
@@ -60,45 +131,4 @@ export async function searchMusicBrainz(title) {
 	}
 
 	return null
-}
-
-function cleanTitle(title) {
-	return (
-		title
-			// Remove everything after // or similar separators (album info, etc.)
-			.replace(/\s*(\/\/|\\\\|\|\||--)\s*.+$/, '')
-			// Remove parenthetical info at end
-			.replace(/\s*\([^)]+\)$/, '')
-			// Remove bracketed info at end
-			.replace(/\s*\[[^\]]+\]$/, '')
-			// Remove feat/featuring info
-			.replace(/\s*(feat\.?|ft\.?|featuring|with)\s+.+$/i, '')
-			// Remove remix/edit info
-			.replace(/\s*(remix|edit|version|mix|dub)\s*.+$/i, '')
-			.trim()
-	)
-}
-
-function parseTrackTitle(title) {
-	const cleanedTitle = cleanTitle(title)
-
-	// Try different separators
-	const separators = [' - ', ' – ', ': ', ' | ', ' by ']
-
-	for (const sep of separators) {
-		const parts = cleanedTitle.split(sep)
-		if (parts.length === 2) {
-			return {
-				artist: parts[0].trim(),
-				title: parts[1].trim(),
-				cleaned: cleanedTitle
-			}
-		}
-	}
-
-	return {
-		artist: null,
-		title: cleanedTitle,
-		cleaned: cleanedTitle
-	}
 }
