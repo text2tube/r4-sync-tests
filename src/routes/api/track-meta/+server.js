@@ -1,5 +1,5 @@
 import {json, error} from '@sveltejs/kit'
-import { YOUTUBE_API_KEY } from '$env/static/private';
+import {YOUTUBE_API_KEY} from '$env/static/private'
 import {Duration} from 'luxon'
 
 // Assuming you have httpie installed in the CLI:

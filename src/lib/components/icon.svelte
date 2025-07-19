@@ -19,7 +19,7 @@
 			Icon = null
 			return
 		}
-		
+
 		try {
 			const module = await import('obra-icons-svelte')
 			Icon = module[iconName]

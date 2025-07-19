@@ -55,13 +55,13 @@ export async function pullTrackMetaYouTube(ytids) {
 			const response = await fetch('/api/track-meta', {
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify({ids: [track.ytid]}),
+				body: JSON.stringify({ids: [track.ytid]})
 			})
 			if (!response.ok) throw new Error(`API error: ${response.status}`)
 			const videos = await response.json()
 			return videos[0]
 		},
-		{size: 50},
+		{size: 50}
 	)
 
 	let totalUpdated = 0
