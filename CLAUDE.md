@@ -17,24 +17,28 @@ SvelteKit + Svelte 5 runes, PGlite (client-side postgres), @radio4000/sdk, jsdoc
 /src/lib/migrations/   -- sql migration files
 /src/lib/api.js        -- reusable data operations
 /src/lib/sync.js       -- local/remote data synchronization
-/docs 				   -- more documentation
+/src/lib/live-query.js -- local, reactive db queries
+/src/lib/utils.js      -- the odd reusable function
+/docs 				   -- feature design docs
 ```
 
 ## Database and state
 
 The app works with two databases:
 
-1 .the local PostgreSQL in the browser, client-side only via `import pg from $lib/db`. 2. the remote PostgreSQL in the Supabase cloud via @radio4000/sdk. You can access supabase directly via `sdk.supabase`.
+1. Local PostgreSQL (client-side, PGlite) via `import {pg} from $lib/db` - primary interface, allows reads/writes
+2. Remote PostgreSQL (radio4000/Supabase) via @radio4000/sdk - public reads, authenticated writes, no auto-sync
 
-- Database is state. All app state lives in local `app_state` table. Minimal component state, no stores.
+- Database is state. All application state (UI state, user preferences, everything) lives in the local `app_state` table. No component state, no stores - everything persisted and unified.
 - Avoid component-level state for app data
 - Live queries propagate changes to UI automatically
 - Avoid server-side code, prefer client side for loading data as well
 
 The local schema can be updated at any time, be generous with migrations:
 
-1. Update existing mgirations or create a new one in `/src/lib/migrations/`
-2. Add to list in `db.ts`
+1. During prototype phase: update existing migrations in `/src/lib/migrations/`
+2. Once in production: create new migrations only
+3. Add to list in `db.ts`
 
 ```sql
 app_state    -- single row with id 1, all application state
@@ -42,25 +46,25 @@ channels     -- radio stations (id, name, slug, description, image)
 tracks       -- music tracks (id, channel_id, url, title, tags, mentions)
 ```
 
+Use $lib/types.ts to define them and reuse across the codebase.
+
 ## Debugging
 
 - `window.r5.pg` - direct database access
 - `window.r5.sdk` - radio4000 api client
 - inspect `app_state` table in devtools for current state
 
-### Player Operations
-
-The player.svelte watches app_state for changes.
-
-- Modify `playlist_tracks` array for queue changes
-- Set `playlist_track` for current track
+You can ask me to run SQL queries on the local db for you with this snippet: 
+	(await window.r5.pg.sql`select * from tracks limit 2`).rows
 
 ### Using pglite
 
 ```js
-pg.query(query, params, callback) // one-off query
-pg.exec(query, params, callback) // good for multiple queries, migrations
-pg.live.query(query, params, callback) // reactive ui
+pg.query(query, params, callback) 
+pg.exec(query, params, callback) 
+pg.live.query(query, params, callback)  (prefered for smaller results, narrow rows)
+pg.live.incrementalQuery(query, params, key, callback)  (It materialises the full result set on each update from only the changes emitted by the live.changes API. Good for large result sets and wide rows.)
+pg.live.changes() a lower level API that emits the changes (insert/update/delete) that can then be mapped to mutations in a UI or other datastore.
 ```
 
 ## API
@@ -76,16 +80,6 @@ $effect(() => {
 	items.push({hidden: false})
 })
 ```
-
-## Domain separation
-
-Library has channels and tracks (like albums + songs)
-Player has playlist_tracks (queue) and playlist_track (now playing)
-
-in other words:
-
-Library → Playlist → Player flow
-playChannel() → setPlaylist() + playTrack()
 
 ## HTML/CSS
 
@@ -108,10 +102,10 @@ playChannel() → setPlaylist() + playTrack()
 - Use literal objects directly, avoid helper functions for basic object creation
 - Meaningful methods: Methods should do something meaningful beyond simple delegation
 - Use domain-specific verbs that match user mental models
-- Single responsibility no complex availability checking
+- Pure functions for composability in api/utils/data operations
 - Optimistic execution - trust in methods, let errors throw
-- Less defensive
 
 ## Debug Tricks
 
-Ask me to perform queries for you, if it helps: `(await window.r5.pg.sql`select \* from app_state where id = 1`).rows[0]`
+Ask me to perform queries for you, if it helps: 
+	(await window.r5.pg.sql`select * from app_state where id = 1`).rows[0]
