@@ -187,13 +187,13 @@ export function closePlayerOverlay() {
 }
 
 export function openSearch() {
-	goto('/search').then(() => {
-		// Focus the search input after navigation
-		setTimeout(() => {
-			const searchInput = document.querySelector('input[type="search"]')
-			if (searchInput instanceof HTMLInputElement) searchInput.focus()
-		}, 0)
-	})
+	//goto('/search').then(() => {
+	// Focus the search input after navigation
+	setTimeout(() => {
+		const searchInput = document.querySelector('header input[type="search"]')
+		if (searchInput instanceof HTMLInputElement) searchInput.focus()
+	}, 0)
+	//})
 }
 
 export function togglePlayPause() {

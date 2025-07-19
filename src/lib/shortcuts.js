@@ -9,6 +9,7 @@ const log = logger.ns('shortcuts').seal()
 export const DEFAULT_KEY_BINDINGS = {
 	Escape: 'closePlayerOverlay',
 	'$mod+k': 'openSearch',
+	'/': 'openSearch',
 	k: 'togglePlayPause',
 	j: 'toggleQueuePanel'
 }

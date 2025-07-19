@@ -38,6 +38,12 @@ button:hover,
 	background: var(--gray-4);
 }
 
+button:focus,
+.btn:focus {
+	outline: 3px solid var(--color-accent);
+	outline-offset: -2px;
+}
+
 button:disabled,
 .btn:disabled {
 	background: var(--gray-1);

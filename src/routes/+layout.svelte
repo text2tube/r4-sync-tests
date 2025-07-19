@@ -15,7 +15,9 @@
 	import DraggablePanel from '$lib/components/draggable-panel.svelte'
 	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte'
 	import Icon from '$lib/components/icon.svelte'
+	import HeaderSearch from '$lib/components/header-search.svelte'
 	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
+	import {goto} from '$app/navigation'
 	import '@radio4000/components'
 	import {logger} from '$lib/logger'
 	import {page} from '$app/state'
@@ -65,9 +67,7 @@
 				<TestCounter />
 			{/if}
 		</a>
-		<a href="/search" class="btn" class:active={page.route.id === '/search'} title="cmd/ctrl+k"
-			><Icon icon="search" size={20} /></a
-		>
+		<HeaderSearch />
 		<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
 		<div class="row right">
