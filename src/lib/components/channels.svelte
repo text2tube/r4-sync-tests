@@ -9,7 +9,7 @@
 
 	/** @type {'list' | 'grid' | 'map'}*/
 	let display = $state(initialDisplay || 'list')
-	let limit = $state(5)
+	let limit = $state(15)
 	let perPage = $state(100)
 	let onlyChannelsWithImages = $state(false)
 	/** @type {import('$lib/types').Channel[]}*/
@@ -40,7 +40,7 @@
 		let cleanup
 
 		pg.live
-			.incrementalQuery('select * from channels order by updated_at desc', [], 'id', (results) => {
+			.incrementalQuery('select * from channels order by created_at asc', [], 'id', (results) => {
 				channels = results.rows
 			})
 			.then(({initialResults, unsubscribe}) => {

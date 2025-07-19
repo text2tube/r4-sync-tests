@@ -212,11 +212,4 @@
 		font-size: var(--font-size-regular);
 		margin: 0.5rem;
 	}
-
-	section menu {
-		display: flex;
-		gap: 0.5rem;
-		margin: 0;
-		padding: 0;
-	}
 </style>

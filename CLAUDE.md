@@ -54,14 +54,14 @@ Use $lib/types.ts to define them and reuse across the codebase.
 - `window.r5.sdk` - radio4000 api client
 - inspect `app_state` table in devtools for current state
 
-You can ask me to run SQL queries on the local db for you with this snippet: 
-	(await window.r5.pg.sql`select * from tracks limit 2`).rows
+You can ask me to run SQL queries on the local db for you with this snippet:
+(await window.r5.pg.sql`select * from tracks limit 2`).rows
 
 ### Using pglite
 
 ```js
-pg.query(query, params, callback) 
-pg.exec(query, params, callback) 
+pg.query(query, params, callback)
+pg.exec(query, params, callback)
 pg.live.query(query, params, callback)  (prefered for smaller results, narrow rows)
 pg.live.incrementalQuery(query, params, key, callback)  (It materialises the full result set on each update from only the changes emitted by the live.changes API. Good for large result sets and wide rows.)
 pg.live.changes() a lower level API that emits the changes (insert/update/delete) that can then be mapped to mutations in a UI or other datastore.
@@ -107,5 +107,5 @@ $effect(() => {
 
 ## Debug Tricks
 
-Ask me to perform queries for you, if it helps: 
-	(await window.r5.pg.sql`select * from app_state where id = 1`).rows[0]
+Ask me to perform queries for you, if it helps:
+(await window.r5.pg.sql`select * from app_state where id = 1`).rows[0]

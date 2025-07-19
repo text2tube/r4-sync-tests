@@ -10,7 +10,7 @@
 		appState,
 		showImage = true,
 		children
-	}: {track: Track; index: number; appState: AppState; showImage: boolean, children: any} = $props()
+	}: {track: Track; index: number; appState: AppState; showImage: boolean; children: any} = $props()
 
 	const permalink = $derived(`/${track.channel_slug}/tracks/${track.id}`)
 	const active = $derived(track.id === appState.playlist_track)
@@ -31,7 +31,7 @@
 <article class:active>
 	<a href={permalink} onclick={click} ondblclick={doubleClick}>
 		<span>{index + 1}.</span>
-		{#if ytid && showImage}<img loading="lazy" src={imageSrc} alt={track.title}>{/if}
+		{#if ytid && showImage}<img loading="lazy" src={imageSrc} alt={track.title} />{/if}
 		<div>
 			<h3 class="title">{track.title}</h3>
 			<div class="description">
@@ -62,7 +62,6 @@
 			outline-offset: -2px;
 		}
 	}
-
 
 	a > span:first-child {
 		width: 2rem;

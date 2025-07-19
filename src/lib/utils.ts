@@ -61,10 +61,9 @@ export function parseSearchTokens(query) {
 	}
 }
 
-
 export function extractYouTubeId(url) {
 	const patterns = [
-		/(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\/?\?(?:\S*?&?v=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/,
+		/(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\/?\?(?:\S*?&?v=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/
 	]
 	for (const pattern of patterns) {
 		const match = url.match(pattern)
@@ -72,4 +71,3 @@ export function extractYouTubeId(url) {
 	}
 	return null
 }
-
