@@ -11,6 +11,7 @@
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
+	import {pullMusicBrainz} from '$lib/sync/musicbrainz.js'
 
 	let {data} = $props()
 
@@ -136,7 +137,7 @@
 			<button onclick={() => setPlaylist(trackIds)}>Play All</button>
 			<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
 			<button onclick={updateDurations} disabled={updatingDurations}>
-				{updatingDurations ? '⏳' : '⏱️'} Update durations
+				{updatingDurations ? '⏳' : '⏱️'} &darr; Pull durations
 			</button>
 		</menu>
 	</form>
@@ -194,12 +195,13 @@
 	header:has(form) {
 		position: sticky;
 		top: 0.5rem;
-		margin: 0 0.5rem;
+		margin: 0.5rem;
 	}
 
 	form {
 		display: flex;
-		gap: 1rem;
+		flex-flow: row wrap;
+		gap: 0.2rem 1rem;
 		margin-bottom: 1rem;
 		align-items: center;
 	}
@@ -210,26 +212,30 @@
 	}
 
 	article header :global(img) {
-		margin: 1rem 1rem 0.5rem 0.5rem;
-		max-width: calc(100vw - 2rem);
 		border-radius: var(--border-radius);
-		float: left;
+		margin: 1rem 1rem 0rem 1.5rem;
+		max-width: 60%;
 
 		@media (min-width: 600px) {
+			max-width: calc(100vw - 2rem);
+			float: left;
 			max-width: 13rem;
 		}
 	}
 
 	h1,
-	h1 + p {
-		margin: 0 1rem;
-		font-size: var(--font-size-title2);
-		line-height: 1.3;
-		max-width: 60ch;
+	h1 ~ p {
+		margin: 0 1.5rem;
 	}
 
 	h1 {
 		padding-top: 1rem;
+	}
+
+	h1 + p {
+		font-size: var(--font-size-title3);
+		line-height: 1.3;
+		max-width: 60ch;
 	}
 
 	section {
@@ -242,6 +248,7 @@
 		align-items: center;
 		margin-right: 0.5rem;
 		border-bottom: 1px solid var(--gray-5);
+		margin-bottom: 0;
 	}
 
 	section h2 {

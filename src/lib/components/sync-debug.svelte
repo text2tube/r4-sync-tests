@@ -94,7 +94,7 @@
 							onclick={() => updateDurations(channel.id)}
 							disabled={channel.busy || !channel.tracks_synced_at}
 						>
-							{channel.busy ? '⏳' : '⏱️'} Update durations
+							{channel.busy ? '⏳' : '⏱️'} &darr; Pull durations
 						</button>
 						<button onclick={() => deleteTracks(channel.id)} disabled={!channel.tracks_synced_at}>
 							&times; Delete tracks

@@ -57,7 +57,6 @@
 	a {
 		display: flex;
 		flex-flow: row nowrap;
-		/*grid-template-columns: 2rem 1fr auto;*/
 		gap: 0 0.5rem;
 		padding: 0.6rem 0.5rem 0.5rem 0.25rem;
 		line-height: 1.2;
@@ -72,16 +71,15 @@
 
 	a > span:first-child {
 		width: 2rem;
-		grid-row: span 2;
+		flex-shrink: 0;
 		color: var(--gray-6);
 		font-size: var(--font-size-micro);
 		text-indent: 0.2em;
 	}
 
 	img {
-		width: 3.3rem;
-		border-radius: 3px;
-		object-fit: contain;
+		width: 2rem;
+		object-fit: cover;
 	}
 
 	.title {

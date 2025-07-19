@@ -188,13 +188,19 @@
 
 	footer {
 		position: fixed;
-		left: 1.5rem;
-		right: 1.5rem;
-		bottom: 1rem;
+		left: 0;
+		right: 0;
+		bottom: 0;
 		z-index: 10;
 
 		border: 1px solid var(--gray-5);
 		border-radius: var(--border-radius);
+
+		@media (min-width: 600px) {
+			left: 1.5rem;
+			right: 1.5rem;
+			bottom: 1rem;
+		}
 	}
 
 	footer .playerToggle {

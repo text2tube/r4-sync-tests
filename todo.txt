@@ -1,5 +1,6 @@
 future features
 
 - run sync() on first load automatically for better ux
+- batch pull of sync/musicbrainz (ala sync/youtube)
 - mass tracks edit batch editor interface. like a giant table where you can edit all fields. save all button. or maybe it just saves onblur ala a spreadsheet? put this /{slug}/mass-edit. mass undo
 - find a way to share `track_meta` data between users. push it remote, how? security?

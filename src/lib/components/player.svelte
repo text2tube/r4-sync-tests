@@ -259,14 +259,18 @@
 		font-weight: 400;
 	}
 
+	@media (max-width: 600px) {
+		media-volume-range {
+			display: none;
+		}
+	}
+
 	/* Fixed bottom */
 	:global(footer:not(:has(input:checked)) > article) {
-		display: grid;
+		display: flex;
 		gap: 0.5rem;
 
 		@media (min-width: 600px) {
-			display: flex;
-
 			:global(media-control-bar) {
 				margin-right: 0.5rem;
 			}
@@ -274,7 +278,9 @@
 
 		header {
 			width: 40ch;
-			/* flex: 1; */
+			@media (min-width: 600px) {
+			}
+
 			grid-template-columns: 4rem auto;
 			gap: 0.5rem;
 			margin-left: 0.5rem;
@@ -283,7 +289,7 @@
 			div {
 				display: flex;
 				flex-flow: column wrap;
-				gap: 0.25rem;
+				gap: 0.2rem;
 				line-height: 1;
 			}
 		}
