@@ -1,13 +1,5 @@
-Future Features:
-- [ ] Global command menu (Cmd+K) for channels + tracks with @channel #tag syntax
-
-create client side worker that can do the pullsync stuff from settings. make it run on load with limit 5, then 20, then 100. make sure it's resumable in case tab is closed. if broken mid-sync in a channel, we probably want to resync those. possibly add a channel.syncedAt field? make sure you can see the progress on /settings. if the code . remember this is vite, read this https://vite.dev/guide/features.html#web-workers
-
-
-track table editor. like a giant table where you can edit all fields. save all button. or maybe it just saves onblur ala a spreadsheet? put this /{slug}/mass-edit
-
-edit of channel
-edit of tracks
-create radio flow ui
+future features
 
 - run sync() on first load automatically for better ux
+- mass tracks edit batch editor interface. like a giant table where you can edit all fields. save all button. or maybe it just saves onblur ala a spreadsheet? put this /{slug}/mass-edit. mass undo
+- find a way to share `track_meta` data between users. push it remote, how? security?
