@@ -74,3 +74,23 @@ test('empty items array', async () => {
 	const results = await batcher([], (x) => Promise.resolve(x))
 	expect(results).toEqual([])
 })
+
+test('batch size larger than item count', async () => {
+	const items = [1, 2, 3]
+	const results = await batcher(items, (x) => Promise.resolve(x * 2), {size: 100})
+	expect(results).toEqual([
+		{status: 'fulfilled', value: 2},
+		{status: 'fulfilled', value: 4},
+		{status: 'fulfilled', value: 6}
+	])
+})
+
+test('concurrency equals batch size', async () => {
+	const items = [1, 2, 3]
+	const results = await batcher(items, (x) => Promise.resolve(x * 2), {size: 3, concurrency: 3})
+	expect(results).toEqual([
+		{status: 'fulfilled', value: 2},
+		{status: 'fulfilled', value: 4},
+		{status: 'fulfilled', value: 6}
+	])
+})

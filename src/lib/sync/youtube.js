@@ -1,5 +1,8 @@
 import {pg} from '$lib/db'
 import {batcher} from '$lib/batcher'
+import {logger} from '$lib/logger'
+
+const log = logger.ns('pull_track_meta_youtube').seal()
 
 /**
  * Pulls track metadata from YouTube API for all tracks in a channel
@@ -12,15 +15,13 @@ export async function pullTrackMetaYouTubeFromChannel(channelId) {
 			FROM tracks_with_meta 
 			WHERE channel_id = ${channelId} 
 			AND youtube_data IS NULL
+			AND ytid(url) IS NOT NULL
 	`
 	).rows
 
 	if (tracksNeedingUpdate.length === 0) return {updated: 0, total: 0}
 
-	console.log('pulling yt meta for tracks in channel', {
-		channelId,
-		total: tracksNeedingUpdate.length
-	})
+	log.info(`fetching metadata for ${tracksNeedingUpdate.length} tracks`)
 
 	const ytids = tracksNeedingUpdate.map((t) => t.ytid)
 	return pullTrackMetaYouTube(ytids)
@@ -40,7 +41,7 @@ export async function pullTrackMetaYouTube(ytids) {
 	).rows
 
 	if (tracksNeedingUpdate.length === 0) {
-		console.log('no tracks_with_meta to update')
+		log.info('all tracks already have metadata')
 		return {updated: 0, total: 0}
 	}
 
@@ -85,16 +86,15 @@ export async function pullTrackMetaYouTube(ytids) {
 
 				totalUpdated++
 			} catch (err) {
-				console.error('pull_track_durations:error', {ytid, err})
+				log.error(`failed to update track ${ytid}`, err)
 			}
 		}
 	})
 
-	console.log(
-		`pull_track_durations:complete ${totalUpdated}/${tracksNeedingUpdate.length} videos processed`,
-		{
-			ytids
-		}
-	)
+	if (totalUpdated > 0) {
+		log.info(`updated ${totalUpdated}/${tracksNeedingUpdate.length} tracks`)
+	} else {
+		log.warn(`no tracks updated (${tracksNeedingUpdate.length} attempted)`)
+	}
 	return {updated: totalUpdated, total: tracksNeedingUpdate.length}
 }

@@ -29,7 +29,7 @@
 </script>
 
 <article class:active>
-	<a href={permalink} onclick={click} ondblclick={doubleClick}>
+	<a href={permalink} onclick={click} ondblclick={doubleClick} data-sveltekit-preload-data="tap">
 		<span>{index + 1}.</span>
 		{#if ytid && showImage}<img loading="lazy" src={imageSrc} alt={track.title} />{/if}
 		<div>
