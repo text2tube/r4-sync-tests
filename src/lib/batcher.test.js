@@ -94,3 +94,64 @@ test('concurrency equals batch size', async () => {
 		{status: 'fulfilled', value: 6}
 	])
 })
+
+test('batch API pattern - processing arrays of items', async () => {
+	// Simulate YouTube API pattern: send arrays of IDs, get arrays of results
+	const items = ['id1', 'id2', 'id3', 'id4', 'id5']
+	
+	// Create batches of items
+	const batches = []
+	for (let i = 0; i < items.length; i += 2) {
+		batches.push(items.slice(i, i + 2))
+	}
+	
+	// Mock API that takes array of IDs and returns array of results
+	const mockAPI = async (batch) => {
+		return batch.map(id => ({id, data: `processed-${id}`}))
+	}
+	
+	const results = await batcher(batches, mockAPI, {size: 1, concurrency: 2})
+	
+	// Each result contains an array
+	expect(results).toEqual([
+		{status: 'fulfilled', value: [{id: 'id1', data: 'processed-id1'}, {id: 'id2', data: 'processed-id2'}]},
+		{status: 'fulfilled', value: [{id: 'id3', data: 'processed-id3'}, {id: 'id4', data: 'processed-id4'}]},
+		{status: 'fulfilled', value: [{id: 'id5', data: 'processed-id5'}]}
+	])
+	
+	// Verify flattening works as expected
+	const flattened = results
+		.filter(result => result.status === 'fulfilled')
+		.flatMap(result => result.value)
+	
+	expect(flattened).toEqual([
+		{id: 'id1', data: 'processed-id1'},
+		{id: 'id2', data: 'processed-id2'},
+		{id: 'id3', data: 'processed-id3'},
+		{id: 'id4', data: 'processed-id4'},
+		{id: 'id5', data: 'processed-id5'}
+	])
+})
+
+test('batch API pattern with errors', async () => {
+	const batches = [['id1', 'id2'], ['bad-batch'], ['id3']]
+	
+	const mockAPI = async (batch) => {
+		if (batch.includes('bad-batch')) {
+			throw new Error('API error')
+		}
+		return batch.map(id => ({id, data: `processed-${id}`}))
+	}
+	
+	const results = await batcher(batches, mockAPI, {size: 1})
+	
+	expect(results[0]).toEqual({
+		status: 'fulfilled', 
+		value: [{id: 'id1', data: 'processed-id1'}, {id: 'id2', data: 'processed-id2'}]
+	})
+	expect(results[1].status).toBe('rejected')
+	expect(results[2]).toEqual({
+		status: 'fulfilled',
+		value: [{id: 'id3', data: 'processed-id3'}]
+	})
+})
