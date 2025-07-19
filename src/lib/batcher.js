@@ -10,9 +10,15 @@
  */
 export async function batcher(items, fn, {size = 50, concurrency = 1} = {}) {
 	const results = []
+	const totalBatches = Math.ceil(items.length / size)
+
+	console.log(`batcher: processing ${items.length} items in ${totalBatches} batches (size: ${size}, concurrency: ${concurrency})`)
 
 	for (let i = 0; i < items.length; i += size) {
 		const batch = items.slice(i, i + size)
+		const batchNum = Math.floor(i / size) + 1
+		
+		console.log(`batcher: batch ${batchNum}/${totalBatches} - processing ${batch.length} items`)
 
 		if (concurrency === 'unbounded' || concurrency >= batch.length) {
 			// Process batch in parallel

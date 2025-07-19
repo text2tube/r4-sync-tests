@@ -39,7 +39,10 @@ export async function pullTrackMetaYouTube(ytids) {
 	`
 	).rows
 
-	if (tracksNeedingUpdate.length === 0) return {updated: 0, total: 0}
+	if (tracksNeedingUpdate.length === 0) {
+		console.log('no tracks_with_meta to update')
+		return {updated: 0, total: 0}
+	}
 
 	// Batch fetch YouTube metadata
 	const results = await batcher(
