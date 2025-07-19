@@ -1,6 +1,7 @@
 import {browser} from '$app/environment'
 import {pg, migrateDb} from '$lib/db'
 import {sdk} from '@radio4000/sdk'
+import {autoSync} from '$lib/sync'
 import {logger} from '$lib/logger'
 
 const log = logger.ns('layout').seal()
@@ -14,13 +15,14 @@ export async function load() {
 	let preloading = true
 
 	if (browser) {
+		// @ts-expect-error debugging
+		window.r5 = {pg, sdk}
+
 		try {
 			await migrateDb()
-			// @ts-expect-error debugging
-			window.r5 = {pg, sdk}
+			await autoSync()
 		} catch (err) {
-			// console.error('Failed to initialize database:', err)
-			log.error('load_error_migrate', err)
+			log.error('load_error', err)
 		} finally {
 			preloading = false
 			log.log('load_done')

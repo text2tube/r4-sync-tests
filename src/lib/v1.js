@@ -6,9 +6,9 @@ const log = logger.ns('sync').seal()
  * Imports a local export of v1 channels, imports them
  * It will not overwrite existing channels when slug exists.
  */
-export async function pullV1Channels() {
+export async function pullV1Channels({limit} = {limit: debugLimit}) {
 	const res = await fetch('/r5-channels.json')
-	const items = (await res.json()).slice(0, debugLimit)
+	const items = (await res.json()).slice(0, limit)
 
 	// Since we don't want to overwrite any existing local channels with v1 channels,
 	// we filter them out here.

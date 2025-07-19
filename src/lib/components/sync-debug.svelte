@@ -2,6 +2,7 @@
 	import {pg} from '$lib/db'
 	import {pullTracks} from '$lib/sync'
 	import {pullTrackMetaYouTubeFromChannel} from '$lib/sync/youtube'
+	import {incrementalLiveQuery} from '$lib/live-query'
 	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
 	import {logger} from '$lib/logger'
 	const log = logger.ns('sync-debug').seal()
@@ -12,28 +13,12 @@
 	// Live query for channels with track counts
 	$effect(() => {
 		log.log('create_live_query')
-		let cleanup
 
-		pg.live
-			.query(
-				`
-			SELECT * FROM channels
-			ORDER BY name
-		`,
-				[],
-				(result) => {
-					log.log('query_result', result)
-					// @ts-expect-error rows are not typed
-					channels = result.rows
-				}
-			)
-			.then(({initialResults, unsubscribe}) => {
-				// @ts-expect-error rows are not typed
-				channels = initialResults.rows
-				cleanup = unsubscribe
-			})
-
-		return () => cleanup?.()
+		return incrementalLiveQuery('SELECT * FROM channels ORDER BY name', [], 'id', (result) => {
+			log.log('query_result', result)
+			// @ts-expect-error rows are not typed
+			channels = result.rows
+		})
 	})
 
 	/** * @param {string} id */

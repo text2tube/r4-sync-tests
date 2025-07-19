@@ -201,3 +201,12 @@ export async function sync() {
 	])
 	console.timeEnd('sync')
 }
+
+/** Sync if no channels exist locally */
+export async function autoSync() {
+	const {rows} = await pg.sql`SELECT COUNT(*) as count FROM channels`
+	const channelCount = parseInt(rows[0].count)
+	if (channelCount) return
+	log.log('autosync')
+	await sync().catch((err) => console.error('auto_sync:error', err))
+}
