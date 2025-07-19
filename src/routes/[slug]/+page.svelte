@@ -29,6 +29,22 @@
 		debounceTimer = setTimeout(performSearch, 200)
 	}
 
+	// Live query for channel data to get updated track_count
+	$effect(() => {
+		if (!data.channel?.id) return
+
+		return incrementalLiveQuery(
+			'SELECT * FROM channels WHERE id = $1',
+			[data.channel.id],
+			'id',
+			(res) => {
+				if (res.rows.length > 0) {
+					channel = res.rows[0]
+				}
+			}
+		)
+	})
+
 	$effect(() => {
 		if (!channel?.id) return
 

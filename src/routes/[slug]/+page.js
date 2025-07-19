@@ -28,7 +28,7 @@ export async function load({parent, params, url}) {
 
 	if (!channel) error(404, 'Channel not found')
 
-	if (channel && (await needsUpdate(slug))) await pullTracks(slug)
+	if (channel && (await needsUpdate(slug))) pullTracks(slug)
 
 	// console.log('channel_page:load', channel, {slug, search, order, dir})
 
