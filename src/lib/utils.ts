@@ -25,29 +25,6 @@ export async function getFirstRow(query) {
 	}
 }
 
-export function differenceInDays(dateString: string) {
-	const date = new Date(dateString).getTime()
-	const today = new Date().getTime()
-	const diffTime = Math.abs(today - date)
-	return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-}
-
-export function relativeDate(dateString: string) {
-	const days = differenceInDays(dateString)
-	return `${days} day${days > 1 ? 's' : ''} ago`
-}
-
-/** Returns a fancy cosmic time duration string */
-export function relativeDateSolar(dateString: string) {
-	const days = differenceInDays(dateString)
-	const years = Math.floor(days / 365)
-	const remainingDays = days % 365
-	const yearsString = years ? `${years} sun orbit${years > 1 ? 's' : ''}` : ''
-	const andString = years && remainingDays ? ', ' : ''
-	const daysString = `${remainingDays} earth rotation${remainingDays > 1 ? 's' : ''}`
-	return `${yearsString}${andString}${daysString}`
-}
-
 export function trimWithEllipsis(text?: string, maxLength: number = 267) {
 	return !text || text.length <= maxLength ? text || '' : text.substring(0, maxLength) + '…'
 }
@@ -71,3 +48,4 @@ export function extractYouTubeId(url) {
 	}
 	return null
 }
+

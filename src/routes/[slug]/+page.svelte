@@ -6,7 +6,7 @@
 	import {incrementalLiveQuery} from '$lib/live-query'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
 	import {pullTrackMetaYouTubeFromChannel} from '$lib/sync/youtube'
-	import {relativeDate, relativeDateSolar} from '$lib/utils'
+	import {relativeDate, relativeDateSolar} from '$lib/dates'
 	import Icon from '$lib/components/icon.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
