@@ -10,7 +10,13 @@
 		appState,
 		showImage = true,
 		children
-	}: {track: Track; index: number; appState: AppState; showImage: boolean; children: any} = $props()
+	}: {
+		track: Track
+		index: number
+		appState: AppState
+		showImage?: boolean
+		children?: any
+	} = $props()
 
 	const permalink = $derived(`/${track.channel_slug}/tracks/${track.id}`)
 	const active = $derived(track.id === appState.playlist_track)

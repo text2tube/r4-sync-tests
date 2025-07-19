@@ -1,4 +1,4 @@
-CREATE TABLE track_meta (
+CREATE TABLE IF NOT EXISTS track_meta (
   ytid TEXT PRIMARY KEY,
   duration INTEGER,
   -- Provider-specific JSON data

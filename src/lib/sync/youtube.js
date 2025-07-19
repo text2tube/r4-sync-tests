@@ -16,8 +16,8 @@ export async function pullTrackMetaYouTubeFromChannel(channelId) {
 			SELECT ytid(url) as ytid
 			FROM tracks_with_meta 
 			WHERE channel_id = ${channelId} 
-			AND youtube_data IS NULL
 			AND ytid(url) IS NOT NULL
+			AND youtube_data IS NULL
 	`
 	).rows
 

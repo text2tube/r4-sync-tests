@@ -27,9 +27,8 @@
 
 		const uniqueIds = [...new Set(trackIds)]
 		return incrementalLiveQuery(
-			`SELECT twm.*, c.name as channel_name, c.slug as channel_slug
+			`SELECT twm.*
 			 FROM tracks_with_meta twm
-			 JOIN channels c ON twm.channel_id = c.id
 			 WHERE twm.id IN (select unnest($1::uuid[]))`,
 			[uniqueIds],
 			'id',
@@ -42,11 +41,9 @@
 
 	$effect(() => {
 		return liveQuery(
-			`SELECT twm.*, h.started_at, h.ended_at, h.ms_played, h.reason_start, h.reason_end, h.skipped,
-			        c.name as channel_name, c.slug as channel_slug
+			`SELECT twm.*, h.started_at, h.ended_at, h.ms_played, h.reason_start, h.reason_end, h.skipped
 			 FROM play_history h 
 			 JOIN tracks_with_meta twm ON h.track_id = twm.id 
-			 JOIN channels c ON twm.channel_id = c.id
 			 ORDER BY h.started_at ASC LIMIT 50`,
 			[],
 			(res) => {

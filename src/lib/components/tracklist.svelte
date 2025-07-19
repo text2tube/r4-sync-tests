@@ -31,11 +31,10 @@
 		// Turn the list of ids into real tracks.
 		return incrementalLiveQuery(
 			`
-		SELECT twm.*, c.name as channel_name, c.slug as channel_slug
-		FROM tracks_with_meta twm
-		JOIN channels c ON twm.channel_id = c.id
-		WHERE twm.id IN (select unnest($1::uuid[]))
-		ORDER BY twm.created_at desc
+		SELECT *
+		FROM tracks_with_meta 
+		WHERE id IN (select unnest($1::uuid[]))
+		ORDER BY created_at desc
 	`,
 			[ids],
 			'id',
