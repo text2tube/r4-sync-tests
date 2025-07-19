@@ -37,6 +37,6 @@ export async function load({parent, params, url}) {
 		slug,
 		search,
 		order,
-		dir,
+		dir
 	}
 }

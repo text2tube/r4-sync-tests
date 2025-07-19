@@ -22,6 +22,6 @@ export async function load({parent, params}) {
 
 	return {
 		channel,
-		trackUrls: tracks.rows.map(row => row.url)
+		trackUrls: tracks.rows.map((row) => row.url)
 	}
 }

@@ -1,17 +1,22 @@
 <script lang="ts">
 	import {playTrack} from '$lib/api'
 	import {formatDate} from '$lib/dates'
+	import {extractYouTubeId} from '$lib/utils'
 	import type {Track, AppState} from '$lib/types'
 
 	let {
 		track,
 		index,
 		appState,
+		showImage = true,
 		children
-	}: {track: Track; index: number; appState: AppState; children: any} = $props()
+	}: {track: Track; index: number; appState: AppState; showImage: boolean, children: any} = $props()
 
 	const permalink = $derived(`/${track.channel_slug}/tracks/${track.id}`)
 	const active = $derived(track.id === appState.playlist_track)
+	const ytid = $derived.by(() => extractYouTubeId(track.url))
+	const imageSrc = $derived(`https://i.ytimg.com/vi/${ytid}/mqdefault.jpg`)
+
 	const click = (event: MouseEvent) => {
 		const el = event.target as HTMLElement
 		const clickedDate = el.parentNode instanceof HTMLTimeElement
@@ -26,6 +31,7 @@
 <article class:active>
 	<a href={permalink} onclick={click} ondblclick={doubleClick}>
 		<span>{index + 1}.</span>
+		{#if ytid && showImage}<img loading="lazy" src={imageSrc} alt={track.title}>{/if}
 		<div>
 			<h3 class="title">{track.title}</h3>
 			<div class="description">
@@ -41,13 +47,11 @@
 </article>
 
 <style>
-	article {
-		--indexSize: 2.5rem;
-	}
-
 	a {
-		display: grid;
-		grid-template-columns: var(--indexSize) 1fr auto;
+		display: flex;
+		flex-flow: row nowrap;
+		/*grid-template-columns: 2rem 1fr auto;*/
+		gap: 0 0.5rem;
 		padding: 0.6rem 0.5rem 0.5rem 0.25rem;
 		line-height: 1.2;
 		text-decoration: none;
@@ -59,11 +63,18 @@
 		}
 	}
 
+
 	a > span:first-child {
+		width: 2rem;
 		grid-row: span 2;
 		color: var(--gray-6);
 		font-size: var(--font-size-micro);
 		text-indent: 0.2em;
+	}
+
+	img {
+		width: 3.3rem;
+		border-radius: 3px;
 	}
 
 	.title {
@@ -78,6 +89,7 @@
 	}
 
 	time {
+		margin-left: auto;
 		display: flex;
 		flex-flow: column;
 		place-items: flex-end;
