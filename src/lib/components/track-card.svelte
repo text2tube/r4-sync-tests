@@ -3,6 +3,8 @@
 	import {formatDate} from '$lib/dates'
 	import {extractYouTubeId} from '$lib/utils'
 	import type {Track, AppState} from '$lib/types'
+	import LinkEntities from './link-entities.svelte';
+	import { goto } from '$app/navigation'
 
 	let {
 		track,
@@ -25,11 +27,19 @@
 
 	const click = (event: MouseEvent) => {
 		const el = event.target as HTMLElement
-		const clickedDate = el.parentNode instanceof HTMLTimeElement
-		if (!clickedDate) {
-			event.preventDefault()
-			playTrack(track.id, '', 'user_click_track')
+		
+		if (el instanceof HTMLAnchorElement && el.href.includes('search=')) {
+			// Let hashtag/mention links through
+			return
 		}
+		
+		if (el.parentNode instanceof HTMLTimeElement) {
+			// Let time element links through
+			return
+		}
+
+		event.preventDefault()
+		playTrack(track.id, '', 'user_click_track')
 	}
 	const doubleClick = () => playTrack(track.id, '', 'user_click_track')
 </script>
@@ -41,7 +51,9 @@
 		<div>
 			<h3 class="title">{track.title}</h3>
 			<div class="description">
-				<small>{track.description}</small>
+				<small>
+					<LinkEntities {track} text={track.description} />
+				</small>
 				{#if track.duration}<small>{track.duration}s</small>{/if}
 			</div>
 		</div>
