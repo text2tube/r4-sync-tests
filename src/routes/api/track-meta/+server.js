@@ -1,9 +1,11 @@
 import {json, error} from '@sveltejs/kit'
-import {YOUTUBE_API_KEY} from '$env/static/private'
+import { env } from '$env/dynamic/private';
 import {Duration} from 'luxon'
 
 // Assuming you have httpie installed in the CLI:
 // http POST localhost:5173/api/track-meta ids:='["dQw4w9WgXcQ", "pjeUbWj6k"]'
+
+if (!env.YOUTUBE_API_KEY) throw Error('Missing YOUTUBE_API_KEY')
 
 /** @param {string} duration */
 function parseDurationToSeconds(duration) {
@@ -19,7 +21,7 @@ export async function POST({request}) {
 
 	try {
 		const videoIds = ids.join(',')
-		const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoIds}&key=${YOUTUBE_API_KEY}`
+		const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoIds}&key=${env.YOUTUBE_API_KEY}`
 
 		const response = await fetch(url)
 		const data = await response.json()
