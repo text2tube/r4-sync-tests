@@ -15,8 +15,8 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 -- Create view that joins tracks with their metadata
 CREATE VIEW tracks_with_meta AS
 SELECT 
-  t.*
-  -- Metadata from track_meta table
+  t.*,
+  tm.ytid,
   tm.duration,
   tm.youtube_data,
   tm.musicbrainz_data,

@@ -66,6 +66,7 @@ export async function dropDb() {
 	await pg.sql`drop table if exists tracks CASCADE;`
 	await pg.sql`drop table if exists channels CASCADE;`
 	await pg.sql`drop table if exists migrations CASCADE;`
+	await pg.sql`drop table if exists track_meta CASCADE;`
 	log.log('drop_tables')
 }
 
