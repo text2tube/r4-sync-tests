@@ -40,6 +40,7 @@ export type Track = {
 	busy?: boolean
 	// sometimes we join and add this to the track
 	channel_slug?: string
+	duration: number
 }
 
 export interface AppState {

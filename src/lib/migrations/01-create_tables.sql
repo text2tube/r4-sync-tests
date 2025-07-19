@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS tracks (
 	title TEXT NOT NULL,
 	description TEXT,
 	discogs_url TEXT,
-	firebase_id TEXT unique
+	firebase_id TEXT unique,
+	duration INTEGER 
 );
 
 CREATE INDEX IF NOT EXISTS idx_tracks_channel_id ON tracks(channel_id);
