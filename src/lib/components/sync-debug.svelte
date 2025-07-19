@@ -9,7 +9,6 @@
 	/** @type {import('$lib/types').Channel[]} */
 	let channels = $state([])
 
-
 	// Live query for channels with track counts
 	$effect(() => {
 		log.log('create_live_query')

@@ -109,3 +109,9 @@ $effect(() => {
 
 Ask me to perform queries for you, if it helps:
 (await window.r5.pg.sql`select * from app_state where id = 1`).rows[0]
+
+## Testing tool
+
+When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js
+
+Run tests with: `bun test`
