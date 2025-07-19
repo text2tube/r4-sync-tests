@@ -15,12 +15,15 @@
 		<!-- <ButtonPlay {channel} /> -->
 	</header>
 	<pre><code>{JSON.stringify(track, null, 2)}</code></pre>
+	<p>{track.youtube_data?.title}</p>
+	<hr />
+	<!-- <pre><code>{JSON.stringify(track, null, 2)}</code></pre> -->
 	<hr />
 	<TrackMeta {track} />
 </article>
 
 <style>
 	article {
-		margin: 0.5rem;
+		margin: 0 0.5rem;
 	}
 </style>

@@ -119,12 +119,11 @@
 			// Track search on title and description
 			const trackResults = await pg.query(
 				`
-				SELECT t.id, t.title, t.description, t.url, t.channel_id, t.created_at, t.updated_at,
-				       c.name as channel_name, c.slug as channel_slug
-				FROM tracks t
-				JOIN channels c ON t.channel_id = c.id
-				WHERE LOWER(t.title) LIKE $1 OR LOWER(t.description) LIKE $1
-				ORDER BY t.title
+				SELECT twm.*, c.name as channel_name, c.slug as channel_slug
+				FROM tracks_with_meta twm
+				JOIN channels c ON twm.channel_id = c.id
+				WHERE LOWER(twm.title) LIKE $1 OR LOWER(twm.description) LIKE $1
+				ORDER BY twm.title
 			`,
 				[query]
 			)

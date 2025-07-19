@@ -1,6 +1,4 @@
 <script>
-	import * as icons from 'obra-icons-svelte'
-
 	/** @type {{icon: string, title?: string, className?: string, size?: number, children?: any}} */
 	const {children, icon = '', title = '', className = '', size, ...rest} = $props()
 
@@ -14,7 +12,21 @@
 	}
 
 	const iconName = $derived(toImportName(icon))
-	const Icon = $derived(icons[iconName])
+	let Icon = $state(null)
+
+	$effect(async () => {
+		if (!icon) {
+			Icon = null
+			return
+		}
+		
+		try {
+			const module = await import('obra-icons-svelte')
+			Icon = module[iconName]
+		} catch {
+			Icon = null
+		}
+	})
 </script>
 
 <i class={`icon ${className}`} class:icon {title}>

@@ -1,14 +1,13 @@
 <script>
 	import {pg} from '$lib/db'
 	import {pullTracks} from '$lib/sync'
-	import {pullTrackDurations} from '$lib/sync'
+	import {pullTrackMetaYouTubeFromChannel} from '$lib/sync/youtube'
 	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
 	import {logger} from '$lib/logger'
 	const log = logger.ns('sync-debug').seal()
 
 	/** @type {import('$lib/types').Channel[]} */
 	let channels = $state([])
-
 
 	// Live query for channels with track counts
 	$effect(() => {
@@ -72,7 +71,7 @@
 	async function updateDurations(channelId) {
 		await pg.sql`UPDATE channels SET busy = true WHERE id = ${channelId}`
 		try {
-			await pullTrackDurations(channelId)
+			await pullTrackMetaYouTubeFromChannel(channelId)
 		} catch (error) {
 			console.error('Failed to update durations:', error)
 		} finally {

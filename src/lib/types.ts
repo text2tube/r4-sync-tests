@@ -36,11 +36,14 @@ export type Track = {
 	title: string
 	description?: string
 	discogs_url?: string
-	// custom ones
+	// fields below this line do not exist on remote r4 track
 	busy?: boolean
-	// sometimes we join and add this to the track
+	// sometimes we include this, too
 	channel_slug?: string
+	// when joined with track_meta table
 	duration: number
+	youtube_data?: object
+	musicbrainz_data?: object
 }
 
 export interface AppState {
