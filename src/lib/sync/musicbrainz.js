@@ -1,3 +1,5 @@
+import {pg} from '$lib/db'
+
 export async function searchMusicBrainz(title) {
 	if (!title) return null
 

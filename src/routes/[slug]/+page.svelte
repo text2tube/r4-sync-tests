@@ -5,7 +5,7 @@
 	import {pg} from '$lib/db'
 	import {incrementalLiveQuery} from '$lib/live-query'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
-	import {pullTrackDurations} from '$lib/sync'
+	import {pullTrackYouTubeMeta} from '$lib/sync/youtube'
 	import {relativeDate, relativeDateSolar} from '$lib/utils'
 	import Icon from '$lib/components/icon.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
@@ -98,7 +98,7 @@
 		if (!channel?.id) return
 		updatingDurations = true
 		try {
-			await pullTrackDurations(channel.id)
+			await pullTrackYouTubeMeta(channel.id)
 		} catch (error) {
 			console.error('Failed to update durations:', error)
 		} finally {
