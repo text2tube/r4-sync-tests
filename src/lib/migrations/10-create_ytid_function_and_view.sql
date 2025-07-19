@@ -21,6 +21,9 @@ SELECT
   tm.youtube_data,
   tm.musicbrainz_data,
   tm.youtube_updated_at,
-  tm.musicbrainz_updated_at
+  tm.musicbrainz_updated_at,
+  c.id as channel_id,
+  c.slug as channel_slug
 FROM tracks t
-LEFT JOIN track_meta tm ON tm.ytid = ytid(t.url);
+LEFT JOIN track_meta tm ON tm.ytid = ytid(t.url)
+LEFT JOIN channels c ON c.id = t.channel_id;

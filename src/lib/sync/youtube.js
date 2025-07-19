@@ -74,11 +74,10 @@ export async function pullTrackMetaYouTube(ytids) {
 			try {
 				// Upsert track_meta
 				await tx.sql`
-					INSERT INTO track_meta (ytid, duration, title, youtube_data, youtube_updated_at, updated_at)
-					VALUES (${ytid}, ${video.duration}, ${video.title}, ${JSON.stringify(video)}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+					INSERT INTO track_meta (ytid, duration, youtube_data, youtube_updated_at, updated_at)
+					VALUES (${ytid}, ${video.duration}, ${JSON.stringify(video)}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 					ON CONFLICT (ytid) DO UPDATE SET
 						duration = EXCLUDED.duration,
-						title = EXCLUDED.title,
 						youtube_data = EXCLUDED.youtube_data,
 						youtube_updated_at = EXCLUDED.youtube_updated_at,
 						updated_at = EXCLUDED.updated_at
