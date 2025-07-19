@@ -92,6 +92,7 @@
 	class:dragging={isDragging}
 	style="transform: translate({position.x}px, {position.y}px)"
 >
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<header onmousedown={startDrag} ondblclick={toggleMinimize}>
 		<h3>{title}</h3>
 		<button onclick={toggleMinimize} type="button">
