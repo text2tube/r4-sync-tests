@@ -3,6 +3,7 @@ import {pg, debugLimit} from '$lib/db'
 import {pullV1Tracks, pullV1Channels} from '$lib/v1'
 import {extractYouTubeId} from '$lib/utils'
 import {logger} from '$lib/logger'
+import {batcher} from '$lib/batcher'
 const log = logger.ns('sync').seal()
 
 /**
