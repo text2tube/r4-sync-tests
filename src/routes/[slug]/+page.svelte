@@ -15,6 +15,7 @@
 	let {data} = $props()
 
 	let channel = $state(data.channel)
+	let latestTrackDate = $state(null)
 
 	/** @type {string[]} */
 	let trackIds = $state([])
@@ -40,11 +41,14 @@
 
 		// Use liveQuery for default track loading (reactive)
 		return incrementalLiveQuery(
-			'SELECT id FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
+			'SELECT id, created_at FROM tracks WHERE channel_id = $1 ORDER BY created_at DESC',
 			[channel.id],
 			'id',
 			(res) => {
 				trackIds = res.rows.map((row) => row.id)
+				if (res.rows.length > 0) {
+					latestTrackDate = res.rows[0].created_at
+				}
 			}
 		)
 	})
@@ -140,7 +144,7 @@
 			<p>{channel.description}</p>
 			<p>
 				<small>
-					Last updated {relativeDate(channel.updated_at)}. Broadcasting since {relativeDateSolar(
+					Last updated {relativeDate(latestTrackDate || channel.updated_at)}. Broadcasting since {relativeDateSolar(
 						channel.created_at
 					)}.
 				</small>
