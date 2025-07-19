@@ -16,6 +16,8 @@
 	</header>
 	<pre><code>{JSON.stringify(track, null, 2)}</code></pre>
 	<hr />
+	<!-- <pre><code>{JSON.stringify(track, null, 2)}</code></pre> -->
+	<hr />
 	<TrackMeta {track} />
 </article>
 

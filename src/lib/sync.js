@@ -1,7 +1,6 @@
 import {sdk} from '@radio4000/sdk'
 import {pg, debugLimit} from '$lib/db'
 import {pullV1Tracks, pullV1Channels} from '$lib/v1'
-import {extractYouTubeId} from '$lib/utils'
 import {logger} from '$lib/logger'
 import {batcher} from '$lib/batcher'
 const log = logger.ns('sync').seal()
@@ -204,71 +203,73 @@ export async function sync() {
 }
 
 /**
- * Queries local tracks without duration, pulls duration from YouTube API
- * in batches and updates track.duration in local db.
+ * Pulls track metadata (duration, etc.) from YouTube API and updates track_meta table,
+ * with two fields: duration INT, youtube_data JSONB
  * @param {string} channelId */
 export async function pullTrackDurations(channelId) {
-	const limit = 50
-
-	// Tracks without duration
-	const tracks = (
+	// Find tracks in a channel without youtube_data
+	const tracksNeedingUpdate = (
 		await pg.sql`
-		SELECT id, url FROM tracks 
-		WHERE channel_id = ${channelId} AND duration IS NULL
+			SELECT id, url, ytid(url) as ytid
+			FROM tracks_with_meta 
+			WHERE channel_id = ${channelId} 
+			AND youtube_data IS NULL
 	`
 	).rows
+	if (tracksNeedingUpdate.length === 0) return {updated: 0, total: 0}
+	log.log('pull_track_durations', {channelId, total: tracksNeedingUpdate.length})
 
-	if (tracks.length === 0) return {updated: 0, total: 0}
-
-	log.log('pull_track_durations', {channelId, total: tracks.length})
-
-	// Add YouTube IDs to tracks
-	for (const track of tracks) {
-		track.ytid = extractYouTubeId(track.url)
-	}
-
-	let totalUpdated = 0
-
-	for (let i = 0; i < tracks.length; i += limit) {
-		const batch = tracks.slice(i, i + limit)
-		const ids = batch.map((t) => t.ytid).filter(Boolean)
-
-		const batchNum = i / limit + 1
-		const totalBatches = Math.ceil(tracks.length / limit)
-		log.log(`pull_track_durations:batch ${batchNum}/${totalBatches} (${ids.length} videos)`, {channelId})
-
-		try {
+	// Batch fetch YouTube metadata
+	const results = await batcher(
+		tracksNeedingUpdate,
+		async (track) => {
 			const response = await fetch('/api/track-meta', {
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify({ids})
+				body: JSON.stringify({ids: [track.ytid]})
 			})
-			if (!response.ok) continue
+			if (!response.ok) throw new Error(`API error: ${response.status}`)
 			const videos = await response.json()
+			return {ytid: track.ytid, video: videos[0]}
+		},
+		{size: 50}
+	)
 
-			await pg.transaction(async (tx) => {
-				for (const track of batch) {
-					const video = videos.find((v) => v.id === track.ytid)
-					if (video?.duration) {
-						try {
-							await tx.sql`UPDATE tracks SET duration = ${video.duration} WHERE id = ${track.id}`
-							totalUpdated++
-						} catch (err) {
-							log.error('pull_track_durations:error', {trackId: track.id, err})
-						}
-					}
-				}
-			})
-		} catch (error) {
-			log.error('pull_track_durations:batch_error', {error})
+	let totalUpdated = 0
+
+	// Update track_meta and tracks tables
+	await pg.transaction(async (tx) => {
+		for (const result of results) {
+			if (result.status === 'rejected') continue
+
+			const {ytid, video} = result.value
+			if (!video?.duration) continue
+
+			try {
+				// Upsert track_meta
+				await tx.sql`
+					INSERT INTO track_meta (ytid, duration, title, youtube_data, youtube_updated_at, updated_at)
+					VALUES (${ytid}, ${video.duration}, ${video.title}, ${JSON.stringify(video)}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+					ON CONFLICT (ytid) DO UPDATE SET
+						duration = EXCLUDED.duration,
+						title = EXCLUDED.title,
+						youtube_data = EXCLUDED.youtube_data,
+						youtube_updated_at = EXCLUDED.youtube_updated_at,
+						updated_at = EXCLUDED.updated_at
+				`
+
+				totalUpdated++
+			} catch (err) {
+				log.error('pull_track_durations:error', {ytid, err})
+			}
 		}
+	})
 
-		// Yield to UI thread between batches
-		if (i + limit < tracks.length) {
-			await new Promise((resolve) => setTimeout(resolve, 0))
+	log.log(
+		`pull_track_durations:complete ${totalUpdated}/${tracksNeedingUpdate.length} videos processed`,
+		{
+			channelId
 		}
-	}
-
-	log.log(`pull_track_durations:complete ${totalUpdated}/${tracks.length} tracks updated`, {channelId})
-	return {updated: totalUpdated, total: tracks.length}
+	)
+	return {updated: totalUpdated, total: tracksNeedingUpdate.length}
 }
