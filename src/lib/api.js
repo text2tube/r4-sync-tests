@@ -4,6 +4,7 @@ import {sdk} from '@radio4000/sdk'
 import {leaveBroadcast} from '$lib/broadcast'
 import {goto} from '$app/navigation'
 import {logger} from '$lib/logger'
+import {extractYouTubeId} from '$lib/utils'
 const log = logger.ns('api').seal()
 
 /** @typedef {object} User

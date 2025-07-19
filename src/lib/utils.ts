@@ -60,3 +60,20 @@ export function parseSearchTokens(query) {
 		mentions: mentions.map((m) => m.slice(1)) // remove @
 	}
 }
+
+// from npm/youtube-regex
+const youtubeRegex= /(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\/?\?(?:\S*?&?v\=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/g;
+
+export function extractYouTubeId(url) {
+	const patterns = [
+		youtubeRegex,
+		// /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+		// /^([a-zA-Z0-9_-]{11})$/
+	]
+	for (const pattern of patterns) {
+		const match = url.match(pattern)
+		if (match) return match[1]
+	}
+	return null
+}
+
