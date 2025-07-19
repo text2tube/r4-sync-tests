@@ -3,8 +3,9 @@
 	import {page} from '$app/state'
 	import {goto} from '$app/navigation'
 	import {pg} from '$lib/db'
-	import {liveQuery, incrementalLiveQuery} from '$lib/live-query'
+	import {incrementalLiveQuery} from '$lib/live-query'
 	import {setPlaylist, addToPlaylist} from '$lib/api'
+	import {pullTrackDurations} from '$lib/sync'
 	import {relativeDate, relativeDateSolar} from '$lib/utils'
 	import Icon from '$lib/components/icon.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
@@ -20,6 +21,7 @@
 	let searchQuery = $state(data.search || '')
 	let isLoading = $state(false)
 	let debounceTimer = $state()
+	let updatingDurations = $state(false)
 
 	function debouncedSearch() {
 		clearTimeout(debounceTimer)
@@ -42,7 +44,6 @@
 			[channel.id],
 			'id',
 			(res) => {
-				console.log('res', res, channel.id)
 				trackIds = res.rows.map((row) => row.id)
 			}
 		)
@@ -88,6 +89,18 @@
 		const url = `/${data.slug}${params.toString() ? `?${params}` : ''}`
 		goto(url, {replaceState: true})
 	}
+
+	async function updateDurations() {
+		if (!channel?.id) return
+		updatingDurations = true
+		try {
+			await pullTrackDurations(channel.id)
+		} catch (error) {
+			console.error('Failed to update durations:', error)
+		} finally {
+			updatingDurations = false
+		}
+	}
 </script>
 
 <header>
@@ -102,6 +115,9 @@
 		<menu>
 			<button onclick={() => setPlaylist(trackIds)}>Play All</button>
 			<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
+			<button onclick={updateDurations} disabled={updatingDurations}>
+				{updatingDurations ? '⏳' : '⏱️'} Update durations
+			</button>
 		</menu>
 	</form>
 </header>

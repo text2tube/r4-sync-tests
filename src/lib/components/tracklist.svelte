@@ -31,7 +31,7 @@
 		// Turn the list of ids into real tracks.
 		return incrementalLiveQuery(
 			`
-		SELECT t.id, t.title, t.description, t.url, t.channel_id, t.created_at, t.updated_at, c.name as channel_name, c.slug as channel_slug
+		SELECT t.id, t.title, t.description, t.url, t.duration, t.channel_id, t.created_at, t.updated_at, c.name as channel_name, c.slug as channel_slug
 		FROM tracks t
 		JOIN channels c on t.channel_id = c.id
 		WHERE t.id IN (select unnest($1::uuid[]))

@@ -33,6 +33,7 @@
 		<span>{index + 1}.</span>
 		{#if ytid && showImage}<img loading="lazy" src={imageSrc} alt={track.title} />{/if}
 		<div>
+			<span>{track.duration || 0}</span>
 			<h3 class="title">{track.title}</h3>
 			<div class="description">
 				<small>{track.description}</small>

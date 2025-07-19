@@ -1,12 +1,14 @@
 <script>
 	import {pg} from '$lib/db'
 	import {pullTracks} from '$lib/sync'
+	import {pullTrackDurations} from '$lib/sync'
 	import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
 	import {logger} from '$lib/logger'
 	const log = logger.ns('sync-debug').seal()
 
 	/** @type {import('$lib/types').Channel[]} */
 	let channels = $state([])
+
 
 	// Live query for channels with track counts
 	$effect(() => {
@@ -65,6 +67,18 @@
 		if (!channel.tracks_synced_at) return 'Synced without tracks'
 		return 'Synced'
 	}
+
+	/** @param {string} channelId */
+	async function updateDurations(channelId) {
+		await pg.sql`UPDATE channels SET busy = true WHERE id = ${channelId}`
+		try {
+			await pullTrackDurations(channelId)
+		} catch (error) {
+			console.error('Failed to update durations:', error)
+		} finally {
+			await pg.sql`UPDATE channels SET busy = false WHERE id = ${channelId}`
+		}
+	}
 </script>
 
 <section style="height: 500px">
@@ -92,6 +106,12 @@
 
 					<menu>
 						<button onclick={() => pullTracks(channel.slug)}>&darr; Pull tracks</button>
+						<button
+							onclick={() => updateDurations(channel.id)}
+							disabled={channel.busy || !channel.tracks_synced_at}
+						>
+							{channel.busy ? '⏳' : '⏱️'} Update durations
+						</button>
 						<button onclick={() => deleteTracks(channel.id)} disabled={!channel.tracks_synced_at}>
 							&times; Delete tracks
 						</button>

@@ -9,3 +9,5 @@ track table editor. like a giant table where you can edit all fields. save all b
 edit of channel
 edit of tracks
 create radio flow ui
+
+- run sync() on first load automatically for better ux

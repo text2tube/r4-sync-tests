@@ -1,6 +1,7 @@
-import {pg, debugLimit} from '$lib/db'
 import {sdk} from '@radio4000/sdk'
+import {pg, debugLimit} from '$lib/db'
 import {pullV1Tracks, pullV1Channels} from '$lib/v1'
+import {extractYouTubeId} from '$lib/utils'
 import {logger} from '$lib/logger'
 const log = logger.ns('sync').seal()
 
@@ -199,4 +200,74 @@ export async function sync() {
 		pullV1Channels().catch((err) => console.error('sync:pull_v1_channels_error', err))
 	])
 	console.timeEnd('sync')
+}
+
+/**
+ * Queries local tracks without duration, pulls duration from YouTube API
+ * in batches and updates track.duration in local db.
+ * @param {string} channelId */
+export async function pullTrackDurations(channelId) {
+	const limit = 50
+
+	// Tracks without duration
+	const tracks = (
+		await pg.sql`
+		SELECT id, url FROM tracks 
+		WHERE channel_id = ${channelId} AND duration IS NULL
+	`
+	).rows
+
+	if (tracks.length === 0) return {updated: 0, total: 0}
+
+	log.log('pull_track_durations', {channelId, total: tracks.length})
+
+	// Add YouTube IDs to tracks
+	for (const track of tracks) {
+		track.ytid = extractYouTubeId(track.url)
+	}
+
+	let totalUpdated = 0
+
+	for (let i = 0; i < tracks.length; i += limit) {
+		const batch = tracks.slice(i, i + limit)
+		const ids = batch.map((t) => t.ytid).filter(Boolean)
+
+		const batchNum = i / limit + 1
+		const totalBatches = Math.ceil(tracks.length / limit)
+		log.log(`pull_track_durations:batch ${batchNum}/${totalBatches} (${ids.length} videos)`, {channelId})
+
+		try {
+			const response = await fetch('/api/track-meta', {
+				method: 'POST',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({ids})
+			})
+			if (!response.ok) continue
+			const videos = await response.json()
+
+			await pg.transaction(async (tx) => {
+				for (const track of batch) {
+					const video = videos.find((v) => v.id === track.ytid)
+					if (video?.duration) {
+						try {
+							await tx.sql`UPDATE tracks SET duration = ${video.duration} WHERE id = ${track.id}`
+							totalUpdated++
+						} catch (err) {
+							log.error('pull_track_durations:error', {trackId: track.id, err})
+						}
+					}
+				}
+			})
+		} catch (error) {
+			log.error('pull_track_durations:batch_error', {error})
+		}
+
+		// Yield to UI thread between batches
+		if (i + limit < tracks.length) {
+			await new Promise((resolve) => setTimeout(resolve, 0))
+		}
+	}
+
+	log.log(`pull_track_durations:complete ${totalUpdated}/${tracks.length} tracks updated`, {channelId})
+	return {updated: totalUpdated, total: tracks.length}
 }
