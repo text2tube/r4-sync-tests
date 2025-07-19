@@ -2,6 +2,8 @@ import {pg} from '$lib/db'
 import {batcher} from '$lib/batcher'
 import {logger} from '$lib/logger'
 
+/** @typedef {{status: string, value: {id: string, tags: string[], duration: number, title: string, categoryId: string, description: string, publishedAt: string}}} YouTubeVideo */
+
 const log = logger.ns('pull_track_meta_youtube').seal()
 
 /**
@@ -19,7 +21,7 @@ export async function pullTrackMetaYouTubeFromChannel(channelId) {
 	`
 	).rows
 
-	if (tracksNeedingUpdate.length === 0) return {updated: 0, total: 0}
+	if (tracksNeedingUpdate.length === 0) return []
 
 	log.info(`fetching metadata for ${tracksNeedingUpdate.length} tracks`)
 
@@ -42,23 +44,24 @@ export async function pullTrackMetaYouTube(ytids) {
 
 	if (tracksNeedingUpdate.length === 0) {
 		log.info('all tracks already have metadata')
-		return {updated: 0, total: 0}
+		return []
 	}
 
 	// Batch fetch YouTube metadata
+	/** @type {PromiseSettledResult<YouTubeVideo>[]} */
 	const results = await batcher(
 		tracksNeedingUpdate,
 		async (track) => {
 			const response = await fetch('/api/track-meta', {
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify({ids: [track.ytid]})
+				body: JSON.stringify({ids: [track.ytid]}),
 			})
 			if (!response.ok) throw new Error(`API error: ${response.status}`)
 			const videos = await response.json()
-			return {ytid: track.ytid, video: videos[0]}
+			return videos[0]
 		},
-		{size: 50}
+		{size: 50},
 	)
 
 	let totalUpdated = 0
@@ -68,14 +71,14 @@ export async function pullTrackMetaYouTube(ytids) {
 		for (const result of results) {
 			if (result.status === 'rejected') continue
 
-			const {ytid, video} = result.value
+			const video = result.value
 			if (!video?.duration) continue
 
 			try {
 				// Upsert track_meta
 				await tx.sql`
 					INSERT INTO track_meta (ytid, duration, youtube_data, youtube_updated_at, updated_at)
-					VALUES (${ytid}, ${video.duration}, ${JSON.stringify(video)}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+					VALUES (${video.id}, ${video.duration}, ${JSON.stringify(video)}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 					ON CONFLICT (ytid) DO UPDATE SET
 						duration = EXCLUDED.duration,
 						youtube_data = EXCLUDED.youtube_data,
@@ -95,5 +98,5 @@ export async function pullTrackMetaYouTube(ytids) {
 	} else {
 		log.warn(`no tracks updated (${tracksNeedingUpdate.length} attempted)`)
 	}
-	return {updated: totalUpdated, total: tracksNeedingUpdate.length}
+	return results
 }
