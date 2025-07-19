@@ -45,7 +45,7 @@ export async function pullTrackMetaYouTube(ytids) {
 	for (let i = 0; i < ytids.length; i += 50) {
 		batches.push(ytids.slice(i, i + 50))
 	}
-	
+
 	const results = await batcher(
 		batches,
 		async (batch) => {
@@ -62,9 +62,9 @@ export async function pullTrackMetaYouTube(ytids) {
 
 	// Flatten batch results
 	const videos = results
-		.filter(result => result.status === 'fulfilled')
-		.flatMap(result => result.value)
-		.filter(video => video?.duration)
+		.filter((result) => result.status === 'fulfilled')
+		.flatMap((result) => result.value)
+		.filter((video) => video?.duration)
 
 	await pg.transaction(async (tx) => {
 		for (const video of videos) {
