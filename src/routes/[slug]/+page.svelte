@@ -178,6 +178,8 @@
 					</h2>
 				</header>
 				<Tracklist ids={trackIds} />
+			{:else if !channel.tracks_synced_at}
+				<p>Tracks syncing…</p>
 			{:else}
 				<p>No tracks found{searchQuery ? ` for "${searchQuery}"` : ''}</p>
 			{/if}

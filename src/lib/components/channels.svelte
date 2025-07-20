@@ -95,11 +95,13 @@
 			<MapComponent urlMode markers={channelMapMarkers} {center} {zoom}></MapComponent>
 		{/if}
 	{:else}
-		<div class={display}>
+		<ol class={display}>
 			{#each filteredChannels as channel (channel.id)}
-				<ChannelCard {channel} />
+				<li>
+					<ChannelCard {channel} />
+				</li>
 			{/each}
-		</div>
+		</ol>
 		<footer>
 			{#if filteredChannels?.length > 0}
 				<p>
