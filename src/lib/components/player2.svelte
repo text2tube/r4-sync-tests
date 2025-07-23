@@ -1,6 +1,6 @@
 <script>
 	import {subscribeToAppState, queryTrackWithChannel} from '$lib/api'
-	import {togglePlay, next} from '$lib/api/player'
+	import {togglePlay, next, previous, toggleShuffle} from '$lib/api/player'
 	import {extractYouTubeId} from '$lib/utils'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
@@ -153,6 +153,36 @@
 	})
 </script>
 
+{#snippet btnPrev()}
+	<button onclick={() => previous(track, activeQueue, 'user_prev')}>
+		<Icon icon={'previous-fill'} />
+	</button>
+{/snippet}
+
+{#snippet btnNext()}
+		<button onclick={() => next(track, activeQueue, 'user_next')}>
+			<Icon icon={'next-fill'} />
+		</button>
+{/snippet}
+
+{#snippet btnPlay()}
+{#if appState.is_playing}
+			<button onclick={() => togglePlay(appState, track)}>
+				<Icon icon={'pause'} />
+			</button>
+		{:else}
+			<button onclick={() => togglePlay(appState, track)}>
+				<Icon icon={'play-fill'} />
+			</button>
+		{/if}
+{/snippet}
+
+{#snippet btnShuffle()}
+	<button onclick={() => toggleShuffle(appState, trackIds, track)} class:active={appState.shuffle}>
+		<Icon icon={'shuffle'} />
+	</button>
+{/snippet}
+
 {#if !expanded}
 <section>
 	<figure>
@@ -165,45 +195,40 @@
 		<small><a href={`/${channelSlug}`}>{channelName}</a></small>
 	</div>
 	<menu>
-		{#if appState.is_playing}
-			<button onclick={() => togglePlay(appState, track)}>
-				<Icon icon={'pause'} />
-			</button>
-		{:else}
-			<button onclick={() => togglePlay(appState, track)}>
-				<Icon icon={'play-fill'} />
-			</button>
-		{/if}
-		<button onclick={() => next(track, activeQueue, 'user_next')}>
-			<Icon icon={'next-fill'} />
-		</button>
+		{@render btnPlay()}
+		{@render btnNext()}
 	</menu>
 </section>
 {:else}
-<article>
-	<header>
-		<figure>
-			{#if trackImage}
-				<img src={trackImage} alt={track?.title} />
-			{:else}
-				<ChannelAvatar id={channelImage} alt={channelName} />
-			{/if}
+<article class="expanded">
+	<header class="channel-header">
+		<figure class="channel-avatar">
+			<ChannelAvatar id={channelImage} alt={channelName} />
 		</figure>
-		<div>
-			<h2>
-				<a href={`/${channelSlug}`}>{channelName}</a>
-			</h2>
-			<h3>{track?.title}</h3>
-		</div>
+		<h2 class="channel">
+			<a href={`/${channelSlug}`}>{channelName}</a>
+		</h2>
 	</header>
-	<main>
-		<menu>
-			<button>Shuffle</button>
-			<button>Previous</button>
-			<button>Play</button>
-			<button>Next</button>
-		</menu>
-	</main>
+
+		{#if trackImage}
+	<figure class="artwork">
+			<img src={trackImage} alt={track?.title} />
+	</figure>
+		{/if}
+	
+	<header class="track">
+		<h3 class="title">{track?.title}</h3>
+		{#if track?.description}
+			<p class="description">{track.description}</p>
+		{/if}
+	</header>
+	
+	<menu>
+		{@render btnShuffle()}
+		{@render btnPrev()}
+		{@render btnPlay()}
+		{@render btnNext()}
+	</menu>
 </article>
 {/if}
 
@@ -211,6 +236,10 @@
 	section {
 		display: flex;
 		align-items: center;
+
+		> menu {
+			margin-right: 0.25rem;
+		}
 	}
 
 	figure {
@@ -268,9 +297,81 @@
 	}
 
 	menu {
-		margin-right: 0.25rem;
-		display: flex;
-		gap: 0.25rem;
 		position: relative;
 	}
+
+
+
+	/* Expanded player styles */
+	.expanded {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 2rem;
+		max-width: 100%;
+		text-align: center;
+
+		> menu {
+			gap: 0.5rem;
+			:global(button) {
+				padding: 0.5rem 1rem;
+			}
+			:global(svg) {
+				width: 2.5rem;
+				height: 2.5rem;
+			}
+		}
+	}
+
+	.channel-header {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 2rem;
+	}
+
+	.channel-header .channel-avatar {
+		width: 3rem;
+		height: 3rem;
+		flex-shrink: 0;
+	}
+
+	.channel-header .channel {
+		margin: 0;
+	}
+
+	.artwork {
+		width: min(80vw, 20rem);
+		height: min(80vw, 20rem);
+		margin-bottom: 2rem;
+		border-radius: 0.5rem;
+		overflow: hidden;
+		box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.3);
+	}
+
+	.artwork img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.track {
+		margin-bottom: 2rem;
+	}
+
+	.title {
+		font-size: 1.5rem;
+		font-weight: 600;
+		margin-bottom: 0.5rem;
+		line-height: 1.2;
+	}
+
+	.channel {
+		font-weight: 400;
+
+	 a {
+		text-decoration: none;
+		color: inherit;
+	}
+}
 </style>
