@@ -15,12 +15,12 @@ export async function load() {
 	let preloading = true
 
 	if (browser) {
-		// @ts-expect-error debugging
-		window.r5 = {pg, sdk}
 
 		try {
 			await migrateDb()
 			await autoSync()
+			// @ts-expect-error debugging
+			window.r5 = {pg, sdk}
 		} catch (err) {
 			log.error('load_error', err)
 		} finally {

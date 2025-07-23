@@ -56,7 +56,6 @@
 
 	function generateShuffleQueue() {
 		const shuffled = [...trackIds].sort(() => Math.random() - 0.5)
-
 		// If current track exists, put it first in shuffle queue
 		if (track?.id && shuffled.includes(track.id)) {
 			const filtered = shuffled.filter((id) => id !== track?.id)
@@ -113,6 +112,7 @@
 		autoplay = false
 	}
 
+	/** @param {any} event */
 	function handleError(event) {
 		const code = event.target.error.code
 		if (code === 150) {
