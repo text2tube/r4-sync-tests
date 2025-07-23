@@ -1,8 +1,8 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
 	import {pg} from '$lib/db'
-	import {setupBroadcastSync, joinBroadcast, leaveBroadcast} from '$lib/broadcast'
-	import {readBroadcastsWithChannel, syncPlayBroadcast} from '$lib/api'
+	import {setupBroadcastSync, joinBroadcast, leaveBroadcast, syncPlayBroadcast} from '$lib/broadcast'
+	import {readBroadcastsWithChannel} from '$lib/api'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import {logger} from '$lib/logger'
 	const log = logger.ns('broadcast').seal()
