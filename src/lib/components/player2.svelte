@@ -251,16 +251,30 @@
 		width: 3rem;
 	}
 
-	figure::after {
-		position: absolute;
-		content: '';
-		top: 0;
-		bottom: 0;
-		right: -0.8rem;
-		width: 0.8rem;
-		background: linear-gradient(to right, var(--gray-1), transparent);
-		pointer-events: none;
-		z-index: 1;
+	section {
+		> figure::after {
+			position: absolute;
+			content: '';
+			top: 0;
+			bottom: 0;
+			right: -0.8rem;
+			width: 0.8rem;
+			background: linear-gradient(to right, var(--gray-1), transparent);
+			pointer-events: none;
+			z-index: 1;
+		}
+
+		> menu::before {
+			position: absolute;
+			content: '';
+			top: 0;
+			bottom: 0;
+			left: 0;
+			width: 0.8rem;
+			background: linear-gradient(to left, var(--gray-1), transparent);
+			pointer-events: none;
+			z-index: 1;
+		}
 	}
 
 	.text {
@@ -273,18 +287,6 @@
 		a {
 			text-decoration: none;
 		}
-	}
-
-	menu::before {
-		position: absolute;
-		content: '';
-		top: 0;
-		bottom: 0;
-		left: 0;
-		width: 0.8rem;
-		background: linear-gradient(to left, var(--gray-1), transparent);
-		pointer-events: none;
-		z-index: 1;
 	}
 
 	h3 {
