@@ -33,6 +33,7 @@ html {
 	font-family: firava, system-ui, sans-serif;
 	scroll-behavior: smooth;
 	color-scheme: light dark;
+  interpolate-size: allow-keywords;
 
 	background: var(--gray-1);
 	color: var(--gray-12);

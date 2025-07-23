@@ -170,10 +170,10 @@
 
 	<main class="center">
 		<menu>
-			<button onclick={eject} title="Clear queue and stop playback">
+			<!-- <button onclick={eject} title="Clear queue and stop playback">
 				<Icon icon={'eject'} />
-			</button>
-			<button
+			</button> -->
+			<!-- <button
 				onclick={toggleShuffle}
 				aria-pressed={appState.shuffle}
 				title={appState.shuffle ? 'Disable shuffle' : 'Enable shuffle'}
@@ -182,7 +182,7 @@
 			</button>
 			<button onclick={() => previous('user_prev')} title="Go previous track">
 				<Icon icon={'previous-fill'} />
-			</button>
+			</button> -->
 			{#if appState.is_playing}
 				<button class="pause" onclick={pause}>
 					<Icon icon={'pause'} />
