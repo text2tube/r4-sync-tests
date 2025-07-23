@@ -42,7 +42,6 @@
 		chatPanelVisible = !chatPanelVisible
 	}
 
-
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
 	$effect(async () => {
 		window.addEventListener('beforeunload', async (event) => {
@@ -174,5 +173,4 @@
 			grid-template-columns: 1fr;
 		}
 	}
-
 </style>

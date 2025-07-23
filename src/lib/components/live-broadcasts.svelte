@@ -1,7 +1,12 @@
 <script>
 	import {sdk} from '@radio4000/sdk'
 	import {pg} from '$lib/db'
-	import {setupBroadcastSync, joinBroadcast, leaveBroadcast, syncPlayBroadcast} from '$lib/broadcast'
+	import {
+		setupBroadcastSync,
+		joinBroadcast,
+		leaveBroadcast,
+		syncPlayBroadcast
+	} from '$lib/broadcast'
 	import {readBroadcastsWithChannel} from '$lib/api'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import {logger} from '$lib/logger'

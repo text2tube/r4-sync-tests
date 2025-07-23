@@ -44,8 +44,9 @@ export async function playTrack(id, endReason, startReason) {
 	const {rows} = await pg.sql`SELECT playlist_track FROM app_state WHERE id = 1`
 	const previousTrackId = rows[0]?.playlist_track
 
-	const tracks = (await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`)
-		.rows
+	const tracks = (
+		await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`
+	).rows
 	const ids = tracks.map((t) => t.id)
 	await setPlaylist(ids)
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
@@ -61,7 +62,9 @@ export async function playChannel({id, slug}, index = 0) {
 	log.log('play_channel', {id, slug})
 	await leaveBroadcast() // actually only needed if we're listening
 	if (await needsUpdate(slug)) await pullTracks(slug)
-	const tracks = (await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`).rows
+	const tracks = (
+		await pg.sql`select * from tracks where channel_id = ${id} order by created_at desc`
+	).rows
 	const ids = tracks.map((t) => t.id)
 	await setPlaylist(ids)
 	await playTrack(tracks[index].id, '', 'play_channel')

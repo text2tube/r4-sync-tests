@@ -15,7 +15,6 @@ export async function load() {
 	let preloading = true
 
 	if (browser) {
-
 		try {
 			await migrateDb()
 			await autoSync()
