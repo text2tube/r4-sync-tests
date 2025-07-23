@@ -144,8 +144,12 @@
 	{#if searchQuery && !isLoading && tracks.length > 0}
 		<menu>
 			<button type="button" onclick={() => setPlaylist(tracks.map((t) => t.id))}>Play all</button>
-			<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}>Add to queue</button>
-			<small>Showing {channels.length} channels and {tracks.length} tracks for "{searchQuery}"</small>
+			<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}
+				>Add to queue</button
+			>
+			<small
+				>Showing {channels.length} channels and {tracks.length} tracks for "{searchQuery}"</small
+			>
 		</menu>
 	{/if}
 

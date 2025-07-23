@@ -67,7 +67,6 @@
 
 	function toggleShuffle() {
 		const newShuffleState = !appState.shuffle
-
 		if (newShuffleState) {
 			// Turning shuffle ON - generate new shuffle queue
 			const shuffledQueue = generateShuffleQueue()
@@ -78,6 +77,7 @@
 		}
 	}
 
+	/** @param {string} reason */
 	function previous(reason) {
 		if (!track?.id) return
 		const idx = activeQueue.indexOf(track.id)
@@ -85,6 +85,7 @@
 		if (prev) playTrack(prev, reason, reason)
 	}
 
+	/** @param {string} reason */
 	function next(reason) {
 		if (!track?.id) return
 		const idx = activeQueue.indexOf(track.id)
@@ -105,6 +106,7 @@
 		pg.sql`UPDATE app_state SET is_playing = true`
 		autoplay = true
 	}
+
 	function pause() {
 		yt.pause()
 		pg.sql`UPDATE app_state SET is_playing = false`
