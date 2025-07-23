@@ -1,10 +1,12 @@
 IDEAS
 
+- refactor <Player /> with more sub-components?
 - after adding a track the modal form resets, which is fine, but there's no clear ux to indicate that it was saved correctly. One idea is to add the <TrackCard> below.
-- optimize player and header layout for mobile first!!!
-- mass tracks edit batch editor interface. like a giant table where you can edit all fields. save all button. or maybe it just saves onblur ala a spreadsheet? put this /{slug}/mass-edit. mass undo
 - batch pull of sync/musicbrainz (ala sync/youtube)
 - find a way to share `track_meta` data between users. push it remote, how? security?
+- mass tracks edit batch editor interface. like a giant table where you can edit all fields. save all button. or maybe it just saves onblur ala a spreadsheet? put this /{slug}/mass-edit. mass undo
+- maybe group related api.js functions (playback, playlist, queries)
+- optimize player and header layout for mobile first!!!
 
 DONE
 
