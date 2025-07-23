@@ -54,7 +54,6 @@
 		slug = result.channel.slug
 	}
 
-
 	function play() {
 		if (!track) {
 			log.log('play_no_track')

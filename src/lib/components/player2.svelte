@@ -71,39 +71,39 @@
 		if (!textEl) return
 		const h3 = textEl.querySelector('h3')
 		if (!h3) return
-		
+
 		// Debounce rapid calls
 		if (setupMarqueeTimeout) {
 			clearTimeout(setupMarqueeTimeout)
 		}
-		
+
 		setupMarqueeTimeout = setTimeout(() => {
 			// Reset any existing animation and restore original content
 			gsap.killTweensOf(h3)
-			gsap.set(h3, { x: 0 })
-			
+			gsap.set(h3, {x: 0})
+
 			// Reset to original content if it was duplicated
 			const spans = h3.querySelectorAll('span')
 			if (spans.length === 2) {
 				h3.innerHTML = spans[0].innerHTML
 			}
-			
+
 			// Force layout recalculation
 			h3.offsetHeight
-			
+
 			// Check if text overflows with threshold
 			if (checkOverflow(h3)) {
 				const originalText = h3.innerHTML
 				const gap = 40
-				
+
 				// Create duplicate for seamless loop
 				h3.innerHTML = `<span>${originalText}</span><span style="margin-left: ${gap}px">${originalText}</span>`
-				
+
 				// Wait for DOM update
 				requestAnimationFrame(() => {
 					const firstSpan = h3.firstElementChild
 					const spanWidth = firstSpan.scrollWidth + gap
-					
+
 					// Seamless infinite loop
 					gsap.to(h3, {
 						x: -spanWidth,
@@ -111,7 +111,7 @@
 						ease: 'none',
 						repeat: -1,
 						modifiers: {
-							x: gsap.utils.unitize(x => parseFloat(x) % spanWidth)
+							x: gsap.utils.unitize((x) => parseFloat(x) % spanWidth)
 						}
 					})
 				})
@@ -121,11 +121,11 @@
 
 	function initResizeObserver() {
 		if (!textEl || resizeObserver) return
-		
+
 		resizeObserver = new ResizeObserver(() => {
 			setupMarquee()
 		})
-		
+
 		resizeObserver.observe(textEl)
 	}
 
@@ -139,7 +139,6 @@
 			setupMarqueeTimeout = null
 		}
 	}
-
 
 	$effect(() => {
 		if (textEl) {
@@ -160,21 +159,21 @@
 {/snippet}
 
 {#snippet btnNext()}
-		<button onclick={() => next(track, activeQueue, 'user_next')}>
-			<Icon icon={'next-fill'} />
-		</button>
+	<button onclick={() => next(track, activeQueue, 'user_next')}>
+		<Icon icon={'next-fill'} />
+	</button>
 {/snippet}
 
 {#snippet btnPlay()}
-{#if appState.is_playing}
-			<button onclick={() => togglePlay(appState, track)}>
-				<Icon icon={'pause'} />
-			</button>
-		{:else}
-			<button onclick={() => togglePlay(appState, track)}>
-				<Icon icon={'play-fill'} />
-			</button>
-		{/if}
+	{#if appState.is_playing}
+		<button onclick={() => togglePlay(appState, track)}>
+			<Icon icon={'pause'} />
+		</button>
+	{:else}
+		<button onclick={() => togglePlay(appState, track)}>
+			<Icon icon={'play-fill'} />
+		</button>
+	{/if}
 {/snippet}
 
 {#snippet btnShuffle()}
@@ -184,52 +183,52 @@
 {/snippet}
 
 {#if !expanded}
-<section>
-	<figure>
-		<a href={`/${channelSlug}`}>
-			<ChannelAvatar id={channelImage} alt={channelName} />
-		</a>
-	</figure>
-	<div class="text" bind:this={textEl}>
-		<h3><a href={`/${channelSlug}/tracks/${track?.id}`}>{track?.title}</a></h3>
-		<small><a href={`/${channelSlug}`}>{channelName}</a></small>
-	</div>
-	<menu>
-		{@render btnPlay()}
-		{@render btnNext()}
-	</menu>
-</section>
-{:else}
-<article class="expanded">
-	<header class="channel-header">
-		<figure class="channel-avatar">
-			<ChannelAvatar id={channelImage} alt={channelName} />
+	<section>
+		<figure>
+			<a href={`/${channelSlug}`}>
+				<ChannelAvatar id={channelImage} alt={channelName} />
+			</a>
 		</figure>
-		<h2 class="channel">
-			<a href={`/${channelSlug}`}>{channelName}</a>
-		</h2>
-	</header>
+		<div class="text" bind:this={textEl}>
+			<h3><a href={`/${channelSlug}/tracks/${track?.id}`}>{track?.title}</a></h3>
+			<small><a href={`/${channelSlug}`}>{channelName}</a></small>
+		</div>
+		<menu>
+			{@render btnPlay()}
+			{@render btnNext()}
+		</menu>
+	</section>
+{:else}
+	<article class="expanded">
+		<header class="channel-header">
+			<figure class="channel-avatar">
+				<ChannelAvatar id={channelImage} alt={channelName} />
+			</figure>
+			<h2 class="channel">
+				<a href={`/${channelSlug}`}>{channelName}</a>
+			</h2>
+		</header>
 
 		{#if trackImage}
-	<figure class="artwork">
-			<img src={trackImage} alt={track?.title} />
-	</figure>
+			<figure class="artwork">
+				<img src={trackImage} alt={track?.title} />
+			</figure>
 		{/if}
-	
-	<header class="track">
-		<h3 class="title">{track?.title}</h3>
-		{#if track?.description}
-			<p class="description">{track.description}</p>
-		{/if}
-	</header>
-	
-	<menu>
-		{@render btnShuffle()}
-		{@render btnPrev()}
-		{@render btnPlay()}
-		{@render btnNext()}
-	</menu>
-</article>
+
+		<header class="track">
+			<h3 class="title">{track?.title}</h3>
+			{#if track?.description}
+				<p class="description">{track.description}</p>
+			{/if}
+		</header>
+
+		<menu>
+			{@render btnShuffle()}
+			{@render btnPrev()}
+			{@render btnPlay()}
+			{@render btnNext()}
+		</menu>
+	</article>
 {/if}
 
 <style>
@@ -254,7 +253,7 @@
 
 	figure::after {
 		position: absolute;
-		content: "";
+		content: '';
 		top: 0;
 		bottom: 0;
 		right: -0.8rem;
@@ -278,7 +277,7 @@
 
 	menu::before {
 		position: absolute;
-		content: "";
+		content: '';
 		top: 0;
 		bottom: 0;
 		left: 0;
@@ -299,8 +298,6 @@
 	menu {
 		position: relative;
 	}
-
-
 
 	/* Expanded player styles */
 	.expanded {
@@ -369,9 +366,9 @@
 	.channel {
 		font-weight: 400;
 
-	 a {
-		text-decoration: none;
-		color: inherit;
+		a {
+			text-decoration: none;
+			color: inherit;
+		}
 	}
-}
 </style>

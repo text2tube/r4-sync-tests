@@ -11,7 +11,7 @@ export function togglePlay(appState, track) {
 
 /**
  * @param {import('$lib/types').Track} track
- * @param {string[]} activeQueue 
+ * @param {string[]} activeQueue
  * @param {string} reason
  */
 export function next(track, activeQueue, reason) {
@@ -27,7 +27,7 @@ export function next(track, activeQueue, reason) {
 
 /**
  * @param {import('$lib/types').Track} track
- * @param {string[]} activeQueue 
+ * @param {string[]} activeQueue
  * @param {string} reason
  */
 export function previous(track, activeQueue, reason) {

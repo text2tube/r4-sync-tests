@@ -18,7 +18,11 @@
 	$effect(() => {
 		pg.query('select volume, muted from app_state where id = 1').then((res) => {
 			const row = res.rows[0]
-			savedVolume = row ? (typeof row.volume === 'string' ? Number.parseFloat(row.volume) : row.volume) : 0.1
+			savedVolume = row
+				? typeof row.volume === 'string'
+					? Number.parseFloat(row.volume)
+					: row.volume
+				: 0.1
 			savedMuted = row ? row.muted : true
 			console.log('loaded from db', savedVolume, savedMuted)
 		})
@@ -39,11 +43,10 @@
 
 		const {volume, muted} = e.target
 		console.log('user changed volume to', volume, muted)
-		
-		pg.sql`update app_state set muted = ${muted}, volume = ${volume} where id = 1`
-			.then(() => {
-				log.log({volume, muted})
-			})
+
+		pg.sql`update app_state set muted = ${muted}, volume = ${volume} where id = 1`.then(() => {
+			log.log({volume, muted})
+		})
 	}
 </script>
 
@@ -53,7 +56,7 @@
 		src={url}
 		crossorigin
 		slot="media"
-		autoplay={autoplay}
+		{autoplay}
 		playsinline={1}
 		onplay={() => log.log('play')}
 		onpause={() => log.log('pause')}

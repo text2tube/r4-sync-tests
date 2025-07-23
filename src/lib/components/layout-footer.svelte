@@ -2,8 +2,8 @@
 	import Icon from '$lib/components/icon.svelte'
 	import Player2 from '$lib/components/player2.svelte'
 	import gsap from 'gsap'
-	import { Draggable } from "gsap/Draggable"
-	import { InertiaPlugin } from "gsap/InertiaPlugin"
+	import {Draggable} from 'gsap/Draggable'
+	import {InertiaPlugin} from 'gsap/InertiaPlugin'
 
 	gsap.registerPlugin(Draggable, InertiaPlugin)
 
@@ -16,18 +16,18 @@
 	$effect(() => {
 		if (!footerElement || typeof window === 'undefined') return
 		const draggable = Draggable.create(footerElement, {
-			type: "y",
+			type: 'y',
 			inertia: false,
 			trigger: footerElement,
 			allowNativeTouchScrolling: false,
 			bounds: {minY: -5, maxY: 5},
 			snap: {y: 0},
-			onDragEnd: function() {
-				const velocity = InertiaPlugin.getVelocity(this.target, "y")
+			onDragEnd: function () {
+				const velocity = InertiaPlugin.getVelocity(this.target, 'y')
 				const dragY = this.y
-				
+
 				console.log(`Y Velocity: ${velocity}, Drag Y: ${dragY}`)
-				
+
 				if (dragY < 0) {
 					playerExpanded = true
 				} else if (dragY > 0) {
@@ -43,7 +43,7 @@
 </script>
 
 <footer bind:this={footerElement} class={{expanded: playerExpanded}}>
-	<label class="playerToggle">
+	<label class="toggle">
 		<Icon icon="chevron-up" size={24} />
 		<Icon icon="chevron-down" size={24} />
 		<input type="checkbox" name="playerLayout" bind:checked={playerExpanded} />
@@ -60,8 +60,8 @@
 		background: light-dark(var(--gray-2), var(--gray-3));
 
 		position: fixed;
-		left: .5rem;
-		right: .5rem;
+		left: 0.5rem;
+		right: 0.5rem;
 		bottom: 1.5rem;
 		z-index: 10;
 		transition: all 400ms ease-in-out;
@@ -71,11 +71,14 @@
 		}
 	}
 
-	.playerToggle {
-		display: flex;
+	.toggle {
+		position: absolute;
+		top: -0.6rem;
+		left: 0;
+		right: 0;
 		display: none;
+		display: flex;
 		place-content: center;
-		pointer-events: none;
 		input {
 			display: none;
 		}
@@ -85,17 +88,17 @@
 		}
 	}
 
-	.expanded .playerToggle {
+	.expanded .toggle {
 		:global(.icon:first-child) {
-		display: none;
+			display: none;
+		}
 	}
-	}
-	:not(.expanded) .playerToggle {
+	:not(.expanded) .toggle {
 		:global(.icon:nth-child(2)) {
-		display: none;
-	}
+			display: none;
+		}
 	}
 
-	.playerToggle {
+	.toggle {
 	}
 </style>
