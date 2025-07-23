@@ -1,6 +1,6 @@
 <script>
-	import {pg} from '$lib/db'
-	import {playTrack, subscribeToAppState, queryTrackWithChannel} from '$lib/api'
+	import {subscribeToAppState, queryTrackWithChannel} from '$lib/api'
+	import {toggleShuffle, previous, next, toggleVideo, eject} from '$lib/api/player'
 	import Icon from '$lib/components/icon.svelte'
 	import YoutubePlayer from '$lib/components/youtube-player.svelte'
 	import ChannelAvatar from './channel-avatar.svelte'
@@ -54,47 +54,6 @@
 		slug = result.channel.slug
 	}
 
-	function generateShuffleQueue() {
-		const shuffled = [...trackIds].sort(() => Math.random() - 0.5)
-		// If current track exists, put it first in shuffle queue
-		if (track?.id && shuffled.includes(track.id)) {
-			const filtered = shuffled.filter((id) => id !== track?.id)
-			return [track.id, ...filtered]
-		}
-		return shuffled
-	}
-
-	function toggleShuffle() {
-		const newShuffleState = !appState.shuffle
-		if (newShuffleState) {
-			// Turning shuffle ON - generate new shuffle queue
-			const shuffledQueue = generateShuffleQueue()
-			pg.sql`UPDATE app_state SET shuffle = true, playlist_tracks_shuffled = ${shuffledQueue} WHERE id = 1`
-		} else {
-			// Turning shuffle OFF - clear shuffle queue
-			pg.sql`UPDATE app_state SET shuffle = false, playlist_tracks_shuffled = ${[]} WHERE id = 1`
-		}
-	}
-
-	/** @param {string} reason */
-	function previous(reason) {
-		if (!track?.id) return
-		const idx = activeQueue.indexOf(track.id)
-		const prev = activeQueue[idx - 1]
-		if (prev) playTrack(prev, reason, reason)
-	}
-
-	/** @param {string} reason */
-	function next(reason) {
-		if (!track?.id) return
-		const idx = activeQueue.indexOf(track.id)
-		const next = activeQueue[idx + 1]
-		if (next) {
-			const startReason =
-				reason === 'track_completed' || reason === 'youtube_error' ? 'auto_next' : reason
-			playTrack(next, reason, startReason)
-		}
-	}
 
 	function play() {
 		if (!track) {
@@ -117,7 +76,7 @@
 		const code = event.target.error.code
 		if (code === 150) {
 			log.log('youtube_error_150')
-			next('youtube_error')
+			next(track, activeQueue, 'youtube_error')
 		} else {
 			log.warn('Unhandled player error', code)
 		}
@@ -125,30 +84,16 @@
 
 	function handleEndTrack() {
 		log.log('track_completed')
-		next('track_completed')
+		next(track, activeQueue, 'track_completed')
 	}
 
-	function eject() {
+	function handleEject() {
 		yt?.pause()
 		image = ''
 		title = ''
 		slug = ''
 		track = undefined
-		pg.sql`UPDATE app_state SET
-			playlist_tracks = ${[]},
-			playlist_track = null,
-			playlist_tracks_shuffled = ${[]},
-			show_video_player = false,
-			shuffle = false,
-			is_playing = false
-			WHERE id = 1`
-	}
-
-	function toggleVideo() {
-		pg.sql`UPDATE app_state SET show_video_player = ${!appState.show_video_player}`
-	}
-	function togglePlay() {
-		pg.sql`UPDATE app_state SET is_playing = ${!appState.is_playing}`
+		eject()
 	}
 </script>
 
@@ -170,17 +115,17 @@
 
 	<main class="center">
 		<menu>
-			<!-- <button onclick={eject} title="Clear queue and stop playback">
+			<!-- <button onclick={handleEject} title="Clear queue and stop playback">
 				<Icon icon={'eject'} />
 			</button> -->
 			<!-- <button
-				onclick={toggleShuffle}
+				onclick={() => toggleShuffle(appState, trackIds, track)}
 				aria-pressed={appState.shuffle}
 				title={appState.shuffle ? 'Disable shuffle' : 'Enable shuffle'}
 			>
 				<Icon icon={'shuffle'} />
 			</button>
-			<button onclick={() => previous('user_prev')} title="Go previous track">
+			<button onclick={() => previous(track, activeQueue, 'user_prev')} title="Go previous track">
 				<Icon icon={'previous-fill'} />
 			</button> -->
 			{#if appState.is_playing}
@@ -192,10 +137,10 @@
 					<Icon icon={'play-fill'} />
 				</button>
 			{/if}
-			<button onclick={() => next('user_next')} title="Go next track">
+			<button onclick={() => next(track, activeQueue, 'user_next')} title="Go next track">
 				<Icon icon={'next-fill'} />
 			</button>
-			<button onclick={toggleVideo} title="Show/hide video">
+			<button onclick={() => toggleVideo(appState)} title="Show/hide video">
 				<Icon icon={'video'} />
 			</button>
 		</menu>

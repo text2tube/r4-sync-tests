@@ -49,7 +49,7 @@
 		<input type="checkbox" name="playerLayout" bind:checked={playerExpanded} />
 	</label>
 	{#if !preloading && playerLoaded}
-		<Player2 {appState} />
+		<Player2 {appState} {playerExpanded} />
 	{/if}
 </footer>
 
@@ -62,31 +62,38 @@
 		position: fixed;
 		left: .5rem;
 		right: .5rem;
-		bottom: 0.5rem;
+		bottom: 1.5rem;
 		z-index: 10;
-
-		Height: 4rem;
-		transition: max-height 500ms ease-in-out;
+		transition: all 400ms ease-in-out;
 
 		&.expanded {
-			height: calc(100dvh - 0.5rem);
+			height: calc(100dvh - 1.5rem);
 		}
 	}
 
 	.playerToggle {
 		display: flex;
+		display: none;
 		place-content: center;
 		pointer-events: none;
 		input {
 			display: none;
 		}
+		:global(.icon) {
+			width: 1.5rem;
+			opacity: 0.5;
+		}
 	}
 
-	.expanded .playerToggle :global(.icon:first-child) {
+	.expanded .playerToggle {
+		:global(.icon:first-child) {
 		display: none;
 	}
-	:not(.expanded) .playerToggle :global(.icon:nth-child(2)) {
+	}
+	:not(.expanded) .playerToggle {
+		:global(.icon:nth-child(2)) {
 		display: none;
+	}
 	}
 
 	.playerToggle {
