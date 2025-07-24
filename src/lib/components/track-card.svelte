@@ -80,8 +80,7 @@
 
 	img {
 		width: 3rem;
-		object-fit: cover;
-		border-radius: var(--border-radius);
+		height: 1.8rem;
 	}
 
 	.title {
