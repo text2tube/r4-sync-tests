@@ -1,5 +1,6 @@
 import {pg} from '$lib/db'
 import {playTrack} from '$lib/api'
+import {shuffleArray} from '$lib/utils'
 
 /** @typedef {import('$lib/types').AppState} AppState */
 /** @typedef {import('$lib/types').Track} Track */
@@ -58,17 +59,12 @@ export function toggleShuffle(appState, trackIds) {
 	const newShuffleState = !appState.shuffle
 	if (newShuffleState) {
 		// Turning shuffle ON - generate new shuffle queue
-		const shuffledQueue = generateShuffleQueue(trackIds)
+		const shuffledQueue = shuffleArray(trackIds)
 		pg.sql`UPDATE app_state SET shuffle = true, playlist_tracks_shuffled = ${shuffledQueue} WHERE id = 1`
 	} else {
 		// Turning shuffle OFF - clear shuffle queue
 		pg.sql`UPDATE app_state SET shuffle = false, playlist_tracks_shuffled = ${[]} WHERE id = 1`
 	}
-}
-
-/** @param {string[]} trackIds */
-function generateShuffleQueue(trackIds) {
-	return [...trackIds].sort(() => Math.random() - 0.5)
 }
 
 export function toggleVideo(appState) {
