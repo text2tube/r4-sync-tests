@@ -53,38 +53,6 @@
 		description = result.channel.description
 		slug = result.channel.slug
 	}
-
-	function play() {
-		if (!track) {
-			log.log('play_no_track')
-			return
-		}
-		yt.play()
-		pg.sql`UPDATE app_state SET is_playing = true`
-		autoplay = true
-	}
-
-	function pause() {
-		yt.pause()
-		pg.sql`UPDATE app_state SET is_playing = false`
-		autoplay = false
-	}
-
-	/** @param {any} event */
-	function handleError(event) {
-		const code = event.target.error.code
-		if (code === 150) {
-			log.log('youtube_error_150')
-			next(track, activeQueue, 'youtube_error')
-		} else {
-			log.warn('Unhandled player error', code)
-		}
-	}
-
-	function handleEndTrack() {
-		log.log('track_completed')
-		next(track, activeQueue, 'track_completed')
-	}
 </script>
 
 <article class={['player', {showVideo: appState.show_video_player}]}>

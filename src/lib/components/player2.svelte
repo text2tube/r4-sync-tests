@@ -4,6 +4,7 @@
 	import {extractYouTubeId} from '$lib/utils'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
+	import YoutubePlayer from '$lib/components/youtube-player.svelte'
 
 	/** @typedef {import('$lib/types').AppState} AppState */
 	/** @typedef {import('$lib/types').Track} Track */
@@ -11,6 +12,10 @@
 
 	/** @type {{appState: AppState, expanded: boolean}} */
 	let {appState, expanded} = $props()
+
+	let autoplay = $state(false)
+
+	let yt = $state()
 
 	/** @type {Track|undefined} */
 	let track = $state()
@@ -47,6 +52,21 @@
 		track = result.track
 		channel = result.channel
 	}
+
+	/** @param {any} event */
+	function handleError(event) {
+		const code = event.target.error.code
+		if (code === 150) {
+			console.log('youtube_error_150')
+			next(track, activeQueue, 'youtube_error')
+		} else {
+			console.warn('Unhandled player error', code)
+		}
+	}
+
+	function handleEndTrack() {
+		next(track, activeQueue, 'track_completed')
+	}
 </script>
 
 {#snippet btnPrev()}
@@ -62,7 +82,7 @@
 {/snippet}
 
 {#snippet btnPlay()}
-	<button onclick={() => togglePlay(appState)} disabled={!canPlay}>
+	<button onclick={() => togglePlay(appState, yt)} disabled={!canPlay}>
 		<Icon icon={appState.is_playing ? 'pause' : 'play-fill'} />
 	</button>
 {/snippet}
@@ -85,15 +105,13 @@
 	</button>
 {/snippet}
 
-{#snippet channelHeader(showName = false)}
+{#snippet channelHeader()}
 	{#if channel}
 		<header class="channel">
 			<a href={`/${channel.slug}`}>
 				<ChannelAvatar id={channel.image} alt={channel.name} />
 			</a>
-			{#if showName}
-				<h2><a href={`/${channel.slug}`}>{channel.name}</a></h2>
-			{/if}
+			<h2><a href={`/${channel.slug}`}>{channel.name}</a></h2>
 		</header>
 	{/if}
 {/snippet}
@@ -110,42 +128,49 @@
 	{/if}
 {/snippet}
 
-{#if !expanded}
-	<section class="small">
-		{@render channelHeader()}
-		{#if !channel}
-			<p style="margin-left: 0.5rem">Find something to play!</p>
-		{/if}
-		{#if channel}
-			{@render trackContent()}
-		{/if}
-		<menu>
-			{@render btnPlay()}
-			{@render btnNext()}
-		</menu>
-	</section>
-{:else}
-	<article class="big">
-		{@render channelHeader(true)}
-
-		{#if track}
-			{@render trackContent()}
-		{:else}
-			<p>Waiting for sweet tracks</p>
-		{/if}
-
-		<menu>
-			{@render btnShuffle()}
-			{@render btnPrev()}
-			{@render btnPlay()}
-			{@render btnNext()}
-			{@render btnToggleVideo()}
-		</menu>
-	</article>
-{/if}
+<article class:expanded>
+	{@render channelHeader()}
+	{#if !channel}
+		<p style="margin-left: 0.5rem">Find some sweet music</p>
+	{/if}
+	{#if channel}
+		{@render trackContent()}
+		<YoutubePlayer
+			url={track?.url}
+			bind:yt
+			{autoplay}
+			onerror={handleError}
+			onended={handleEndTrack}
+		/>
+	{/if}
+	<menu>
+		{@render btnShuffle()}
+		{@render btnPrev()}
+		{@render btnPlay()}
+		{@render btnNext()}
+		{@render btnToggleVideo()}
+	</menu>
+</article>
 
 <style>
-	.small {
+	.text {
+		flex: 1;
+		min-width: 0;
+		line-height: 1;
+		position: relative;
+		overflow: hidden;
+		padding-left: 0.4rem;
+	}
+
+	h3 a {
+		text-decoration: none;
+	}
+
+	menu {
+		position: relative;
+	}
+
+	article:not(.expanded) {
 		--size: 3rem;
 		--gap: 0.2rem;
 
@@ -160,6 +185,10 @@
 			border-radius: var(--border-radius);
 		}
 
+		h2 {
+			display: none;
+		}
+
 		.text::after {
 			display: block;
 			content: '';
@@ -168,7 +197,7 @@
 			right: 0;
 			bottom: 0;
 			width: 2rem;
-			background: linear-gradient(to left, black, transparent);
+			background: linear-gradient(to left, var(--gray-2), transparent);
 		}
 
 		.artwork {
@@ -195,25 +224,7 @@
 		}
 	}
 
-	.text {
-		flex: 1;
-		min-width: 0;
-		line-height: 1;
-		position: relative;
-		overflow: hidden;
-		padding-left: 0.4rem;
-	}
-
-	h3 a {
-		text-decoration: none;
-	}
-
-	menu {
-		position: relative;
-	}
-
-	/* Expanded player styles */
-	.big {
+	article.expanded {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
@@ -224,6 +235,10 @@
 		gap: 2rem;
 
 		.artwork {
+			display: none;
+		}
+
+		:global(youtube-video) {
 			width: min(80vw, 28rem);
 			height: min(80vw, 28rem);
 			box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.3);

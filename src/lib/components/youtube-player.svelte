@@ -85,8 +85,8 @@
 		--media-icon-color: var(--gray-12);
 		--media-range-track-background: hsla(0, 0%, 0%, 0.2);
 		--media-range-track-background: var(--gray-11);
-		--media-loading-indicator-icon-width: 4rem;
-		--media-loading-indicator-icon-height: 4rem;
+		--media-loading-indicator-icon-width: 2rem;
+		--media-loading-indicator-icon-height: 2rem;
 	}
 
 	:global(media-loading-indicator) {

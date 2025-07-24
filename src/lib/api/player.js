@@ -2,8 +2,22 @@ import {pg} from '$lib/db'
 import {playTrack} from '$lib/api'
 
 /** @param {import('$lib/types').AppState} appState */
-export function togglePlay(appState) {
-	pg.sql`UPDATE app_state SET is_playing = ${!appState.is_playing}`
+export function togglePlay(appState, yt) {
+	if (appState.is_playing) {
+		pause(yt)
+	} else {
+		play(yt)
+	}
+}
+
+function play(yt) {
+	yt.play()
+	pg.query('UPDATE app_state SET is_playing = true')
+}
+
+function pause(yt) {
+	yt.pause()
+	pg.query('UPDATE app_state SET is_playing = false')
 }
 
 /**

@@ -42,7 +42,7 @@
 	})
 </script>
 
-<footer bind:this={footerElement} class={{expanded}}>
+<footer bind:this={footerElement} class={{expanded, showVideo: appState.show_video_player}}>
 	<label class="toggle">
 		<Icon icon="chevron-up" size={24} />
 		<Icon icon="chevron-down" size={24} />
@@ -94,6 +94,14 @@
 			width: 1.5rem;
 			opacity: 0.5;
 		}
+	}
+
+	footer:not(.expanded) :global(media-controller) {
+		display: none;
+	}
+
+	footer:not(.expanded) :global(youtube-video) {
+		/* display: none; */
 	}
 
 	.expanded .toggle {
