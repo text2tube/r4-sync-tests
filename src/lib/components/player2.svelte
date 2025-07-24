@@ -1,32 +1,22 @@
 <script>
 	import {subscribeToAppState, queryTrackWithChannel} from '$lib/api'
-	import {togglePlay, next, previous, toggleShuffle} from '$lib/api/player'
+	import {togglePlay, next, previous, toggleShuffle, toggleVideo, eject} from '$lib/api/player'
 	import {extractYouTubeId} from '$lib/utils'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
-	import {onMount, onDestroy} from 'svelte'
-	import gsap from 'gsap'
 
 	/** @typedef {import('$lib/types').AppState} AppState */
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
 
-	/** @type {{appState: AppState, playerExpanded: false}} */
-	let {appState, playerExpanded: expanded} = $props()
+	/** @type {{appState: AppState, expanded: boolean}} */
+	let {appState, expanded} = $props()
 
 	/** @type {Track|undefined} */
 	let track = $state()
 
-	/** @type {string} */
-	let channelName = $state('')
-	let channelSlug = $state('')
-	let channelImage = $state('')
-
-	/** @type {HTMLElement} */
-	let textEl
-
-	/** @type {ResizeObserver|null} */
-	let resizeObserver = null
+	/** @type {Channel|undefined} */
+	let channel = $state()
 
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
@@ -38,13 +28,12 @@
 	let trackImage = $derived.by(() => {
 		if (!track?.url) return ''
 		const ytid = extractYouTubeId(track.url)
-		return ytid ? `https://i.ytimg.com/vi/${ytid}/mqdefault.jpg` : ''
+		return ytid ? `https://i.ytimg.com/vi/${ytid}/mqdefault.jpg` : '' // default, mqdefault, hqdefault, sddefault, maxresdefault
 	})
 
 	subscribeToAppState(async (state) => {
 		const tid = state.playlist_track
-		const trackChanged = tid && tid !== track?.id
-		if (tid) await setChannelFromTrack(tid)
+		if (tid && tid !== track?.id) await setChannelFromTrack(tid)
 	})
 
 	/** @param {string} tid */
@@ -53,206 +42,131 @@
 		const result = await queryTrackWithChannel(tid)
 		if (!result) return
 		track = result.track
-		channelName = result.channel.name
-		channelSlug = result.channel.slug
-		channelImage = result.channel.image
-		setupMarquee()
+		channel = result.channel
+		// setupMarquee()
+		// const trackChanged = tid && tid !== track?.id
+		// if (trackChanged) autoplay = true
 	}
-
-	let setupMarqueeTimeout = null
-
-	function checkOverflow(element) {
-		// Small threshold to account for sub-pixel rendering differences
-		const threshold = 2
-		return element.scrollWidth > element.clientWidth + threshold
-	}
-
-	function setupMarquee() {
-		if (!textEl) return
-		const h3 = textEl.querySelector('h3')
-		if (!h3) return
-
-		// Debounce rapid calls
-		if (setupMarqueeTimeout) {
-			clearTimeout(setupMarqueeTimeout)
-		}
-
-		setupMarqueeTimeout = setTimeout(() => {
-			// Reset any existing animation and restore original content
-			gsap.killTweensOf(h3)
-			gsap.set(h3, {x: 0})
-
-			// Reset to original content if it was duplicated
-			const spans = h3.querySelectorAll('span')
-			if (spans.length === 2) {
-				h3.innerHTML = spans[0].innerHTML
-			}
-
-			// Force layout recalculation
-			h3.offsetHeight
-
-			// Check if text overflows with threshold
-			if (checkOverflow(h3)) {
-				const originalText = h3.innerHTML
-				const gap = 40
-
-				// Create duplicate for seamless loop
-				h3.innerHTML = `<span>${originalText}</span><span style="margin-left: ${gap}px">${originalText}</span>`
-
-				// Wait for DOM update
-				requestAnimationFrame(() => {
-					const firstSpan = h3.firstElementChild
-					const spanWidth = firstSpan.scrollWidth + gap
-
-					// Seamless infinite loop
-					gsap.to(h3, {
-						x: -spanWidth,
-						duration: spanWidth / 50,
-						ease: 'none',
-						repeat: -1,
-						modifiers: {
-							x: gsap.utils.unitize((x) => parseFloat(x) % spanWidth)
-						}
-					})
-				})
-			}
-		}, 100) // 100ms debounce
-	}
-
-	function initResizeObserver() {
-		if (!textEl || resizeObserver) return
-
-		resizeObserver = new ResizeObserver(() => {
-			setupMarquee()
-		})
-
-		resizeObserver.observe(textEl)
-	}
-
-	function cleanup() {
-		if (resizeObserver) {
-			resizeObserver.disconnect()
-			resizeObserver = null
-		}
-		if (setupMarqueeTimeout) {
-			clearTimeout(setupMarqueeTimeout)
-			setupMarqueeTimeout = null
-		}
-	}
-
-	$effect(() => {
-		if (textEl) {
-			initResizeObserver()
-			setupMarquee()
-		}
-	})
-
-	onDestroy(() => {
-		cleanup()
-	})
 </script>
 
 {#snippet btnPrev()}
 	<button onclick={() => previous(track, activeQueue, 'user_prev')}>
-		<Icon icon={'previous-fill'} />
+		<Icon icon="previous-fill" />
 	</button>
 {/snippet}
 
 {#snippet btnNext()}
-	<button onclick={() => next(track, activeQueue, 'user_next')}>
-		<Icon icon={'next-fill'} />
+	<button onclick={() => next(track, activeQueue, 'user_next')} disabled={!channel || !track}>
+		<Icon icon="next-fill" />
 	</button>
 {/snippet}
 
 {#snippet btnPlay()}
-	{#if appState.is_playing}
-		<button onclick={() => togglePlay(appState, track)}>
-			<Icon icon={'pause'} />
-		</button>
-	{:else}
-		<button onclick={() => togglePlay(appState, track)}>
-			<Icon icon={'play-fill'} />
-		</button>
-	{/if}
+	<button onclick={() => togglePlay(appState)} disabled={!channel || !track}>
+		<Icon icon={appState.is_playing ? 'pause' : 'play-fill'} />
+	</button>
 {/snippet}
 
 {#snippet btnShuffle()}
-	<button onclick={() => toggleShuffle(appState, trackIds, track)} class:active={appState.shuffle}>
-		<Icon icon={'shuffle'} />
+	<button onclick={() => toggleShuffle(appState, trackIds)} class:active={appState.shuffle}>
+		<Icon icon="shuffle" />
+	</button>
+{/snippet}
+
+{#snippet btnEject()}
+	<button onclick={() => eject()}>
+		<Icon icon="eject" />
+	</button>
+{/snippet}
+
+{#snippet btnToggleVideo()}
+	<button onclick={() => toggleVideo(appState)} title="Show/hide video">
+		<Icon icon="video" />
 	</button>
 {/snippet}
 
 {#if !expanded}
-	<section>
-		<figure>
-			<a href={`/${channelSlug}`}>
-				<ChannelAvatar id={channelImage} alt={channelName} />
-			</a>
-		</figure>
-		<div class="text" bind:this={textEl}>
-			<h3><a href={`/${channelSlug}/tracks/${track?.id}`}>{track?.title}</a></h3>
-			<small><a href={`/${channelSlug}`}>{channelName}</a></small>
-		</div>
+	<section class="micro">
+		{#if channel}
+			<header class="channel">
+				<a href={`/${channel.slug}`}>
+					<ChannelAvatar id={channel.image} alt={channel.name} />
+				</a>
+				<!-- <small><a href={`/${channel.slug}`}>{channel.name}</a></small> -->
+			</header>
+		{:else}
+			<p style="margin-left: 0.5rem">Find something to play!</p>
+		{/if}
+		{#if channel && track}
+			<img class="artwork" src={trackImage} alt={track.title} />
+			<div class="text">
+				<h3><a href={`/${channel.slug}/tracks/${track.id}`}>{track.title}</a></h3>
+				{#if track.description}<p><small>{track.description}</small></p>{/if}
+			</div>
+		{/if}
 		<menu>
+			<!-- {@render btnEject()} -->
 			{@render btnPlay()}
 			{@render btnNext()}
+			<!-- {@render btnToggleVideo()} -->
 		</menu>
 	</section>
 {:else}
-	<article class="expanded">
-		<header class="channel-header">
-			<figure class="channel-avatar">
-				<ChannelAvatar id={channelImage} alt={channelName} />
-			</figure>
-			<h2 class="channel">
-				<a href={`/${channelSlug}`}>{channelName}</a>
-			</h2>
-		</header>
-
-		{#if trackImage}
-			<figure class="artwork">
-				<img src={trackImage} alt={track?.title} />
-			</figure>
+	<article class="macro">
+		{#if channel}
+			<header class="channel">
+				<a href={`/${channel.slug}`}>
+					<ChannelAvatar id={channel.image} alt={channel.name} />
+				</a>
+				<h2><a href={`/${channel.slug}`}>{channel.name}</a></h2>
+			</header>
 		{/if}
 
-		<header class="track">
-			<h3 class="title">{track?.title}</h3>
-			{#if track?.description}
-				<p class="description">{track.description}</p>
-			{/if}
-		</header>
+		{#if track}
+			<img class="artwork" src={trackImage} alt={track.title} />
+			<div class="text">
+				<h3>{track.title}</h3>
+				{#if track?.description}
+					<p><small>{track.description}</small></p>
+				{/if}
+			</div>
+		{:else}
+			<p>Waiting for sweet tracks</p>
+		{/if}
 
 		<menu>
 			{@render btnShuffle()}
 			{@render btnPrev()}
 			{@render btnPlay()}
 			{@render btnNext()}
+			{@render btnToggleVideo()}
 		</menu>
 	</article>
 {/if}
 
 <style>
-	section {
+	.micro {
+		--size: 3rem;
+		--gap: 0.2rem;
+
 		display: flex;
 		align-items: center;
+		min-height: var(--size);
+		padding: var(--gap);
 
-		> menu {
-			margin-right: 0.25rem;
+		:global(img) {
+			height: var(--size);
 		}
-	}
 
-	figure {
-		flex-shrink: 0;
-		width: 3rem;
-		position: relative;
-	}
+		.artwork {
+			width: var(--size);
+			height: auto;
+			position: relative;
+			margin-left: var(--gap);
+			object-fit: contain;
+		}
 
-	figure img {
-		width: 3rem;
-	}
-
-	section {
-		> figure::after {
+		.artwork::after {
 			position: absolute;
 			content: '';
 			top: 0;
@@ -264,12 +178,21 @@
 			z-index: 1;
 		}
 
-		> menu::before {
+		h3 {
+			font-size: inherit;
+		}
+
+		menu {
+			margin-left: auto;
+			margin-right: 0.5rem;
+		}
+
+		menu::before {
 			position: absolute;
 			content: '';
 			top: 0;
 			bottom: 0;
-			left: 0;
+			left: -0.8rem;
 			width: 0.8rem;
 			background: linear-gradient(to left, var(--gray-1), transparent);
 			pointer-events: none;
@@ -287,10 +210,12 @@
 		a {
 			text-decoration: none;
 		}
+		p {
+			margin: 0;
+		}
 	}
 
 	h3 {
-		font-size: inherit;
 		line-height: initial;
 		white-space: nowrap;
 		overflow: hidden;
@@ -302,75 +227,64 @@
 	}
 
 	/* Expanded player styles */
-	.expanded {
+	.macro {
+		flex: 1;
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		padding: 2rem;
-		max-width: 100%;
+		place-items: center;
+		place-content: center;
 		text-align: center;
+		padding: 2rem;
+		gap: 2rem;
 
+		.artwork {
+			width: min(80vw, 28rem);
+			height: min(80vw, 28rem);
+		}
+
+		.channel {
+			display: flex;
+			gap: 0.5rem;
+			place-items: center;
+
+			:global(img) {
+				width: 4rem;
+				height: 4rem;
+			}
+
+			h2 {
+				font-weight: 400;
+				a {
+					text-decoration: none;
+				}
+			}
+		}
+
+		h3 {
+			font-size: var(--font-size-title3);
+		}
+
+		/* bigger menu */
 		> menu {
 			gap: 0.5rem;
 			:global(button) {
-				padding: 0.5rem 1rem;
+				padding: 0.2rem 1rem;
 			}
 			:global(svg) {
-				width: 2.5rem;
-				height: 2.5rem;
+				width: 2rem;
+				height: 2rem;
 			}
 		}
-	}
-
-	.channel-header {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		margin-bottom: 2rem;
-	}
-
-	.channel-header .channel-avatar {
-		width: 3rem;
-		height: 3rem;
-		flex-shrink: 0;
-	}
-
-	.channel-header .channel {
-		margin: 0;
 	}
 
 	.artwork {
-		width: min(80vw, 20rem);
-		height: min(80vw, 20rem);
-		margin-bottom: 2rem;
-		border-radius: 0.5rem;
-		overflow: hidden;
+		border-radius: var(--border-radius);
 		box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.3);
-	}
-
-	.artwork img {
-		width: 100%;
-		height: 100%;
+		width: 3rem;
 		object-fit: cover;
 	}
 
-	.track {
-		margin-bottom: 2rem;
-	}
-
-	.title {
-		font-size: 1.5rem;
-		font-weight: 600;
-		margin-bottom: 0.5rem;
-		line-height: 1.2;
-	}
-
-	.channel {
-		font-weight: 400;
-
-		a {
-			text-decoration: none;
-			color: inherit;
-		}
+	button[disabled] :global(.icon) {
+		opacity: 0.2;
 	}
 </style>

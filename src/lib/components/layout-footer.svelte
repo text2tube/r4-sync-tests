@@ -9,7 +9,7 @@
 
 	let {appState, preloading, playerLoaded} = $props()
 
-	let playerExpanded = $state(false)
+	let expanded = $state(false)
 	let footerElement
 
 	// Setup GSAP swipe gestures
@@ -29,9 +29,9 @@
 				console.log(`Y Velocity: ${velocity}, Drag Y: ${dragY}`)
 
 				if (dragY < 0) {
-					playerExpanded = true
+					expanded = true
 				} else if (dragY > 0) {
-					playerExpanded = false
+					expanded = false
 				}
 			}
 		})
@@ -42,14 +42,14 @@
 	})
 </script>
 
-<footer bind:this={footerElement} class={{expanded: playerExpanded}}>
+<footer bind:this={footerElement} class={{expanded}}>
 	<label class="toggle">
 		<Icon icon="chevron-up" size={24} />
 		<Icon icon="chevron-down" size={24} />
-		<input type="checkbox" name="playerLayout" bind:checked={playerExpanded} />
+		<input type="checkbox" name="playerLayout" bind:checked={expanded} />
 	</label>
-	{#if !preloading && playerLoaded}
-		<Player2 {appState} {playerExpanded} />
+	{#if !preloading}
+		<Player2 {appState} {expanded} />
 	{/if}
 </footer>
 
@@ -65,15 +65,22 @@
 		bottom: 1.5rem;
 		z-index: 10;
 		transition: all 400ms ease-in-out;
+		will-change: transform, height;
 
 		&.expanded {
 			height: calc(100dvh - 1.5rem);
+			left: 0;
+			right: 0;
+			bottom: 0;
+			display: flex;
+			align-items: center;
+			place-content: center;
 		}
 	}
 
 	.toggle {
 		position: absolute;
-		top: -0.6rem;
+		top: 0rem;
 		left: 0;
 		right: 0;
 		display: none;
@@ -97,8 +104,5 @@
 		:global(.icon:nth-child(2)) {
 			display: none;
 		}
-	}
-
-	.toggle {
 	}
 </style>

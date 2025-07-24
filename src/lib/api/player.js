@@ -1,11 +1,8 @@
 import {pg} from '$lib/db'
 import {playTrack} from '$lib/api'
 
-/**
- * @param {import('$lib/types').AppState} appState
- * @param {import('$lib/types').Track} track
- */
-export function togglePlay(appState, track) {
+/** @param {import('$lib/types').AppState} appState */
+export function togglePlay(appState) {
 	pg.sql`UPDATE app_state SET is_playing = ${!appState.is_playing}`
 }
 
@@ -40,13 +37,12 @@ export function previous(track, activeQueue, reason) {
 /**
  * @param {import('$lib/types').AppState} appState
  * @param {string[]} trackIds
- * @param {import('$lib/types').Track} track
  */
-export function toggleShuffle(appState, trackIds, track) {
+export function toggleShuffle(appState, trackIds) {
 	const newShuffleState = !appState.shuffle
 	if (newShuffleState) {
 		// Turning shuffle ON - generate new shuffle queue
-		const shuffledQueue = generateShuffleQueue(trackIds, track)
+		const shuffledQueue = generateShuffleQueue(trackIds)
 		pg.sql`UPDATE app_state SET shuffle = true, playlist_tracks_shuffled = ${shuffledQueue} WHERE id = 1`
 	} else {
 		// Turning shuffle OFF - clear shuffle queue
@@ -54,18 +50,9 @@ export function toggleShuffle(appState, trackIds, track) {
 	}
 }
 
-/**
- * @param {string[]} trackIds
- * @param {import('$lib/types').Track} track
- */
-function generateShuffleQueue(trackIds, track) {
-	const shuffled = [...trackIds].sort(() => Math.random() - 0.5)
-	// If current track exists, put it first in shuffle queue
-	if (track?.id && shuffled.includes(track.id)) {
-		const filtered = shuffled.filter((id) => id !== track?.id)
-		return [track.id, ...filtered]
-	}
-	return shuffled
+/** @param {string[]} trackIds */
+function generateShuffleQueue(trackIds) {
+	return [...trackIds].sort(() => Math.random() - 0.5)
 }
 
 export function toggleVideo(appState) {
@@ -73,12 +60,14 @@ export function toggleVideo(appState) {
 }
 
 export function eject() {
-	pg.sql`UPDATE app_state SET
-		playlist_tracks = ${[]},
-		playlist_track = null,
-		playlist_tracks_shuffled = ${[]},
-		show_video_player = false,
-		shuffle = false,
-		is_playing = false
+	pg.sql`
+		UPDATE app_state
+		SET
+			playlist_tracks = ${[]},
+			playlist_track = null,
+			playlist_tracks_shuffled = ${[]},
+			show_video_player = false,
+			shuffle = false,
+			is_playing = false
 		WHERE id = 1`
 }

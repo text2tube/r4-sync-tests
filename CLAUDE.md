@@ -81,6 +81,10 @@ $effect(() => {
 })
 ```
 
+Snippets can be used for reusable "mini" components, when a file is too much https://svelte.dev/docs/svelte/snippet.
+Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.
+Use `bind:this` to get a reference to the element. You can even export methods on it.
+
 ## HTML/CSS
 
 - Semantic HTML over divs

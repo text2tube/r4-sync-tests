@@ -85,15 +85,6 @@
 		log.log('track_completed')
 		next(track, activeQueue, 'track_completed')
 	}
-
-	function handleEject() {
-		yt?.pause()
-		image = ''
-		title = ''
-		slug = ''
-		track = undefined
-		eject()
-	}
 </script>
 
 <article class={['player', {showVideo: appState.show_video_player}]}>
@@ -114,10 +105,10 @@
 
 	<main class="center">
 		<menu>
-			<!-- <button onclick={handleEject} title="Clear queue and stop playback">
+			<button onclick={handleEject} title="Clear queue and stop playback">
 				<Icon icon={'eject'} />
-			</button> -->
-			<!-- <button
+			</button>
+			<button
 				onclick={() => toggleShuffle(appState, trackIds, track)}
 				aria-pressed={appState.shuffle}
 				title={appState.shuffle ? 'Disable shuffle' : 'Enable shuffle'}
@@ -126,7 +117,7 @@
 			</button>
 			<button onclick={() => previous(track, activeQueue, 'user_prev')} title="Go previous track">
 				<Icon icon={'previous-fill'} />
-			</button> -->
+			</button>
 			{#if appState.is_playing}
 				<button class="pause" onclick={pause}>
 					<Icon icon={'pause'} />
