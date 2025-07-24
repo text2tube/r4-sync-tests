@@ -175,7 +175,6 @@
 		{#if tracks.length > 0}
 			<section>
 				<h2>Tracks ({tracks.length})</h2>
-
 				<ul class="list">
 					{#each tracks as track, index (track.id)}
 						<li>

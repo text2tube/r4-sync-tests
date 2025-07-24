@@ -1,6 +1,14 @@
 <script>
 	import {subscribeToAppState, queryTrackWithChannel} from '$lib/api'
-	import {togglePlay, next, previous, toggleShuffle, toggleVideo, eject} from '$lib/api/player'
+	import {
+		togglePlay,
+		next,
+		previous,
+		toggleShuffle,
+		toggleVideo,
+		eject,
+		play
+	} from '$lib/api/player'
 	import {extractYouTubeId} from '$lib/utils'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
@@ -12,8 +20,6 @@
 
 	/** @type {{appState: AppState, expanded: boolean}} */
 	let {appState, expanded} = $props()
-
-	let autoplay = $state(false)
 
 	let yt = $state()
 
@@ -41,7 +47,15 @@
 
 	subscribeToAppState(async (state) => {
 		const tid = state.playlist_track
-		if (tid && tid !== track?.id) await setChannelFromTrack(tid)
+		const trackChanged = tid && tid !== track?.id
+		if (trackChanged) {
+			const wasPlaying = track && state.is_playing
+			await setChannelFromTrack(tid)
+			// Only auto-play if we were already playing when track changed
+			if (wasPlaying && yt) {
+				play(yt)
+			}
+		}
 	})
 
 	/** @param {string} tid */
@@ -56,12 +70,9 @@
 	/** @param {any} event */
 	function handleError(event) {
 		const code = event.target.error.code
-		if (code === 150) {
-			console.log('youtube_error_150')
-			next(track, activeQueue, 'youtube_error')
-		} else {
-			console.warn('Unhandled player error', code)
-		}
+		const msg = `youtube_error_${code}`
+		console.warn(msg)
+		next(track, activeQueue, msg)
 	}
 
 	function handleEndTrack() {
@@ -117,7 +128,7 @@
 {/snippet}
 
 {#snippet trackContent()}
-	{#if track}
+	{#if channel && track}
 		<img class="artwork" src={trackImage} alt={track.title} />
 		<div class="text">
 			<h3>
@@ -135,13 +146,7 @@
 	{/if}
 	{#if channel}
 		{@render trackContent()}
-		<YoutubePlayer
-			url={track?.url}
-			bind:yt
-			{autoplay}
-			onerror={handleError}
-			onended={handleEndTrack}
-		/>
+		<YoutubePlayer url={track?.url} bind:yt onerror={handleError} onended={handleEndTrack} />
 	{/if}
 	<menu>
 		{@render btnShuffle()}

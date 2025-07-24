@@ -3,6 +3,8 @@ import {needsUpdate, pullTracks} from '$lib/sync'
 import {sdk} from '@radio4000/sdk'
 import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
+import {liveQuery} from '$lib/live-query'
+
 const log = logger.ns('api').seal()
 
 /** @typedef {object} User
@@ -50,7 +52,6 @@ export async function playTrack(id, endReason, startReason) {
 	const ids = tracks.map((t) => t.id)
 	await setPlaylist(ids)
 	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
-	await pg.sql`UPDATE app_state SET is_playing = true`
 	await addPlayHistory({nextTrackId: id, previousTrackId, endReason, startReason})
 }
 
@@ -96,7 +97,7 @@ export async function readBroadcastsWithChannel() {
 
 /** @param {(state: import('$lib/types').AppState) => void} callback */
 export async function subscribeToAppState(callback) {
-	return pg.live.query('SELECT * FROM app_state WHERE id = 1', [], (res) => {
+	return liveQuery('SELECT * FROM app_state WHERE id = 1', [], (res) => {
 		callback(res.rows[0] || {})
 	})
 }

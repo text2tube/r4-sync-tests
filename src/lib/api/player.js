@@ -1,7 +1,11 @@
 import {pg} from '$lib/db'
 import {playTrack} from '$lib/api'
 
-/** @param {import('$lib/types').AppState} appState */
+/** @typedef {import('$lib/types').AppState} AppState */
+/** @typedef {import('$lib/types').Track} Track */
+/** @typedef {import('$lib/types').Channel} Channel */
+
+/** @param {AppState} appState */
 export function togglePlay(appState, yt) {
 	if (appState.is_playing) {
 		pause(yt)
@@ -10,18 +14,16 @@ export function togglePlay(appState, yt) {
 	}
 }
 
-function play(yt) {
+export function play(yt) {
 	yt.play()
-	pg.query('UPDATE app_state SET is_playing = true')
 }
 
-function pause(yt) {
+export function pause(yt) {
 	yt.pause()
-	pg.query('UPDATE app_state SET is_playing = false')
 }
 
 /**
- * @param {import('$lib/types').Track} track
+ * @param {Track | undefined} track
  * @param {string[]} activeQueue
  * @param {string} reason
  */
@@ -37,7 +39,7 @@ export function next(track, activeQueue, reason) {
 }
 
 /**
- * @param {import('$lib/types').Track} track
+ * @param {Track | undefined} track
  * @param {string[]} activeQueue
  * @param {string} reason
  */

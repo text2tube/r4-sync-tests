@@ -58,8 +58,14 @@
 		slot="media"
 		{autoplay}
 		playsinline={1}
-		onplay={() => log.log('play')}
-		onpause={() => log.log('pause')}
+		onplay={() => {
+			log.log('play')
+			pg.query('UPDATE app_state SET is_playing = true')
+		}}
+		onpause={() => {
+			log.log('pause')
+			pg.query('UPDATE app_state SET is_playing = false')
+		}}
 		onloadcomplete={applyInitialVolume}
 		onvolumechange={handleVolumeChange}
 		{onended}
