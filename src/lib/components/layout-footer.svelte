@@ -1,6 +1,6 @@
 <script>
 	import Icon from '$lib/components/icon.svelte'
-	import Player2 from '$lib/components/player2.svelte'
+	import Player from '$lib/components/player.svelte'
 	import gsap from 'gsap'
 	import {Draggable} from 'gsap/Draggable'
 	import {InertiaPlugin} from 'gsap/InertiaPlugin'
@@ -49,7 +49,7 @@
 		<input type="checkbox" name="playerLayout" bind:checked={expanded} />
 	</label>
 	{#if !preloading}
-		<Player2 {appState} {expanded} />
+		<Player {appState} {expanded} />
 	{/if}
 </footer>
 
