@@ -99,7 +99,14 @@
 {/snippet}
 
 {#snippet btnShuffle()}
-	<button onclick={() => toggleShuffle(appState, trackIds)} class:active={appState.shuffle}>
+	<button
+		onclick={(e) => {
+			e.preventDefault()
+			e.stopPropagation()
+			toggleShuffle(appState, trackIds)
+		}}
+		class:active={appState.shuffle}
+	>
 		<Icon icon="shuffle" />
 	</button>
 {/snippet}
@@ -146,7 +153,13 @@
 	{/if}
 	{#if channel}
 		{@render trackContent()}
-		<YoutubePlayer url={track?.url} bind:yt onerror={handleError} onended={handleEndTrack} />
+		<YoutubePlayer
+			url={track?.url}
+			bind:yt
+			autoplay={appState.is_playing}
+			onerror={handleError}
+			onended={handleEndTrack}
+		/>
 	{/if}
 	<menu>
 		{@render btnShuffle()}
