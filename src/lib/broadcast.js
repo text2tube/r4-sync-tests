@@ -1,7 +1,8 @@
 import {sdk} from '@radio4000/sdk'
 import {pg} from '$lib/db'
-import {syncPlayBroadcast} from '$lib/api.js'
 import {logger} from '$lib/logger'
+import {playTrack} from '$lib/api'
+import {pullChannel, pullTracks} from '$lib/sync'
 
 const log = logger.ns('broadcast').seal()
 
@@ -138,5 +139,36 @@ export function stopBroadcastSync() {
 	if (broadcastSyncChannel) {
 		broadcastSyncChannel.unsubscribe()
 		broadcastSyncChannel = null
+	}
+}
+
+/** @param {import('$lib/types').Broadcast} broadcast */
+export async function syncPlayBroadcast(broadcast) {
+	const {track_id, track_played_at} = broadcast
+	const playbackPosition = (Date.now() - new Date(track_played_at).getTime()) / 1000
+
+	if (playbackPosition > 600) {
+		log.log('sync_play_broadcast_ignored_stale', {playbackPosition, track_id})
+		return
+	}
+
+	try {
+		await playTrack(track_id, '', 'broadcast_sync')
+	} catch {
+		const {data} = await sdk.supabase
+			.from('channel_track')
+			.select('channels(slug)')
+			.eq('track_id', track_id)
+			.single()
+		// @ts-expect-error supabase
+		const slug = data?.channels?.slug
+		if (slug) {
+			await pullChannel(slug)
+			await pullTracks(slug)
+			await playTrack(track_id, '', 'broadcast_sync')
+			await pg.sql`UPDATE app_state SET listening_to_channel_id = ${broadcast.channel_id} WHERE id = 1`
+			log.log('sync_play_broadcast', track_id)
+			return true
+		}
 	}
 }

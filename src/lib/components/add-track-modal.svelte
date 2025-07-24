@@ -6,6 +6,7 @@
 
 	let showModal = $state(false)
 	let channelId = $state()
+	let lastCreatedTrack = $state()
 
 	/** @param {KeyboardEvent} event */
 	function handleKeyDown(event) {
@@ -22,9 +23,9 @@
 	})
 
 	function submit(event) {
-		const track = event.detail.data
-		console.log('Created remote track', track)
-		// @todo pull tracks or insert directly
+		lastCreatedTrack = event.detail.data
+		console.log({lastCreatedTrack})
+		// @todo insert track into local db. or use pullTracks? Maybe the better option for consistency
 	}
 </script>
 

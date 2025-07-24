@@ -143,7 +143,9 @@ export async function pullChannel(slug) {
  */
 export async function needsUpdate(slug) {
 	try {
-		const {rows: [channel]} = await pg.sql`select * from channels where slug = ${slug}`
+		const {
+			rows: [channel]
+		} = await pg.sql`select * from channels where slug = ${slug}`
 		const {id} = channel
 		if (!id || !channel.tracks_synced_at) return true
 

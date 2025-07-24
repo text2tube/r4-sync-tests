@@ -21,6 +21,7 @@
 	const permalink = $derived(`/${track.channel_slug}/tracks/${track.id}`)
 	const active = $derived(track.id === appState.playlist_track)
 	const ytid = $derived.by(() => extractYouTubeId(track.url))
+	// default, mqdefault, hqdefault, sddefault, maxresdefault
 	const imageSrc = $derived(`https://i.ytimg.com/vi/${ytid}/mqdefault.jpg`)
 
 	const click = (event: MouseEvent) => {
@@ -78,8 +79,9 @@
 	}
 
 	img {
-		width: 2rem;
+		width: 3rem;
 		object-fit: cover;
+		border-radius: var(--border-radius);
 	}
 
 	.title {

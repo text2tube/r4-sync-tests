@@ -1,7 +1,6 @@
 <script>
 	import 'media-chrome'
 	import 'youtube-video-element'
-	// import '$lib/youtube-video-element-custom.js'
 	import {pg} from '$lib/db'
 	import {logger} from '$lib/logger'
 	const log = logger.ns('youtube_player').seal()
@@ -11,29 +10,60 @@
 
 	let {autoplay = false, url, yt = $bindable(), onerror, onended} = $props()
 
-	function check(e) {
+	let savedVolume = $state()
+	let savedMuted = $state()
+	let hasAppliedInitialValues = $state(false)
+
+	// Load saved values from DB
+	$effect(() => {
+		pg.query('select volume, muted from app_state where id = 1').then((res) => {
+			const row = res.rows[0]
+			savedVolume = row
+				? typeof row.volume === 'string'
+					? Number.parseFloat(row.volume)
+					: row.volume
+				: 0.1
+			savedMuted = row ? row.muted : true
+			console.log('loaded from db', savedVolume, savedMuted)
+		})
+	})
+
+	function applyInitialVolume() {
+		if (savedVolume !== undefined && savedMuted !== undefined && !hasAppliedInitialValues) {
+			hasAppliedInitialValues = true
+			yt.volume = savedVolume
+			yt.muted = savedMuted
+			console.log('applied initial values', savedVolume, savedMuted)
+		}
+	}
+
+	function handleVolumeChange(e) {
+		// Ignore events until we've applied initial values
+		if (!hasAppliedInitialValues) return
+
 		const {volume, muted} = e.target
-		// console.log('volume change', {volume, muted})
+		console.log('user changed volume to', volume, muted)
+
 		pg.sql`update app_state set muted = ${muted}, volume = ${volume} where id = 1`.then(() => {
-			// console.log('persisted volume + muted', volume, muted)
+			log.log({volume, muted})
 		})
 	}
 </script>
 
 <media-controller id="r5" autohide="-1">
 	<youtube-video
-		src={url}
 		bind:this={yt}
-		slot="media"
+		src={url}
 		crossorigin
-		muted
+		slot="media"
 		{autoplay}
 		playsinline={1}
 		onplay={() => log.log('play')}
 		onpause={() => log.log('pause')}
+		onloadcomplete={applyInitialVolume}
+		onvolumechange={handleVolumeChange}
 		{onended}
 		{onerror}
-		onvolumechange={check}
 	></youtube-video>
 	<media-loading-indicator slot="centered-chrome"></media-loading-indicator>
 </media-controller>
@@ -55,9 +85,8 @@
 		--media-icon-color: var(--gray-12);
 		--media-range-track-background: hsla(0, 0%, 0%, 0.2);
 		--media-range-track-background: var(--gray-11);
-
-		--media-loading-indicator-icon-width: 4rem;
-		--media-loading-indicator-icon-height: 4rem;
+		--media-loading-indicator-icon-width: 2rem;
+		--media-loading-indicator-icon-height: 2rem;
 	}
 
 	:global(media-loading-indicator) {

@@ -1,8 +1,7 @@
 import {pg} from '$lib/db'
-import {needsUpdate, pullTracks, pullChannel} from '$lib/sync'
+import {needsUpdate, pullTracks} from '$lib/sync'
 import {sdk} from '@radio4000/sdk'
 import {leaveBroadcast} from '$lib/broadcast'
-import {goto} from '$app/navigation'
 import {logger} from '$lib/logger'
 const log = logger.ns('api').seal()
 
@@ -76,37 +75,6 @@ export async function setPlaylist(ids) {
 	await pg.sql`UPDATE app_state SET playlist_tracks = ${ids}`
 }
 
-/** @param {import('$lib/types').Broadcast} broadcast */
-export async function syncPlayBroadcast(broadcast) {
-	const {track_id, track_played_at} = broadcast
-	const playbackPosition = (Date.now() - new Date(track_played_at).getTime()) / 1000
-
-	if (playbackPosition > 600) {
-		log.log('sync_play_broadcast_ignored_stale', {playbackPosition, track_id})
-		return
-	}
-
-	try {
-		await playTrack(track_id, '', 'broadcast_sync')
-	} catch {
-		const {data} = await sdk.supabase
-			.from('channel_track')
-			.select('channels(slug)')
-			.eq('track_id', track_id)
-			.single()
-		// @ts-expect-error supabase
-		const slug = data?.channels?.slug
-		if (slug) {
-			await pullChannel(slug)
-			await pullTracks(slug)
-			await playTrack(track_id, '', 'broadcast_sync')
-			await pg.sql`UPDATE app_state SET listening_to_channel_id = ${broadcast.channel_id} WHERE id = 1`
-			log.log('sync_play_broadcast', track_id)
-			return true
-		}
-	}
-}
-
 /** @returns {Promise<import('$lib/types').BroadcastWithChannel[]>} */
 export async function readBroadcastsWithChannel() {
 	const {data, error} = await sdk.supabase.from('broadcast').select(`
@@ -131,26 +99,6 @@ export async function subscribeToAppState(callback) {
 	return pg.live.query('SELECT * FROM app_state WHERE id = 1', [], (res) => {
 		callback(res.rows[0] || {})
 	})
-}
-
-/** @param {string} trackId */
-export async function queryTrackWithChannel(trackId) {
-	const track = (await pg.sql`select * from tracks where id = ${trackId}`).rows[0]
-	const channel = (await pg.sql`select * from channels where id = ${track.channel_id}`).rows[0]
-	return {track, channel}
-}
-
-export async function queryChannelsWithTrackCounts() {
-	const {rows} = await pg.sql`
-		SELECT
-			c.*,
-			COUNT(t.id) as track_count
-		FROM channels c
-		LEFT JOIN tracks t ON c.id = t.channel_id
-		GROUP BY c.id
-		ORDER BY c.name
-	`
-	return rows
 }
 
 /** @param {string[]} trackIds */
@@ -246,4 +194,24 @@ export async function addPlayHistory({previousTrackId, nextTrackId, endReason, s
 			)
 		`
 	}
+}
+
+/** @param {string} trackId */
+export async function queryTrackWithChannel(trackId) {
+	const track = (await pg.sql`select * from tracks where id = ${trackId}`).rows[0]
+	const channel = (await pg.sql`select * from channels where id = ${track.channel_id}`).rows[0]
+	return {track, channel}
+}
+
+export async function queryChannelsWithTrackCounts() {
+	const {rows} = await pg.sql`
+		SELECT
+			c.*,
+			COUNT(t.id) as track_count
+		FROM channels c
+		LEFT JOIN tracks t ON c.id = t.channel_id
+		GROUP BY c.id
+		ORDER BY c.name
+	`
+	return rows
 }

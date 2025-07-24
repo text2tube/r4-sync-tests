@@ -48,14 +48,14 @@
 		gap: 0.5rem;
 		text-decoration: none;
 
-		:global(.list) &  {
+		:global(.list) & {
 			display: grid;
 			grid-template-columns: 4rem auto;
 			align-items: center;
 			padding: 0.25rem 0.5rem;
 		}
 
-		:global(.grid) &  {
+		:global(.grid) & {
 			display: flex;
 			flex-flow: column nowrap;
 		}
