@@ -68,7 +68,8 @@
 		will-change: transform, height;
 
 		&.expanded {
-			height: calc(100dvh - 1.5rem);
+			border: 0;
+			height: 100dvh;
 			left: 0;
 			right: 0;
 			bottom: 0;

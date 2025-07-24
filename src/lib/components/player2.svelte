@@ -24,6 +24,9 @@
 	/** @type {string[]} */
 	let activeQueue = $derived(appState.shuffle ? appState.playlist_tracks_shuffled || [] : trackIds)
 
+	/** @type {boolean} */
+	let canPlay = $derived(Boolean(channel && track))
+
 	/** @type {string} */
 	let trackImage = $derived.by(() => {
 		if (!track?.url) return ''
@@ -43,9 +46,6 @@
 		if (!result) return
 		track = result.track
 		channel = result.channel
-		// setupMarquee()
-		// const trackChanged = tid && tid !== track?.id
-		// if (trackChanged) autoplay = true
 	}
 </script>
 
@@ -56,13 +56,13 @@
 {/snippet}
 
 {#snippet btnNext()}
-	<button onclick={() => next(track, activeQueue, 'user_next')} disabled={!channel || !track}>
+	<button onclick={() => next(track, activeQueue, 'user_next')} disabled={!canPlay}>
 		<Icon icon="next-fill" />
 	</button>
 {/snippet}
 
 {#snippet btnPlay()}
-	<button onclick={() => togglePlay(appState)} disabled={!channel || !track}>
+	<button onclick={() => togglePlay(appState)} disabled={!canPlay}>
 		<Icon icon={appState.is_playing ? 'pause' : 'play-fill'} />
 	</button>
 {/snippet}
@@ -85,51 +85,51 @@
 	</button>
 {/snippet}
 
+{#snippet channelHeader(showName = false)}
+	{#if channel}
+		<header class="channel">
+			<a href={`/${channel.slug}`}>
+				<ChannelAvatar id={channel.image} alt={channel.name} />
+			</a>
+			{#if showName}
+				<h2><a href={`/${channel.slug}`}>{channel.name}</a></h2>
+			{/if}
+		</header>
+	{/if}
+{/snippet}
+
+{#snippet trackContent()}
+	{#if track}
+		<img class="artwork" src={trackImage} alt={track.title} />
+		<div class="text">
+			<h3>
+				<a href={`/${channel.slug}/tracks/${track.id}`}>{track.title}</a>
+			</h3>
+			{#if track.description}<p><small>{track.description}</small></p>{/if}
+		</div>
+	{/if}
+{/snippet}
+
 {#if !expanded}
-	<section class="micro">
-		{#if channel}
-			<header class="channel">
-				<a href={`/${channel.slug}`}>
-					<ChannelAvatar id={channel.image} alt={channel.name} />
-				</a>
-				<!-- <small><a href={`/${channel.slug}`}>{channel.name}</a></small> -->
-			</header>
-		{:else}
+	<section class="small">
+		{@render channelHeader()}
+		{#if !channel}
 			<p style="margin-left: 0.5rem">Find something to play!</p>
 		{/if}
-		{#if channel && track}
-			<img class="artwork" src={trackImage} alt={track.title} />
-			<div class="text">
-				<h3><a href={`/${channel.slug}/tracks/${track.id}`}>{track.title}</a></h3>
-				{#if track.description}<p><small>{track.description}</small></p>{/if}
-			</div>
+		{#if channel}
+			{@render trackContent()}
 		{/if}
 		<menu>
-			<!-- {@render btnEject()} -->
 			{@render btnPlay()}
 			{@render btnNext()}
-			<!-- {@render btnToggleVideo()} -->
 		</menu>
 	</section>
 {:else}
-	<article class="macro">
-		{#if channel}
-			<header class="channel">
-				<a href={`/${channel.slug}`}>
-					<ChannelAvatar id={channel.image} alt={channel.name} />
-				</a>
-				<h2><a href={`/${channel.slug}`}>{channel.name}</a></h2>
-			</header>
-		{/if}
+	<article class="big">
+		{@render channelHeader(true)}
 
 		{#if track}
-			<img class="artwork" src={trackImage} alt={track.title} />
-			<div class="text">
-				<h3>{track.title}</h3>
-				{#if track?.description}
-					<p><small>{track.description}</small></p>
-				{/if}
-			</div>
+			{@render trackContent()}
 		{:else}
 			<p>Waiting for sweet tracks</p>
 		{/if}
@@ -145,7 +145,7 @@
 {/if}
 
 <style>
-	.micro {
+	.small {
 		--size: 3rem;
 		--gap: 0.2rem;
 
@@ -155,48 +155,43 @@
 		padding: var(--gap);
 
 		:global(img) {
+			width: var(--size);
 			height: var(--size);
+			border-radius: var(--border-radius);
+		}
+
+		.text::after {
+			display: block;
+			content: '';
+			position: absolute;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			width: 2rem;
+			background: linear-gradient(to left, black, transparent);
 		}
 
 		.artwork {
-			width: var(--size);
-			height: auto;
-			position: relative;
 			margin-left: var(--gap);
-			object-fit: contain;
-		}
-
-		.artwork::after {
-			position: absolute;
-			content: '';
-			top: 0;
-			bottom: 0;
-			right: -0.8rem;
-			width: 0.8rem;
-			background: linear-gradient(to right, var(--gray-1), transparent);
-			pointer-events: none;
-			z-index: 1;
 		}
 
 		h3 {
 			font-size: inherit;
 		}
 
-		menu {
-			margin-left: auto;
-			margin-right: 0.5rem;
+		/* no wrapping text */
+		h3,
+		p {
+			margin: 0;
+			line-height: initial;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
 		}
 
-		menu::before {
-			position: absolute;
-			content: '';
-			top: 0;
-			bottom: 0;
-			left: -0.8rem;
-			width: 0.8rem;
-			background: linear-gradient(to left, var(--gray-1), transparent);
-			pointer-events: none;
-			z-index: 1;
+		menu {
+			margin-left: auto;
+			margin-right: 0.2rem;
 		}
 	}
 
@@ -207,19 +202,10 @@
 		position: relative;
 		overflow: hidden;
 		padding-left: 0.4rem;
-		a {
-			text-decoration: none;
-		}
-		p {
-			margin: 0;
-		}
 	}
 
-	h3 {
-		line-height: initial;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+	h3 a {
+		text-decoration: none;
 	}
 
 	menu {
@@ -227,7 +213,7 @@
 	}
 
 	/* Expanded player styles */
-	.macro {
+	.big {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
@@ -240,6 +226,7 @@
 		.artwork {
 			width: min(80vw, 28rem);
 			height: min(80vw, 28rem);
+			box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.3);
 		}
 
 		.channel {
@@ -278,10 +265,8 @@
 	}
 
 	.artwork {
-		border-radius: var(--border-radius);
-		box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.3);
-		width: 3rem;
 		object-fit: cover;
+		border-radius: var(--border-radius);
 	}
 
 	button[disabled] :global(.icon) {
