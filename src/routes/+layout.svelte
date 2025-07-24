@@ -52,6 +52,12 @@
 			// await pg.close()
 		})
 	})
+
+	function togglePanel(e) {
+		e.preventDefault()
+		e.stopPropagation()
+		toggleQueuePanel()
+	}
 </script>
 
 <AuthListener />
@@ -70,13 +76,11 @@
 		<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
 		<div class="row right">
-			{#if appState}
+			{#if !preloading}
 				<LiveBroadcasts {appState} />
 				<BroadcastControls {appState} />
 				<AddTrackModal />
-			{/if}
-			{#if appState}
-				<button onclick={toggleQueuePanel} class="btn" class:active={appState.queue_panel_visible}>
+				<button onclick={togglePanel} class="btn" class:active={appState.queue_panel_visible}>
 					<Icon icon="sidebar-fill-right" size={20} />
 				</button>
 				<!-- <button onclick={toggleChatPanel}>Chat</button> -->
