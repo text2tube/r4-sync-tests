@@ -226,9 +226,6 @@
 			padding: 0;
 			margin-top: 1rem;
 		}
-		:global(youtube-video) {
-			min-height: 300px;
-		}
 	}
 
 	[aria-pressed='false'] :global(svg) {

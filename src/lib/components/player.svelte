@@ -19,7 +19,7 @@
 	/** @typedef {import('$lib/types').Channel} Channel */
 
 	/** @type {{appState: AppState, expanded: boolean}} */
-	let {appState, expanded} = $props()
+	let {appState, expanded = $bindable()} = $props()
 
 	let yt = $state()
 
@@ -78,16 +78,21 @@
 	function handleEndTrack() {
 		next(track, activeQueue, 'track_completed')
 	}
+
+	function upupup() {
+		expanded = !expanded
+		toggleVideo(appState)
+	}
 </script>
 
 {#snippet btnPrev()}
-	<button onclick={() => previous(track, activeQueue, 'user_prev')}>
+	<button onclick={() => previous(track, activeQueue, 'user_prev')} class="prev">
 		<Icon icon="previous-fill" />
 	</button>
 {/snippet}
 
 {#snippet btnNext()}
-	<button onclick={() => next(track, activeQueue, 'user_next')} disabled={!canPlay}>
+	<button onclick={() => next(track, activeQueue, 'user_next')} disabled={!canPlay} class="next">
 		<Icon icon="next-fill" />
 	</button>
 {/snippet}
@@ -105,7 +110,7 @@
 			e.stopPropagation()
 			toggleShuffle(appState, trackIds)
 		}}
-		class:active={appState.shuffle}
+		class={['shuffle', {active: appState.shuffle}]}
 	>
 		<Icon icon="shuffle" />
 	</button>
@@ -118,8 +123,9 @@
 {/snippet}
 
 {#snippet btnToggleVideo()}
-	<button onclick={() => toggleVideo(appState)} title="Show/hide video">
-		<Icon icon="video" />
+	<button onclick={() => upupup()} title="Show/hide video" class="expand">
+		<Icon icon="fullscreen" />
+		<!-- <Icon icon="video" /> -->
 	</button>
 {/snippet}
 
@@ -189,7 +195,7 @@
 	}
 
 	article:not(.expanded) {
-		--size: 3rem;
+		--size: 2rem;
 		--gap: 0.2rem;
 
 		display: flex;
@@ -238,7 +244,21 @@
 
 		menu {
 			margin-left: auto;
-			margin-right: 0.2rem;
+			margin-right: 0rem;
+
+			button {
+				padding-left: var(--gap);
+				padding-right: var(--gap);
+			}
+		}
+
+
+		@media (max-width: 600px) {
+			.artwork,
+			.shuffle,
+			.prev {
+				display: none;
+			}
 		}
 	}
 
@@ -280,12 +300,17 @@
 			}
 		}
 
-		h3 {
-			font-size: var(--font-size-title3);
+		.text {
+			order: 4;
+		}
+
+		h3 + p small {
+			font-size: var(--font-size-regular);
 		}
 
 		/* bigger menu */
 		> menu {
+			order: 5;
 			gap: 0.5rem;
 			:global(button) {
 				padding: 0.2rem 1rem;

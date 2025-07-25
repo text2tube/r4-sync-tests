@@ -5,13 +5,14 @@ import {shuffleArray} from '$lib/utils'
 /** @typedef {import('$lib/types').AppState} AppState */
 /** @typedef {import('$lib/types').Track} Track */
 /** @typedef {import('$lib/types').Channel} Channel */
+/** @type {HTMLElement & {paused: boolean, play(): void, pause(): void} | null} YouTubePlayer */
 
 /** @param {AppState} appState */
 export function togglePlay(appState, yt) {
-	if (appState.is_playing) {
-		pause(yt)
-	} else {
+	if (yt.paused() || !appState.is_playing) {
 		play(yt)
+	} else {
+		pause(yt)
 	}
 }
 
@@ -75,8 +76,8 @@ export function eject() {
 	pg.sql`
 		UPDATE app_state
 		SET
-			playlist_tracks = ${[]},
 			playlist_track = null,
+			playlist_tracks = ${[]},
 			playlist_tracks_shuffled = ${[]},
 			show_video_player = false,
 			shuffle = false,

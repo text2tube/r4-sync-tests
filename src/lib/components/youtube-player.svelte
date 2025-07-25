@@ -105,7 +105,7 @@
 
 	youtube-video {
 		display: none;
-		:global(.showVideo) & {
+		:global(.expanded) & {
 			display: block;
 			min-width: 300px;
 			min-height: 300px;

@@ -130,10 +130,8 @@ export async function toggleQueuePanel() {
 }
 
 export function closePlayerOverlay() {
-	const playerCheckbox = document.querySelector('input[name="playerLayout"]')
-	if (playerCheckbox instanceof HTMLInputElement && playerCheckbox.checked) {
-		playerCheckbox.click()
-	}
+	const btn = document.querySelector('button.expand')
+	btn?.click()
 }
 
 export function openSearch() {
