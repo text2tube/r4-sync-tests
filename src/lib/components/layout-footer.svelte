@@ -55,14 +55,11 @@
 		will-change: transform, height;
 
 		&.expanded {
-			border: 0;
 			height: 100dvh;
 			left: 0;
 			right: 0;
 			bottom: 0;
-			display: flex;
-			align-items: center;
-			place-content: center;
+			border: 0;
 		}
 	}
 </style>

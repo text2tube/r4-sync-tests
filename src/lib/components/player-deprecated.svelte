@@ -237,20 +237,4 @@
 		margin-left: 0.2rem;
 		color: red;
 	}
-
-	media-control-bar {
-		--media-control-height: 2rem;
-		--media-background-color: transparent;
-		--media-control-hover-background: transparent;
-		--media-button-icon-width: 1.5rem;
-		--media-button-padding: 0 0.5rem;
-		--media-control-padding: 0.5rem;
-		--media-control-background: none;
-		--media-primary-color: var(--gray-12);
-		--media-text-color: var(--gray-12);
-		--media-icon-color: var(--gray-12);
-		--media-range-track-background: hsla(0, 0%, 0%, 0.2);
-		--media-range-track-background: var(--gray-11);
-		--media-range-track-background: hsla(0, 0%, 0%, 0.2);
-	}
 </style>

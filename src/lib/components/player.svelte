@@ -1,5 +1,10 @@
 <script>
+	import 'media-chrome'
+	import 'youtube-video-element'
 	import {subscribeToAppState, queryTrackWithChannel} from '$lib/api'
+	import {pg} from '$lib/db'
+	import {logger} from '$lib/logger'
+
 	import {
 		togglePlay,
 		next,
@@ -12,7 +17,8 @@
 	import {extractYouTubeId} from '$lib/utils'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
-	import YoutubePlayer from '$lib/components/youtube-player.svelte'
+
+	const log = logger.ns('youtube_player').seal()
 
 	/** @typedef {import('$lib/types').AppState} AppState */
 	/** @typedef {import('$lib/types').Track} Track */
@@ -28,6 +34,14 @@
 
 	/** @type {Channel|undefined} */
 	let channel = $state()
+
+	// Volume persistence
+	let savedVolume = $state()
+	let savedMuted = $state()
+	let hasAppliedInitialValues = $state(false)
+
+	// Reactive playing state that updates when YouTube events fire
+	let isPlaying = $state(false)
 
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
@@ -45,11 +59,25 @@
 		return ytid ? `https://i.ytimg.com/vi/${ytid}/mqdefault.jpg` : '' // default, mqdefault, hqdefault, sddefault, maxresdefault
 	})
 
+	// Load saved volume values from DB
+	$effect(() => {
+		pg.query('select volume, muted from app_state where id = 1').then((res) => {
+			const row = res.rows[0]
+			savedVolume = row
+				? typeof row.volume === 'string'
+					? Number.parseFloat(row.volume)
+					: row.volume
+				: 0.1
+			savedMuted = row ? row.muted : true
+			console.log('loaded from db', savedVolume, savedMuted)
+		})
+	})
+
 	subscribeToAppState(async (state) => {
 		const tid = state.playlist_track
 		const trackChanged = tid && tid !== track?.id
 		if (trackChanged) {
-			const wasPlaying = track && state.is_playing
+			const wasPlaying = track && yt && !yt.paused
 			await setChannelFromTrack(tid)
 			// Only auto-play if we were already playing when track changed
 			if (wasPlaying && yt) {
@@ -79,9 +107,30 @@
 		next(track, activeQueue, 'track_completed')
 	}
 
-	function upupup() {
+	function togglePlayerMode() {
 		expanded = !expanded
 		toggleVideo(appState)
+	}
+
+	function applyInitialVolume() {
+		if (savedVolume !== undefined && savedMuted !== undefined && !hasAppliedInitialValues) {
+			hasAppliedInitialValues = true
+			yt.volume = savedVolume
+			yt.muted = savedMuted
+			console.log('applied initial values', savedVolume, savedMuted)
+		}
+	}
+
+	function handleVolumeChange(e) {
+		// Ignore events until we've applied initial values
+		if (!hasAppliedInitialValues) return
+		const {volume, muted} = e.target
+		const different = volume !== savedVolume || muted !== savedMuted
+		if (!different) return
+		console.log('user changed volume to', volume, muted)
+		pg.sql`update app_state set muted = ${muted}, volume = ${volume} where id = 1`.then(() => {
+			log.log({volume, muted})
+		})
 	}
 </script>
 
@@ -98,8 +147,8 @@
 {/snippet}
 
 {#snippet btnPlay()}
-	<button onclick={() => togglePlay(appState, yt)} disabled={!canPlay}>
-		<Icon icon={appState.is_playing ? 'pause' : 'play-fill'} />
+	<button onclick={() => togglePlay(yt)} disabled={!canPlay}>
+		<Icon icon={isPlaying ? 'pause' : 'play-fill'} />
 	</button>
 {/snippet}
 
@@ -123,7 +172,7 @@
 {/snippet}
 
 {#snippet btnToggleVideo()}
-	<button onclick={() => upupup()} title="Show/hide video" class="expand">
+	<button onclick={() => togglePlayerMode()} title="Show/hide video" class="expand">
 		<Icon icon="fullscreen" />
 		<!-- <Icon icon="video" /> -->
 	</button>
@@ -152,21 +201,46 @@
 	{/if}
 {/snippet}
 
-<article class:expanded>
+<div class={['player', expanded ? 'expanded' : 'compact']}>
 	{@render channelHeader()}
+
 	{#if !channel}
 		<p style="margin-left: 0.5rem">Find some sweet music</p>
 	{/if}
+
 	{#if channel}
 		{@render trackContent()}
-		<YoutubePlayer
-			url={track?.url}
-			bind:yt
-			autoplay={appState.is_playing}
-			onerror={handleError}
-			onended={handleEndTrack}
-		/>
 	{/if}
+
+	<media-controller id="r5">
+		<youtube-video
+			bind:this={yt}
+			src={track?.url}
+			autoplay={false}
+			playsinline={1}
+			onloadcomplete={applyInitialVolume}
+			onvolumechange={handleVolumeChange}
+			onplay={() => {
+				isPlaying = true
+				pg.sql`UPDATE app_state SET is_playing = true WHERE id = 1`
+			}}
+			onpause={() => {
+				isPlaying = false
+				pg.sql`UPDATE app_state SET is_playing = false WHERE id = 1`
+			}}
+			onended={handleEndTrack}
+			onerror={handleError}
+		/>
+		<media-control-bar>
+			<media-time-range></media-time-range>
+			<media-time-display showduration></media-time-display>
+			<!-- <media-playback-rate-button></media-playback-rate-button> -->
+			<!-- <media-mute-button></media-mute-button> -->
+			<!-- <media-volume-range></media-volume-range> -->
+			<media-loading-indicator slot="centered-chrome"></media-loading-indicator>
+		</media-control-bar>
+	</media-controller>
+
 	<menu>
 		{@render btnShuffle()}
 		{@render btnPrev()}
@@ -174,160 +248,4 @@
 		{@render btnNext()}
 		{@render btnToggleVideo()}
 	</menu>
-</article>
-
-<style>
-	.text {
-		flex: 1;
-		min-width: 0;
-		line-height: 1;
-		position: relative;
-		overflow: hidden;
-		padding-left: 0.4rem;
-	}
-
-	menu {
-		position: relative;
-	}
-
-	article:not(.expanded) {
-		--size: 2rem;
-		--gap: 0.2rem;
-
-		display: flex;
-		align-items: center;
-		min-height: var(--size);
-		padding: var(--gap);
-
-		:global(img) {
-			width: var(--size);
-			height: var(--size);
-			border-radius: var(--border-radius);
-		}
-
-		h2 {
-			display: none;
-		}
-
-		.text::after {
-			display: block;
-			content: '';
-			position: absolute;
-			top: 0;
-			right: 0;
-			bottom: 0;
-			width: 2rem;
-			background: linear-gradient(to left, var(--gray-2), transparent);
-		}
-
-		.artwork {
-			margin-left: var(--gap);
-		}
-
-		h3 {
-			font-size: inherit;
-			a {
-				text-decoration: none;
-			}
-		}
-
-		/* no wrapping text */
-		h3,
-		p {
-			margin: 0;
-			line-height: initial;
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
-
-		menu {
-			margin-left: auto;
-			margin-right: 0rem;
-
-			button {
-				padding-left: var(--gap);
-				padding-right: var(--gap);
-			}
-		}
-
-
-		@media (max-width: 600px) {
-			.artwork,
-			.shuffle,
-			.prev {
-				display: none;
-			}
-		}
-	}
-
-	article.expanded {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		place-items: center;
-		place-content: center;
-		text-align: center;
-		padding: 2rem;
-		gap: 2rem;
-
-		.artwork {
-			display: none;
-		}
-
-		:global(youtube-video) {
-			width: min(80vw, 28rem);
-			height: min(80vw, 28rem);
-			box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.3);
-		}
-
-		.channel {
-			display: flex;
-			gap: 0.5rem;
-			place-items: center;
-
-			:global(img) {
-				width: 4rem;
-				height: 4rem;
-			}
-
-			h2 {
-				font-weight: 400;
-				a {
-					text-decoration: none;
-				}
-			}
-		}
-
-		.text {
-			order: 4;
-		}
-
-		h3
-		h3 + p small {
-			font-size: var(--font-size-regular);
-		}
-
-		/* bigger menu */
-		> menu {
-			order: 5;
-			gap: 0.5rem;
-			:global(button) {
-				padding: 0.2rem 1rem;
-			}
-			:global(svg) {
-				width: 2rem;
-				height: 2rem;
-			}
-		}
-	}
-
-	.artwork {
-		object-fit: cover;
-		border-radius: var(--border-radius);
-	}
-
-	button[disabled] :global(.icon) {
-		opacity: 0.2;
-	}
-</style>
+</div>
