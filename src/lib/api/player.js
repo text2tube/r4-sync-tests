@@ -5,11 +5,14 @@ import {shuffleArray} from '$lib/utils'
 /** @typedef {import('$lib/types').AppState} AppState */
 /** @typedef {import('$lib/types').Track} Track */
 /** @typedef {import('$lib/types').Channel} Channel */
-/** @type {HTMLElement & {paused: boolean, play(): void, pause(): void} | null} YouTubePlayer */
+/** @typedef {HTMLElement & {paused: boolean, play(): void, pause(): void} | null} YouTubePlayer */
 
-/** @param {AppState} appState */
+/**
+ * @param {AppState} appState
+ * @param {YouTubePlayer} yt
+ */
 export function togglePlay(appState, yt) {
-	if (yt.paused() || !appState.is_playing) {
+	if (yt.paused || !appState.is_playing) {
 		play(yt)
 	} else {
 		pause(yt)

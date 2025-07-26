@@ -186,10 +186,6 @@
 		padding-left: 0.4rem;
 	}
 
-	h3 a {
-		text-decoration: none;
-	}
-
 	menu {
 		position: relative;
 	}
@@ -230,6 +226,9 @@
 
 		h3 {
 			font-size: inherit;
+			a {
+				text-decoration: none;
+			}
 		}
 
 		/* no wrapping text */
@@ -304,6 +303,7 @@
 			order: 4;
 		}
 
+		h3
 		h3 + p small {
 			font-size: var(--font-size-regular);
 		}

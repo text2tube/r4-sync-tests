@@ -21,21 +21,13 @@
 			trigger: footerElement,
 			allowNativeTouchScrolling: false,
 			bounds: {minY: -5, maxY: 5},
-			snap: {y: 0},
+			// snap: {y: 0},
 			onDragEnd: function () {
-				const velocity = InertiaPlugin.getVelocity(this.target, 'y')
+				// const velocity = InertiaPlugin.getVelocity(this.target, 'y')
 				const dragY = this.y
-
-				console.log(`Y Velocity: ${velocity}, Drag Y: ${dragY}`)
-
-				if (dragY < 0) {
-					expanded = true
-				} else if (dragY > 0) {
-					expanded = false
-				}
+				expanded = dragY < 0
 			}
 		})
-		console.log(footerElement, draggable)
 		return () => {
 			draggable[0].kill()
 		}
@@ -59,7 +51,7 @@
 		right: 0.2rem;
 		bottom: 0.2rem;
 		z-index: 10;
-		transition: all 400ms ease-in-out;
+		transition: all 300ms ease-in-out;
 		will-change: transform, height;
 
 		&.expanded {
