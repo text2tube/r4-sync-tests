@@ -11,7 +11,7 @@
 
 	let {appState, preloading} = $props()
 
-	let expanded = $state(true)
+	let expanded = $state(false)
 	let enableDrag = $state(false)
 
 	/** @type {HTMLElement} */
@@ -58,8 +58,8 @@
 		right: 0.2rem;
 		bottom: 0.5rem;
 		z-index: 10;
-		transition: all 300ms ease-in-out;
 		will-change: transform, height;
+		/* transition: all 300ms ease-in-out; */
 
 		&.expanded {
 			height: 100dvh;
