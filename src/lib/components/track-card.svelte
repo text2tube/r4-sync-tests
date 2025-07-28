@@ -3,20 +3,17 @@
 	import {formatDate} from '$lib/dates'
 	import {extractYouTubeId} from '$lib/utils'
 	import type {Track, AppState} from '$lib/types'
+	import type {Snippet} from 'svelte'
 
-	let {
-		track,
-		index,
-		appState,
-		showImage = true,
-		children
-	}: {
+	interface Props {
 		track: Track
 		index: number
 		appState: AppState
 		showImage?: boolean
-		children?: any
-	} = $props()
+		children?: Snippet
+	}
+
+	let {track, index, appState, showImage = true, children}: Props = $props()
 
 	const permalink = $derived(`/${track.channel_slug}/tracks/${track.id}`)
 	const active = $derived(track.id === appState.playlist_track)
@@ -53,7 +50,7 @@
 		</div>
 		<time>
 			{#if track.channel_slug}<small class="slug">@{track.channel_slug}</small>{/if}
-			<small>{formatDate(track.created_at)}</small></time
+			<small>{formatDate(new Date(track.created_at))}</small></time
 		>
 	</a>
 	{@render children?.({track})}
@@ -109,7 +106,10 @@
 		cursor: pointer;
 	}
 
-	@media (max-width: 500px) {
+	article {
+		container-type: inline-size;
+	}
+	@container (width < 80ch) {
 		.index,
 		time,
 		.slug {

@@ -23,11 +23,35 @@ export function togglePlay(yt) {
 	}
 }
 
+/** @param {YouTubePlayer} yt */
 export function play(yt) {
+	if (!yt) {
+		console.warn('play: YouTube player not ready')
+		return
+	}
 	yt.play()
+
+	// Don't call play if element isn't properly loaded
+	// if (!yt.isLoaded || !yt.api) {
+	// 	yt.loadComplete.then(() => {
+	// 		setTimeout(() => play(yt), 50)
+	// 	})
+	// 	return
+	// }
+	// const playPromise = yt.play()
+	// if (playPromise) {
+	// 	playPromise.catch(error => {
+	// 		console.error('Play failed:', error)
+	// 	})
+	// }
 }
 
+/** @param {YouTubePlayer} yt */
 export function pause(yt) {
+	if (!yt) {
+		console.warn('pause: YouTube player not ready')
+		return
+	}
 	yt.pause()
 }
 

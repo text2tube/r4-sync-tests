@@ -28,9 +28,7 @@
 
 	/** @type {import('$lib/types').AppState} */
 	let appState = $state({})
-	const playerLoaded = $derived(appState.playlist_track)
 
-	// true until the database is initialized.
 	const preloading = $derived(data.preloading)
 
 	subscribeToAppState((state) => {
@@ -48,7 +46,7 @@
 			// event.preventDefault()
 			await stopBroadcasting()
 			await pg.sql`UPDATE app_state SET is_playing = false`
-			// await pg.close()
+			await pg.close()
 		})
 	})
 
@@ -113,7 +111,7 @@
 		{/if}
 	</div>
 
-	<LayoutFooter {appState} {preloading} {playerLoaded} />
+	<LayoutFooter {appState} {preloading} />
 </div>
 
 <style>
@@ -122,8 +120,7 @@
 		grid-template-rows: auto 1fr auto;
 		height: 100vh;
 
-		header,
-		footer {
+		header {
 			background: light-dark(var(--gray-2), var(--gray-3));
 		}
 	}

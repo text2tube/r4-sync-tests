@@ -76,12 +76,10 @@ media-time-display {
 
 	menu {
 		margin-left: auto;
+		/* margin-right: auto; */
 
 		media-mute-button,
 		button {
-			/* smaller */
-			padding-left: var(--gap);
-			padding-right: var(--gap);
 			/* equal width */
 			flex: 1;
 		}
@@ -96,7 +94,7 @@ media-time-display {
 	}
 
 	youtube-video {
-		display: none;
+		/* display: none; */
 
 		position: fixed;
 		left: 0;
@@ -111,6 +109,13 @@ media-time-display {
 		}
 		media-time-range {
 			width: 60px;
+		}
+
+		media-mute-button,
+		button {
+			/* smaller */
+			padding-left: var(--gap);
+			padding-right: var(--gap);
 		}
 	}
 

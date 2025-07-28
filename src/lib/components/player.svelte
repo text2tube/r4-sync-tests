@@ -7,8 +7,17 @@
 	import ChannelAvatar from './channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
 
-	import {togglePlay, next, previous, toggleShuffle, toggleVideo, play} from '$lib/api/player'
+	import {
+		togglePlay,
+		next,
+		previous,
+		toggleShuffle,
+		toggleVideo,
+		play,
+		pause
+	} from '$lib/api/player'
 	import {extractYouTubeId} from '$lib/utils'
+	import {tick} from 'svelte'
 
 	const log = logger.ns('youtube_player').seal()
 
@@ -33,7 +42,7 @@
 	let savedMuted = $state()
 	let hasAppliedInitialValues = $state(false)
 
-	// Reactive playing state that updates when YouTube events fire
+	// mirror of app_state.is_playing
 	let isPlaying = $state(false)
 
 	/** @type {string[]} */
@@ -42,8 +51,9 @@
 	/** @type {string[]} */
 	let activeQueue = $derived(appState.shuffle ? appState.playlist_tracks_shuffled || [] : trackIds)
 
-	/** @type {boolean} */
-	let canPlay = $derived(Boolean(channel && track))
+	let didPlay = $state(false)
+	const canPlay = $derived(Boolean(channel && track))
+	const autoplay = $derived(didPlay ? 1 : 0)
 
 	/** @type {string} */
 	let trackImage = $derived.by(() => {
@@ -70,11 +80,20 @@
 		const tid = state.playlist_track
 		const trackChanged = tid && tid !== track?.id
 		if (trackChanged) {
-			const wasPlaying = track && yt && !yt.paused
+			// debugger
+			const ytplayer = yt || document.querySelector('youtube-video')
+			const paused = ytplayer.paused
+			// const wasPlaying = track && yt && !paused
 			await setChannelFromTrack(tid)
+			console.log('track changed', {track: track?.title, yt, paused, didPlay, autoplay})
 			// Only auto-play if we were already playing when track changed
-			if (wasPlaying && yt) {
-				play(yt)
+			if (didPlay && yt) {
+				console.log('Auto-playing next track, yt ready:', !!yt, 'didPlay:', didPlay)
+				// Wait for YouTube element to be ready before playing
+				yt.loadComplete.then(() => {
+					console.log('YouTube loadComplete, calling play')
+					play(yt)
+				})
 			}
 		}
 	})
@@ -89,11 +108,14 @@
 	}
 
 	async function handlePlay() {
+		console.log('handlePlay')
 		isPlaying = true
+		didPlay = true
 		await pg.sql`UPDATE app_state SET is_playing = true WHERE id = 1`
 	}
 
 	async function handlePause() {
+		console.log('handlePause')
 		isPlaying = false
 		await pg.sql`UPDATE app_state SET is_playing = false WHERE id = 1`
 	}
@@ -120,11 +142,10 @@
 			hasAppliedInitialValues = true
 			yt.volume = savedVolume
 			yt.muted = savedMuted
-			console.log('applied initial values', savedVolume, savedMuted)
+			// console.log('applied initial volume', savedVolume, savedMuted)
 		}
 	}
 
-	/** @param {} */
 	function handleVolumeChange(e) {
 		// Ignore events until we've applied initial values
 		if (!hasAppliedInitialValues) return
@@ -137,7 +158,20 @@
 		})
 	}
 
-	// $inspect(yt)
+	// Pre-buffer video if it's in cued state for smooth playback
+	async function prebuffer() {
+		await tick()
+		const playerState = yt?.api?.getPlayerState?.()
+		if (playerState === 5 && !didPlay) {
+			console.log('prebuffering')
+			play(yt)
+			setTimeout(() => {
+				pause(yt)
+				isPlaying = false
+				console.log('prebuffering complete')
+			}, 200)
+		}
+	}
 </script>
 
 <div class={['player', expanded ? 'expanded' : 'compact']}>
@@ -156,9 +190,12 @@
 			slot="media"
 			bind:this={yt}
 			src={track?.url}
-			autoplay={false}
+			{autoplay}
 			playsinline={1}
-			onloadcomplete={applyInitialVolume}
+			onloadcomplete={(e) => {
+				applyInitialVolume()
+				prebuffer()
+			}}
 			onvolumechange={handleVolumeChange}
 			onplay={handlePlay}
 			onpause={handlePause}
