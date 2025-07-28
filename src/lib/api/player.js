@@ -15,7 +15,7 @@ export function togglePlay(yt) {
 		console.warn('togglePlay: YouTube player not ready')
 		return
 	}
-	
+
 	if (yt.paused) {
 		play(yt)
 	} else {
@@ -45,7 +45,7 @@ export function next(track, activeQueue, reason) {
 		console.warn('next: No active queue')
 		return
 	}
-	
+
 	const idx = activeQueue.indexOf(track.id)
 	const next = activeQueue[idx + 1]
 	if (next) {
@@ -71,7 +71,7 @@ export function previous(track, activeQueue, reason) {
 		console.warn('previous: No active queue')
 		return
 	}
-	
+
 	const idx = activeQueue.indexOf(track.id)
 	const prev = activeQueue[idx - 1]
 	if (prev) {

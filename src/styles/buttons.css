@@ -50,7 +50,7 @@ button:disabled,
 
 	:global(.icon) {
 		opacity: 0.2;
-}
+	}
 }
 
 button.active,

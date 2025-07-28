@@ -43,7 +43,7 @@
 
 <footer bind:this={footerElement} class={{expanded, showVideo: appState.show_video_player}}>
 	{#if !preloading}
-		<Player {appState} bind:expanded={expanded} />
+		<Player {appState} bind:expanded />
 	{/if}
 </footer>
 
