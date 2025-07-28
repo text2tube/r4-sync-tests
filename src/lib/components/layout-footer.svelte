@@ -1,24 +1,31 @@
 <script>
-	import Icon from '$lib/components/icon.svelte'
-	import Player from '$lib/components/player.svelte'
 	import gsap from 'gsap'
 	import {Draggable} from 'gsap/Draggable'
 	import {InertiaPlugin} from 'gsap/InertiaPlugin'
+	import Player from '$lib/components/player.svelte'
+
+	// This component wraps the player and controls the "expanded" state,
+	// via a toggle button and a draggable element.
 
 	gsap.registerPlugin(Draggable, InertiaPlugin)
 
-	let {appState, preloading, playerLoaded} = $props()
+	let {appState, preloading} = $props()
 
-	let expanded = $state(false)
+	let expanded = $state(true)
+	let enableDrag = $state(false)
+
+	/** @type {HTMLElement} */
 	let footerElement
 
 	// Setup GSAP swipe gestures
 	$effect(() => {
-		if (!footerElement || typeof window === 'undefined') return
+		if (!enableDrag || !footerElement || typeof window === 'undefined') return
 		const draggable = Draggable.create(footerElement, {
 			type: 'y',
-			inertia: false,
-			trigger: footerElement,
+			inertia: true,
+			// trigger: footerElement,
+			allowContextMenu: true, // allow long-presses, necessary for volume slider
+			dragClickables: false, // disable dragging on clickable elements
 			allowNativeTouchScrolling: false,
 			bounds: {minY: -5, maxY: 5},
 			// snap: {y: 0},
@@ -49,7 +56,7 @@
 		position: fixed;
 		left: 0.2rem;
 		right: 0.2rem;
-		bottom: 0.2rem;
+		bottom: 0.5rem;
 		z-index: 10;
 		transition: all 300ms ease-in-out;
 		will-change: transform, height;

@@ -17,7 +17,6 @@
 	import Icon from '$lib/components/icon.svelte'
 	import HeaderSearch from '$lib/components/header-search.svelte'
 	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
-	import {goto} from '$app/navigation'
 	import '@radio4000/components'
 	import {logger} from '$lib/logger'
 	import {page} from '$app/state'
@@ -80,7 +79,7 @@
 				<LiveBroadcasts {appState} />
 				<BroadcastControls {appState} />
 				<AddTrackModal />
-				<button onclick={togglePanel} class="btn" class:active={appState.queue_panel_visible}>
+				<button onclick={togglePanel} class:active={appState.queue_panel_visible}>
 					<Icon icon="sidebar-fill-right" size={20} />
 				</button>
 				<!-- <button onclick={toggleChatPanel}>Chat</button> -->

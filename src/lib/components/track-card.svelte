@@ -37,8 +37,8 @@
 
 <article class:active>
 	<a href={permalink} onclick={click} ondblclick={doubleClick} data-sveltekit-preload-data="tap">
-		<span>{index + 1}.</span>
-		{#if ytid && showImage}<img loading="lazy" src={imageSrc} alt={track.title} />{/if}
+		<span class="index">{index + 1}.</span>
+		{#if ytid && showImage}<img loading="lazy" src={imageSrc} alt={track.title} class="artwork"/>{/if}
 		<div>
 			<h3 class="title">{track.title}</h3>
 			<div class="description">
@@ -78,7 +78,7 @@
 		text-indent: 0.2em;
 	}
 
-	img {
+	.artwork {
 		width: 3rem;
 		height: 1.8rem;
 	}
@@ -102,5 +102,13 @@
 		place-content: center;
 		/* because this is the actual link with some trickery */
 		cursor: pointer;
+	}
+
+	@media (max-width: 500px) {
+		.index,
+		time,
+		.slug {
+			display: none;
+		}
 	}
 </style>

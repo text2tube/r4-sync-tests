@@ -4,19 +4,11 @@
 	import {subscribeToAppState, queryTrackWithChannel} from '$lib/api'
 	import {pg} from '$lib/db'
 	import {logger} from '$lib/logger'
-
-	import {
-		togglePlay,
-		next,
-		previous,
-		toggleShuffle,
-		toggleVideo,
-		eject,
-		play
-	} from '$lib/api/player'
-	import {extractYouTubeId} from '$lib/utils'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
+
+	import {togglePlay, next, previous, toggleShuffle, toggleVideo, play} from '$lib/api/player'
+	import {extractYouTubeId} from '$lib/utils'
 
 	const log = logger.ns('youtube_player').seal()
 
@@ -27,6 +19,7 @@
 	/** @type {{appState: AppState, expanded: boolean}} */
 	let {appState, expanded = $bindable()} = $props()
 
+	// The YouTube player element
 	let yt = $state()
 
 	/** @type {Track|undefined} */
@@ -95,6 +88,16 @@
 		channel = result.channel
 	}
 
+	async function handlePlay() {
+		isPlaying = true
+		await pg.sql`UPDATE app_state SET is_playing = true WHERE id = 1`
+	}
+
+	async function handlePause() {
+		isPlaying = false
+		await pg.sql`UPDATE app_state SET is_playing = false WHERE id = 1`
+	}
+
 	/** @param {any} event */
 	function handleError(event) {
 		const code = event.target.error.code
@@ -121,6 +124,7 @@
 		}
 	}
 
+	/** @param {} */
 	function handleVolumeChange(e) {
 		// Ignore events until we've applied initial values
 		if (!hasAppliedInitialValues) return
@@ -132,7 +136,58 @@
 			log.log({volume, muted})
 		})
 	}
+
+	// $inspect(yt)
 </script>
+
+<div class={['player', expanded ? 'expanded' : 'compact']}>
+	{@render channelHeader()}
+
+	{#if !channel}
+		<p style="margin-left: 0.5rem">Find some sweet music</p>
+	{/if}
+
+	{#if channel}
+		{@render trackContent()}
+	{/if}
+
+	<media-controller id="r5" data-clickable="true">
+		<youtube-video
+			slot="media"
+			bind:this={yt}
+			src={track?.url}
+			autoplay={false}
+			playsinline={1}
+			onloadcomplete={applyInitialVolume}
+			onvolumechange={handleVolumeChange}
+			onplay={handlePlay}
+			onpause={handlePause}
+			onended={handleEndTrack}
+			onerror={handleError}
+		></youtube-video>
+		<media-loading-indicator slot="centered-chrome"></media-loading-indicator>
+	</media-controller>
+
+	<menu>
+		<media-control-bar mediacontroller="r5">
+			{@render btnShuffle()}
+			{@render btnPrev()}
+			<!-- <media-play-button class="btn"></media-play-button> -->
+			{@render btnPlay()}
+			{@render btnNext()}
+			<media-mute-button class="btn"></media-mute-button>
+			<!-- <media-volume-range></media-volume-range> -->
+			<media-time-range></media-time-range>
+			<media-time-display showduration></media-time-display>
+			{@render btnToggleVideo()}
+		</media-control-bar>
+	</menu>
+
+	<media-control-bar class="timebar" mediacontroller="r5">
+		<media-time-range></media-time-range>
+		<media-time-display showduration></media-time-display>
+	</media-control-bar>
+</div>
 
 {#snippet btnPrev()}
 	<button onclick={() => previous(track, activeQueue, 'user_prev')} class="prev">
@@ -147,7 +202,7 @@
 {/snippet}
 
 {#snippet btnPlay()}
-	<button onclick={() => togglePlay(yt)} disabled={!canPlay}>
+	<button onclick={() => togglePlay(yt)} disabled={!canPlay} class="play">
 		<Icon icon={isPlaying ? 'pause' : 'play-fill'} />
 	</button>
 {/snippet}
@@ -165,11 +220,11 @@
 	</button>
 {/snippet}
 
-{#snippet btnEject()}
+<!-- {#snippet btnEject()}
 	<button onclick={() => eject()}>
 		<Icon icon="eject" />
 	</button>
-{/snippet}
+{/snippet} -->
 
 {#snippet btnToggleVideo()}
 	<button onclick={() => togglePlayerMode()} title="Show/hide video" class="expand">
@@ -200,52 +255,3 @@
 		</div>
 	{/if}
 {/snippet}
-
-<div class={['player', expanded ? 'expanded' : 'compact']}>
-	{@render channelHeader()}
-
-	{#if !channel}
-		<p style="margin-left: 0.5rem">Find some sweet music</p>
-	{/if}
-
-	{#if channel}
-		{@render trackContent()}
-	{/if}
-
-	<media-controller id="r5">
-		<youtube-video
-			bind:this={yt}
-			src={track?.url}
-			autoplay={false}
-			playsinline={1}
-			onloadcomplete={applyInitialVolume}
-			onvolumechange={handleVolumeChange}
-			onplay={() => {
-				isPlaying = true
-				pg.sql`UPDATE app_state SET is_playing = true WHERE id = 1`
-			}}
-			onpause={() => {
-				isPlaying = false
-				pg.sql`UPDATE app_state SET is_playing = false WHERE id = 1`
-			}}
-			onended={handleEndTrack}
-			onerror={handleError}
-		/>
-		<media-control-bar>
-			<media-time-range></media-time-range>
-			<media-time-display showduration></media-time-display>
-			<!-- <media-playback-rate-button></media-playback-rate-button> -->
-			<!-- <media-mute-button></media-mute-button> -->
-			<!-- <media-volume-range></media-volume-range> -->
-			<media-loading-indicator slot="centered-chrome"></media-loading-indicator>
-		</media-control-bar>
-	</media-controller>
-
-	<menu>
-		{@render btnShuffle()}
-		{@render btnPrev()}
-		{@render btnPlay()}
-		{@render btnNext()}
-		{@render btnToggleVideo()}
-	</menu>
-</div>
