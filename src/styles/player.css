@@ -94,7 +94,7 @@ media-time-display {
 	}
 
 	youtube-video {
-		/* display: none; */
+		display: none;
 
 		position: fixed;
 		left: 0;
