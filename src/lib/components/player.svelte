@@ -55,6 +55,8 @@
 	const canPlay = $derived(Boolean(channel && track))
 	const autoplay = $derived(didPlay ? 1 : 0)
 
+	const isListeningToBroadcast = $derived(Boolean(appState.listening_to_channel_id))
+
 	/** @type {string} */
 	let trackImage = $derived.by(() => {
 		if (!track?.url) return ''
@@ -286,6 +288,9 @@
 		<img class="artwork" src={trackImage} alt={track.title} />
 		<div class="text">
 			<h3>
+				{#if isListeningToBroadcast}
+					<span class="broadcast-indicator">🔴 LIVE</span>
+				{/if}
 				<a href={`/${channel.slug}/tracks/${track.id}`}>{track.title}</a>
 			</h3>
 			{#if track.description}<p><small>{track.description}</small></p>{/if}
