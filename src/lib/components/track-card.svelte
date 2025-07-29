@@ -3,20 +3,17 @@
 	import {formatDate} from '$lib/dates'
 	import {extractYouTubeId} from '$lib/utils'
 	import type {Track, AppState} from '$lib/types'
+	import type {Snippet} from 'svelte'
 
-	let {
-		track,
-		index,
-		appState,
-		showImage = true,
-		children
-	}: {
+	interface Props {
 		track: Track
 		index: number
 		appState: AppState
 		showImage?: boolean
-		children?: any
-	} = $props()
+		children?: Snippet
+	}
+
+	let {track, index, appState, showImage = true, children}: Props = $props()
 
 	const permalink = $derived(`/${track.channel_slug}/tracks/${track.id}`)
 	const active = $derived(track.id === appState.playlist_track)
@@ -37,8 +34,13 @@
 
 <article class:active>
 	<a href={permalink} onclick={click} ondblclick={doubleClick} data-sveltekit-preload-data="tap">
-		<span>{index + 1}.</span>
-		{#if ytid && showImage}<img loading="lazy" src={imageSrc} alt={track.title} />{/if}
+		<span class="index">{index + 1}.</span>
+		{#if ytid && showImage}<img
+				loading="lazy"
+				src={imageSrc}
+				alt={track.title}
+				class="artwork"
+			/>{/if}
 		<div>
 			<h3 class="title">{track.title}</h3>
 			<div class="description">
@@ -48,7 +50,7 @@
 		</div>
 		<time>
 			{#if track.channel_slug}<small class="slug">@{track.channel_slug}</small>{/if}
-			<small>{formatDate(track.created_at)}</small></time
+			<small>{formatDate(new Date(track.created_at))}</small></time
 		>
 	</a>
 	{@render children?.({track})}
@@ -78,7 +80,7 @@
 		text-indent: 0.2em;
 	}
 
-	img {
+	.artwork {
 		width: 3rem;
 		height: 1.8rem;
 	}
@@ -102,5 +104,16 @@
 		place-content: center;
 		/* because this is the actual link with some trickery */
 		cursor: pointer;
+	}
+
+	article {
+		container-type: inline-size;
+	}
+	@container (width < 80ch) {
+		.index,
+		time,
+		.slug {
+			display: none;
+		}
 	}
 </style>

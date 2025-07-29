@@ -47,6 +47,10 @@ button:focus,
 button:disabled,
 .btn:disabled {
 	background: var(--gray-1);
+
+	:global(.icon) {
+		opacity: 0.2;
+	}
 }
 
 button.active,

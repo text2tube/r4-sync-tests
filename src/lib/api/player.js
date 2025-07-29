@@ -5,23 +5,37 @@ import {shuffleArray} from '$lib/utils'
 /** @typedef {import('$lib/types').AppState} AppState */
 /** @typedef {import('$lib/types').Track} Track */
 /** @typedef {import('$lib/types').Channel} Channel */
-/** @type {HTMLElement & {paused: boolean, play(): void, pause(): void} | null} YouTubePlayer */
+/** @typedef {HTMLElement & {paused: boolean, play(): void, pause(): void} | null} YouTubePlayer */
 
-/** @param {AppState} appState */
-export function togglePlay(appState, yt) {
-	if (yt.paused() || !appState.is_playing) {
+/** @param {YouTubePlayer} yt */
+export function play(yt) {
+	if (!yt) {
+		console.warn('play: YouTube player not ready')
+		return
+	}
+	yt.play()
+}
+
+/** @param {YouTubePlayer} yt */
+export function pause(yt) {
+	if (!yt) {
+		console.warn('pause: YouTube player not ready')
+		return
+	}
+	yt.pause()
+}
+
+/** @param {YouTubePlayer} yt */
+export function togglePlay(yt) {
+	if (!yt) {
+		console.warn('togglePlay: YouTube player not ready')
+		return
+	}
+	if (yt.paused) {
 		play(yt)
 	} else {
 		pause(yt)
 	}
-}
-
-export function play(yt) {
-	yt.play()
-}
-
-export function pause(yt) {
-	yt.pause()
 }
 
 /**
@@ -30,13 +44,22 @@ export function pause(yt) {
  * @param {string} reason
  */
 export function next(track, activeQueue, reason) {
-	if (!track?.id) return
+	if (!track?.id) {
+		console.warn('next: No current track')
+		return
+	}
+	if (!activeQueue?.length) {
+		console.warn('next: No active queue')
+		return
+	}
 	const idx = activeQueue.indexOf(track.id)
 	const next = activeQueue[idx + 1]
 	if (next) {
 		const startReason =
 			reason === 'track_completed' || reason === 'youtube_error' ? 'auto_next' : reason
 		playTrack(next, reason, startReason)
+	} else {
+		console.info('next: No next track available')
 	}
 }
 
@@ -46,10 +69,22 @@ export function next(track, activeQueue, reason) {
  * @param {string} reason
  */
 export function previous(track, activeQueue, reason) {
-	if (!track?.id) return
+	if (!track?.id) {
+		console.warn('previous: No current track')
+		return
+	}
+	if (!activeQueue?.length) {
+		console.warn('previous: No active queue')
+		return
+	}
+
 	const idx = activeQueue.indexOf(track.id)
 	const prev = activeQueue[idx - 1]
-	if (prev) playTrack(prev, reason, reason)
+	if (prev) {
+		playTrack(prev, reason, reason)
+	} else {
+		console.info('previous: No previous track available')
+	}
 }
 
 /**
