@@ -32,7 +32,7 @@
 		return incrementalLiveQuery(
 			`
 		SELECT *
-		FROM tracks_with_meta 
+		FROM tracks_with_meta
 		WHERE id IN (select unnest($1::uuid[]))
 		ORDER BY created_at desc
 	`,
@@ -55,3 +55,13 @@
 		{/each}
 	</ul>
 {/if}
+
+<style>
+	li {
+		contain: content;
+		content-visibility: auto;
+		/* In this case, tiles scale proportionally,
+       so we use a relative unit as a placeholder. */
+		contain-intrinsic-height: auto 52px;
+	}
+</style>

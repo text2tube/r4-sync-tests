@@ -53,14 +53,15 @@
 	function togglePanel(e) {
 		e.preventDefault()
 		e.stopPropagation()
-		toggleQueuePanel()
+		appState.queue_panel_visible = !appState.queue_panel_visible
+		// toggleQueuePanel()
 	}
 </script>
 
 <AuthListener />
 <KeyboardShortcuts />
 
-<div class="layout">
+<div class={['layout', {asideVisible: appState.queue_panel_visible}]}>
 	<header class="row">
 		<a href="/" class:active={page.route.id === '/'}>
 			{#if preloading}
@@ -100,9 +101,9 @@
 			{/if}
 		</main>
 
-		{#if appState?.queue_panel_visible}
-			<QueuePanel {appState} />
-		{/if}
+		<!-- {#if appState?.queue_panel_visible} -->
+		<QueuePanel {appState} />
+		<!-- {/if} -->
 
 		{#if chatPanelVisible}
 			<DraggablePanel title="R4 Chat" panelId="chat">
@@ -132,8 +133,15 @@
 		overflow: hidden;
 	}
 
-	.content:global(:has(aside)) {
+	.asideVisible .content {
 		grid-template-columns: 1fr minmax(460px, 25vw);
+		> :global(aside) {
+			display: flex;
+		}
+	}
+
+	.content > :global(aside) {
+		display: none;
 	}
 
 	.scroll {
