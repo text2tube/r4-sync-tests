@@ -7,22 +7,6 @@ import {shuffleArray} from '$lib/utils'
 /** @typedef {import('$lib/types').Channel} Channel */
 /** @typedef {HTMLElement & {paused: boolean, play(): void, pause(): void} | null} YouTubePlayer */
 
-/**
- * @param {YouTubePlayer} yt
- */
-export function togglePlay(yt) {
-	if (!yt) {
-		console.warn('togglePlay: YouTube player not ready')
-		return
-	}
-
-	if (yt.paused) {
-		play(yt)
-	} else {
-		pause(yt)
-	}
-}
-
 /** @param {YouTubePlayer} yt */
 export function play(yt) {
 	if (!yt) {
@@ -30,20 +14,6 @@ export function play(yt) {
 		return
 	}
 	yt.play()
-
-	// Don't call play if element isn't properly loaded
-	// if (!yt.isLoaded || !yt.api) {
-	// 	yt.loadComplete.then(() => {
-	// 		setTimeout(() => play(yt), 50)
-	// 	})
-	// 	return
-	// }
-	// const playPromise = yt.play()
-	// if (playPromise) {
-	// 	playPromise.catch(error => {
-	// 		console.error('Play failed:', error)
-	// 	})
-	// }
 }
 
 /** @param {YouTubePlayer} yt */
@@ -53,6 +23,19 @@ export function pause(yt) {
 		return
 	}
 	yt.pause()
+}
+
+/** @param {YouTubePlayer} yt */
+export function togglePlay(yt) {
+	if (!yt) {
+		console.warn('togglePlay: YouTube player not ready')
+		return
+	}
+	if (yt.paused) {
+		play(yt)
+	} else {
+		pause(yt)
+	}
 }
 
 /**
@@ -69,7 +52,6 @@ export function next(track, activeQueue, reason) {
 		console.warn('next: No active queue')
 		return
 	}
-
 	const idx = activeQueue.indexOf(track.id)
 	const next = activeQueue[idx + 1]
 	if (next) {

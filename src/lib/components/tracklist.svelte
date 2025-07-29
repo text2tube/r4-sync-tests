@@ -59,9 +59,7 @@
 <style>
 	li {
 		contain: content;
-		content-visibility: auto;
-		/* In this case, tiles scale proportionally,
-       so we use a relative unit as a placeholder. */
-		contain-intrinsic-height: auto 52px;
+    content-visibility: auto;
+    contain-intrinsic-height: auto 3rem;
 	}
 </style>
