@@ -3,8 +3,6 @@
 
 	let online = $state(navigator.onLine)
 
-	$inspect({online})
-
 	$effect(() => {
 		window.addEventListener('offline', () => {
 			online = false

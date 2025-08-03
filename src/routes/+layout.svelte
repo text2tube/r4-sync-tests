@@ -16,7 +16,7 @@
 	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import HeaderSearch from '$lib/components/header-search.svelte'
-	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
+	import {subscribeToAppState} from '$lib/api'
 	import '@radio4000/components'
 	import {logger} from '$lib/logger'
 	import {page} from '$app/state'
@@ -35,13 +35,9 @@
 		appState = state
 	})
 
-	function toggleChatPanel() {
-		chatPanelVisible = !chatPanelVisible
-	}
-
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
 	$effect(async () => {
-		window.addEventListener('beforeunload', async (event) => {
+		window.addEventListener('beforeunload', async () => {
 			log.log('beforeunload_closing_db')
 			// event.preventDefault()
 			await stopBroadcasting()

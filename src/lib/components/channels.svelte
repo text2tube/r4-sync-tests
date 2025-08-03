@@ -44,7 +44,7 @@
 				channels = results.rows
 			})
 			.then(({initialResults, unsubscribe}) => {
-				// channels = initialResults.rows
+				channels = initialResults.rows
 				cleanup = unsubscribe
 			})
 
@@ -76,17 +76,17 @@
 			class:active={display === 'list'}
 			onclick={() => setDisplay('list')}
 		>
-			<Icon icon={'unordered-list'} />
+			<Icon icon="unordered-list" />
 		</button>
 		<button
 			title="View as grid"
 			class:active={display === 'grid'}
 			onclick={() => setDisplay('grid')}
 		>
-			<Icon icon={'grid'} />
+			<Icon icon="grid" />
 		</button>
 		<button title="View as map" class:active={display === 'map'} onclick={() => setDisplay('map')}>
-			<Icon icon={'map'} />
+			<Icon icon="map" />
 		</button>
 	</menu>
 

@@ -3,7 +3,7 @@
 	import {page} from '$app/state'
 	import Icon from '$lib/components/icon'
 
-	let {search = '', order = 'created', dir = 'desc', onSearchChange, onOrderChange} = $props()
+	let {search = '', order = 'created', dir = 'desc', onSearchChange} = $props()
 
 	let searchValue = $state(search)
 

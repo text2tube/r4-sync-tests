@@ -194,7 +194,7 @@
 			src={track?.url}
 			{autoplay}
 			playsinline={1}
-			onloadcomplete={(e) => {
+			onloadcomplete={() => {
 				applyInitialVolume()
 				prebuffer()
 			}}

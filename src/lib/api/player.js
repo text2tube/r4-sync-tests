@@ -91,20 +91,20 @@ export function previous(track, activeQueue, reason) {
  * @param {import('$lib/types').AppState} appState
  * @param {string[]} trackIds
  */
-export function toggleShuffle(appState, trackIds) {
+export async function toggleShuffle(appState, trackIds) {
 	const newShuffleState = !appState.shuffle
 	if (newShuffleState) {
 		// Turning shuffle ON - generate new shuffle queue
 		const shuffledQueue = shuffleArray(trackIds)
-		pg.sql`UPDATE app_state SET shuffle = true, playlist_tracks_shuffled = ${shuffledQueue} WHERE id = 1`
+		await pg.sql`UPDATE app_state SET shuffle = true, playlist_tracks_shuffled = ${shuffledQueue} WHERE id = 1`
 	} else {
 		// Turning shuffle OFF - clear shuffle queue
-		pg.sql`UPDATE app_state SET shuffle = false, playlist_tracks_shuffled = ${[]} WHERE id = 1`
+		await pg.sql`UPDATE app_state SET shuffle = false, playlist_tracks_shuffled = ${[]} WHERE id = 1`
 	}
 }
 
-export function toggleVideo(appState) {
-	pg.sql`UPDATE app_state SET show_video_player = ${!appState.show_video_player}`
+export async function toggleVideo(appState) {
+	await pg.sql`UPDATE app_state SET show_video_player = ${!appState.show_video_player}`
 }
 
 export function eject() {

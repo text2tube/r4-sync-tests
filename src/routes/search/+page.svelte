@@ -3,7 +3,6 @@
 	import {page} from '$app/state'
 	import {pg} from '$lib/db'
 	import {subscribeToAppState, setPlaylist, addToPlaylist} from '$lib/api'
-	import Icon from '$lib/components/icon.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import TrackCard from '$lib/components/track-card.svelte'
 
