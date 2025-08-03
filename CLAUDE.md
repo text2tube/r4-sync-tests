@@ -114,8 +114,11 @@ Use `bind:this` to get a reference to the element. You can even export methods o
 Ask me to perform queries for you, if it helps:
 (await window.r5.pg.sql`select * from app_state where id = 1`).rows[0]
 
-## Testing tool
+## Linting and formatting
 
-When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js
+Format and lint the code using `bun run lint`. Always good to do this before committing.  
+Additionally and optionally, use `bun run lint2` for even more things to review using Biome.
 
-Run tests with: `bun test`
+## Testing
+
+When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js. Run tests with: `bun test`

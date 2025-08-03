@@ -8,11 +8,12 @@
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"prettier": "prettier --write .",
-		"lint": "prettier --check . && eslint .",
+		"lint": "prettier --write . && eslint .",
+		"lint2": "bunx --bun biome lint",
 		"test": "vitest"
 	},
 	"devDependencies": {
+		"@biomejs/biome": "2.0.6",
 		"@sveltejs/adapter-auto": "^6.0.1",
 		"@sveltejs/adapter-cloudflare": "^7.1.1",
 		"@sveltejs/kit": "^2.26.1",
