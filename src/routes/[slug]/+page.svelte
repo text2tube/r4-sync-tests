@@ -8,6 +8,7 @@
 	import {pullTrackMetaYouTubeFromChannel} from '$lib/sync/youtube'
 	import {relativeDate, relativeDateSolar} from '$lib/dates'
 	import Icon from '$lib/components/icon.svelte'
+	import SearchInput from '$lib/components/search-input.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
@@ -126,11 +127,9 @@
 
 <header>
 	<form onsubmit={handleSubmit}>
-		<Icon icon="search" />
-		<input
-			type="search"
-			placeholder="Search tracks in {channel?.name || 'channel'}..."
+		<SearchInput
 			bind:value={searchQuery}
+			placeholder="Search tracks in {channel?.name || 'channel'}..."
 			oninput={debouncedSearch}
 		/>
 		<menu>
@@ -198,6 +197,7 @@
 		position: sticky;
 		top: 0.5rem;
 		margin: 0.5rem;
+		z-index: 1;
 	}
 
 	form {
@@ -208,8 +208,7 @@
 		align-items: center;
 	}
 
-	input[type='search'] {
-		margin-left: -0.5rem;
+	form > :global(.search-input) {
 		flex: 1;
 	}
 
