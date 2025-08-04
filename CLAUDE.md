@@ -122,3 +122,5 @@ Additionally and optionally, use `bun run lint2` for even more things to review 
 ## Testing
 
 When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js. Run tests with: `bun test`
+
+claude code: you do not need to start the dev server.
