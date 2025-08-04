@@ -3,7 +3,8 @@ import {needsUpdate, pullTracks} from '$lib/sync'
 import {sdk} from '@radio4000/sdk'
 import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
-import {liveQuery} from '$lib/live-query'
+import {shuffleArray} from '$lib/utils'
+import {appState} from '$lib/app-state.svelte'
 
 const log = logger.ns('api').seal()
 
@@ -17,12 +18,12 @@ export async function checkUser() {
 		const {data: user, error} = await sdk.users.readUser()
 		log.log('check_user', user, error)
 		if (!user) {
-			await pg.sql`update app_state set channels = null`
+			appState.channels = null
 		} else {
 			const {data: channels} = await sdk.channels.readUserChannels()
 			log.log('check_user', {channels})
 			if (channels) {
-				await pg.sql`update app_state set channels = ${channels.map((/** @type {any} */ c) => c.id)}`
+				appState.channels = channels.map((/** @type {any} */ c) => c.id)
 			}
 			return user
 		}
@@ -43,15 +44,14 @@ export async function playTrack(id, endReason, startReason) {
 	if (!track) throw new Error(`play_track:error Failed to play track: ${id}`)
 
 	// Get current track before we change it
-	const {rows} = await pg.sql`SELECT playlist_track FROM app_state WHERE id = 1`
-	const previousTrackId = rows[0]?.playlist_track
+	const previousTrackId = appState.playlist_track
 
 	const tracks = (
 		await pg.sql`select id from tracks where channel_id = ${track.channel_id} order by created_at desc`
 	).rows
 	const ids = tracks.map((t) => t.id)
 	await setPlaylist(ids)
-	await pg.sql`UPDATE app_state SET playlist_track = ${id}`
+	appState.playlist_track = id
 	await addPlayHistory({nextTrackId: id, previousTrackId, endReason, startReason})
 }
 
@@ -73,7 +73,12 @@ export async function playChannel({id, slug}, index = 0) {
 
 /** @param {string[]} ids */
 export async function setPlaylist(ids) {
-	await pg.sql`UPDATE app_state SET playlist_tracks = ${ids}`
+	const isShuffled = appState.shuffle || false
+
+	appState.playlist_tracks = ids
+	if (isShuffled) {
+		appState.playlist_tracks_shuffled = shuffleArray(ids)
+	}
 }
 
 /** @returns {Promise<import('$lib/types').BroadcastWithChannel[]>} */
@@ -95,19 +100,10 @@ export async function readBroadcastsWithChannel() {
 	return data || []
 }
 
-/** @param {(state: import('$lib/types').AppState) => void} callback */
-export async function subscribeToAppState(callback) {
-	return liveQuery('SELECT * FROM app_state WHERE id = 1', [], (res) => {
-		callback(res.rows[0] || {})
-	})
-}
-
 /** @param {string[]} trackIds */
 export async function addToPlaylist(trackIds) {
-	const {rows} = await pg.sql`SELECT playlist_tracks FROM app_state WHERE id = 1`
-	const currentTracks = rows[0]?.playlist_tracks || []
-	const newTracks = [...currentTracks, ...trackIds]
-	await pg.sql`UPDATE app_state SET playlist_tracks = ${newTracks}`
+	const currentTracks = appState.playlist_tracks || []
+	appState.playlist_tracks = [...currentTracks, ...trackIds]
 }
 
 export async function toggleTheme() {
@@ -121,11 +117,11 @@ export async function toggleTheme() {
 		document.documentElement.classList.remove('dark')
 		document.documentElement.classList.add('light')
 	}
-	await pg.sql`update app_state set theme = ${newTheme} where id = 1`.catch(console.warn)
+	appState.theme = newTheme
 }
 
 export async function toggleQueuePanel() {
-	await pg.sql`UPDATE app_state SET queue_panel_visible = NOT queue_panel_visible WHERE id = 1`
+	appState.queue_panel_visible = !appState.queue_panel_visible
 }
 
 export function closePlayerOverlay() {

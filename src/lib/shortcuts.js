@@ -1,7 +1,7 @@
 import {createKeybindingsHandler} from 'tinykeys'
-import {pg} from '$lib/db'
 import * as api from '$lib/api.js'
 import {logger} from '$lib/logger'
+import {appState} from '$lib/app-state.svelte'
 
 const log = logger.ns('shortcuts').seal()
 
@@ -15,33 +15,27 @@ export const DEFAULT_KEY_BINDINGS = {
 }
 
 /**
- * Load key bindings from database
- * @returns {Promise<import('./types.js').KeyBindingsConfig>} key bindings configuration
+ * Load key bindings from app state
+ * @returns {import('./types.js').KeyBindingsConfig} key bindings configuration
  */
-export async function loadKeyBindings() {
-	try {
-		const {rows} = await pg.sql`SELECT shortcuts FROM app_state WHERE id = 1`
-		return rows[0]?.shortcuts || DEFAULT_KEY_BINDINGS
-	} catch (error) {
-		log.error('load_error', error)
-		return DEFAULT_KEY_BINDINGS
-	}
+export function loadKeyBindings() {
+	return appState.shortcuts || DEFAULT_KEY_BINDINGS
 }
 
 /**
- * Save key bindings to database
+ * Save key bindings to app state
  * @param {import('./types.js').KeyBindingsConfig} keyBindings - key bindings configuration to save
  */
-export async function saveKeyBindings(keyBindings) {
-	await pg.sql`UPDATE app_state SET shortcuts = ${keyBindings} WHERE id = 1`
+export function saveKeyBindings(keyBindings) {
+	appState.shortcuts = keyBindings
 }
 
 /**
- * Initialize keyboard shortcuts from database and attach to window
+ * Initialize keyboard shortcuts from app state and attach to window
  */
-export async function initializeKeyboardShortcuts() {
+export function initializeKeyboardShortcuts() {
 	try {
-		const keyBindingsConfig = await loadKeyBindings()
+		const keyBindingsConfig = loadKeyBindings()
 
 		// Build tinykeys bindings from config
 		/** @type {Record<string, (event: KeyboardEvent) => void>} */

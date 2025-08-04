@@ -1,9 +1,10 @@
 <script>
 	import 'media-chrome'
 	import 'youtube-video-element'
-	import {subscribeToAppState, queryTrackWithChannel} from '$lib/api'
+	import {queryTrackWithChannel} from '$lib/api'
 	import {pg} from '$lib/db'
 	import {logger} from '$lib/logger'
+	import {appState} from '$lib/app-state.svelte'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
 
@@ -25,8 +26,8 @@
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
 
-	/** @type {{appState: AppState, expanded: boolean}} */
-	let {appState, expanded = $bindable()} = $props()
+	/** @type {{expanded: boolean}} */
+	let {expanded = $bindable()} = $props()
 
 	// The YouTube player element
 	let yt = $state()
@@ -78,8 +79,8 @@
 		})
 	})
 
-	subscribeToAppState(async (state) => {
-		const tid = state.playlist_track
+	$effect(async () => {
+		const tid = appState.playlist_track
 		const trackChanged = tid && tid !== track?.id
 		if (trackChanged) {
 			// debugger
@@ -109,17 +110,17 @@
 		channel = result.channel
 	}
 
-	async function handlePlay() {
+	function handlePlay() {
 		console.log('handlePlay')
 		isPlaying = true
 		didPlay = true
-		await pg.sql`UPDATE app_state SET is_playing = true WHERE id = 1`
+		appState.is_playing = true
 	}
 
-	async function handlePause() {
+	function handlePause() {
 		console.log('handlePause')
 		isPlaying = false
-		await pg.sql`UPDATE app_state SET is_playing = false WHERE id = 1`
+		appState.is_playing = false
 	}
 
 	/** @param {any} event */
@@ -136,7 +137,7 @@
 
 	function togglePlayerMode() {
 		expanded = !expanded
-		toggleVideo(appState)
+		toggleVideo()
 	}
 
 	function applyInitialVolume() {
@@ -251,7 +252,7 @@
 		onclick={(e) => {
 			e.preventDefault()
 			e.stopPropagation()
-			toggleShuffle(appState, trackIds)
+			toggleShuffle(trackIds)
 		}}
 		class={['shuffle', {active: appState.shuffle}]}
 	>

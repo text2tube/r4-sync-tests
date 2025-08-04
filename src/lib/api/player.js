@@ -1,6 +1,6 @@
-import {pg} from '$lib/db'
 import {playTrack} from '$lib/api'
 import {shuffleArray} from '$lib/utils'
+import {appState} from '$lib/app-state.svelte'
 
 /** @typedef {import('$lib/types').AppState} AppState */
 /** @typedef {import('$lib/types').Track} Track */
@@ -88,34 +88,31 @@ export function previous(track, activeQueue, reason) {
 }
 
 /**
- * @param {import('$lib/types').AppState} appState
  * @param {string[]} trackIds
  */
-export async function toggleShuffle(appState, trackIds) {
+export function toggleShuffle(trackIds) {
 	const newShuffleState = !appState.shuffle
 	if (newShuffleState) {
 		// Turning shuffle ON - generate new shuffle queue
 		const shuffledQueue = shuffleArray(trackIds)
-		await pg.sql`UPDATE app_state SET shuffle = true, playlist_tracks_shuffled = ${shuffledQueue} WHERE id = 1`
+		appState.shuffle = true
+		appState.playlist_tracks_shuffled = shuffledQueue
 	} else {
 		// Turning shuffle OFF - clear shuffle queue
-		await pg.sql`UPDATE app_state SET shuffle = false, playlist_tracks_shuffled = ${[]} WHERE id = 1`
+		appState.shuffle = false
+		appState.playlist_tracks_shuffled = []
 	}
 }
 
-export async function toggleVideo(appState) {
-	await pg.sql`UPDATE app_state SET show_video_player = ${!appState.show_video_player}`
+export function toggleVideo() {
+	appState.show_video_player = !appState.show_video_player
 }
 
-export async function eject() {
-	await pg.sql`
-		UPDATE app_state
-		SET
-			playlist_track = null,
-			playlist_tracks = ${[]},
-			playlist_tracks_shuffled = ${[]},
-			show_video_player = false,
-			shuffle = false,
-			is_playing = false
-		WHERE id = 1`
+export function eject() {
+	appState.playlist_track = null
+	appState.playlist_tracks = []
+	appState.playlist_tracks_shuffled = []
+	appState.show_video_player = false
+	appState.shuffle = false
+	appState.is_playing = false
 }

@@ -1,6 +1,6 @@
 <script>
+	import {appState} from '$lib/app-state.svelte'
 	import {pg} from '$lib/db'
-	import {subscribeToAppState} from '$lib/api'
 	import Icon from './icon.svelte'
 	import ChannelCard from './channel-card.svelte'
 	import MapComponent from './map.svelte'
@@ -8,7 +8,7 @@
 	const {slug: initialSlug, display: initialDisplay, longitude, latitude, zoom} = $props()
 
 	/** @type {'list' | 'grid' | 'map'}*/
-	let display = $state(initialDisplay || 'list')
+	let display = $derived(appState.channels_display || initialDisplay || 'list')
 	let limit = $state(15)
 	let perPage = $state(100)
 	let onlyChannelsWithImages = $state(false)
@@ -19,10 +19,6 @@
 		channels.filter((c) => (onlyChannelsWithImages ? c.image : true)).slice(0, limit)
 	)
 	let center = $derived(latitude && longitude ? [latitude, longitude] : null)
-
-	subscribeToAppState((state) => {
-		display = state.channels_display || display
-	})
 
 	const channelMapMarkers = $derived(
 		channels
@@ -58,9 +54,9 @@
 	// await pg.sql`UPDATE app_state SET channels_display = ${display} WHERE id = 1`
 	// })
 
-	async function setDisplay(value = 'grid') {
+	function setDisplay(value = 'grid') {
 		display = value
-		await pg.sql`UPDATE app_state SET channels_display = ${display} WHERE id = 1`
+		appState.channels_display = display
 	}
 </script>
 

@@ -1,8 +1,7 @@
 <script>
 	import {startBroadcasting, stopBroadcasting} from '$lib/broadcast'
+	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
-
-	const {appState} = $props()
 
 	const userChannelId = $derived(appState?.channels?.[0])
 
