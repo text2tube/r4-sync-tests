@@ -1,11 +1,9 @@
 IDEAS
-
-- refactor <Player /> with more sub-components?
-- redo player by optimize player and header layout for mobile first!!!
 - after adding a track the modal form resets, which is fine, but there's no clear ux to indicate that it was saved correctly. One idea is to add the <TrackCard> below. The r4-track-form thing must
 - mass tracks edit batch editor interface. like a giant table where you can edit all fields. save all button. or maybe it just saves onblur ala a spreadsheet? put this /{slug}/mass-edit. mass undo
 - existing app_state volume is sometimes overwritten onload/refresh
 - themable ui, introduce semantic css variables
+- refactor layout.svelte to more components
 
 HARD ONES
 
@@ -14,3 +12,5 @@ HARD ONES
 DONE
 
 - run sync() on first load automatically for better ux
+- redo player by optimize player and header layout for mobile first!!!
+- refactor <Player /> with more sub-components?
