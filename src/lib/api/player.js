@@ -107,8 +107,8 @@ export async function toggleVideo(appState) {
 	await pg.sql`UPDATE app_state SET show_video_player = ${!appState.show_video_player}`
 }
 
-export function eject() {
-	pg.sql`
+export async function eject() {
+	await pg.sql`
 		UPDATE app_state
 		SET
 			playlist_track = null,

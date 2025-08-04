@@ -5,12 +5,7 @@
 
 	let {search = '', order = 'created', dir = 'desc', onSearchChange} = $props()
 
-	let searchValue = $state(search)
-
-	// Update internal state when props change
-	$effect(() => {
-		searchValue = search
-	})
+	let searchValue = $derived(search)
 
 	function handleSubmit(event) {
 		event.preventDefault()

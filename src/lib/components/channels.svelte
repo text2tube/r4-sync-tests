@@ -60,8 +60,7 @@
 
 	async function setDisplay(value = 'grid') {
 		display = value
-		// Fire and forget - don't await
-		pg.sql`UPDATE app_state SET channels_display = ${display} WHERE id = 1`
+		await pg.sql`UPDATE app_state SET channels_display = ${display} WHERE id = 1`
 	}
 </script>
 
