@@ -111,11 +111,11 @@
 
 <style>
 	.item {
-		padding: 0.5rem 0;
 		display: flex;
 		align-items: center;
 		menu {
 			margin-left: auto;
+			margin-right: 0.5rem;
 		}
 	}
 </style>

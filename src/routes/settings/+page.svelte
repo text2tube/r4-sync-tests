@@ -3,7 +3,7 @@
 	import {sync} from '$lib/sync'
 	import {sdk} from '@radio4000/sdk'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
-	import SyncDebug from '$lib/components/sync-debug.svelte'
+	/*import SyncDebug from '$lib/components/sync-debug.svelte'*/
 	import KeyboardEditor from '$lib/components/keyboard-editor.svelte'
 
 	let syncing = $state(false)
@@ -55,26 +55,37 @@
 		</button>
 		<!-- <button disabled>Import local database</button> -->
 		<button onclick={exportDb}>Export local database</button>
+		<button onclick={logout}>Logout</button>
 	</menu>
 
-	<p>
-		On boot, this website prepares a PostgreSQL database in your browser via WASM. You can pull
-		channels from R4 (including version 1), use the buttons above &uarr;
-	</p>
-	<p>All application state interact directly with the local database.</p>
-
-	<hr />
-	<KeyboardEditor />
-	<hr />
-	<button onclick={logout}>Logout</button>
-	<hr />
-	<PgliteRepl />
-	<hr />
-	<SyncDebug />
+	<section>
+		<p>This is an experiment.</p>
+		<p>
+			Just like <a href="https://radio4000.com">radio4000.com</a>, this web app pulls its data from
+			the Radio4000 PostgreSQL database. But it pulls it into another PostgreSQL database sitting
+			locally, directly in your browser via WASM. This makes it feel faster, hopefully.
+		</p>
+		<p>Pull channels from R4 (including version 1) by <em>syncing</em> above &uarr;</p>
+		<p>Writes are done remotely.</p>
+	</section>
+	<section>
+		<PgliteRepl />
+	</section>
+	<section>
+		<KeyboardEditor />
+	</section>
+	<!--<SyncDebug />-->
 </article>
 
 <style>
-	article {
-		margin: 0.5rem;
+	menu,
+	section {
+		margin: 0 0.5rem;
+	}
+	menu {
+		margin-top: 0.5rem;
+	}
+	p {
+		max-width: 100ch;
 	}
 </style>

@@ -129,9 +129,11 @@ figure {
 	padding: 0;
 	list-style: none;
 }
-.list > li {
+.list > li,
+.list > div {
 	border-bottom: 1px solid var(--gray-4);
 }
+.list > div:hover,
 .list > li:hover {
 	background: light-dark(var(--gray-2), var(--gray-3));
 }
