@@ -3,7 +3,7 @@
 	import {formatDate} from '$lib/dates'
 	import {extractYouTubeId} from '$lib/utils'
 	import type {Track, AppState} from '$lib/types'
-	import LinkEntities from './link-entities.svelte';
+	import LinkEntities from './link-entities.svelte'
 	import type {Snippet} from 'svelte'
 
 	interface Props {
