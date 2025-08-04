@@ -16,8 +16,7 @@
 	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import HeaderSearch from '$lib/components/header-search.svelte'
-	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
-	import {goto} from '$app/navigation'
+	import {subscribeToAppState} from '$lib/api'
 	import '@radio4000/components'
 	import {logger} from '$lib/logger'
 	import {page} from '$app/state'
@@ -29,41 +28,36 @@
 
 	/** @type {import('$lib/types').AppState} */
 	let appState = $state({})
-	const playerLoaded = $derived(appState.playlist_track)
 
-	// true until the database is initialized.
 	const preloading = $derived(data.preloading)
 
 	subscribeToAppState((state) => {
 		appState = state
 	})
 
-	function toggleChatPanel() {
-		chatPanelVisible = !chatPanelVisible
-	}
-
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
 	$effect(async () => {
-		window.addEventListener('beforeunload', async (event) => {
+		window.addEventListener('beforeunload', async () => {
 			log.log('beforeunload_closing_db')
 			// event.preventDefault()
 			await stopBroadcasting()
 			await pg.sql`UPDATE app_state SET is_playing = false`
-			// await pg.close()
+			await pg.close()
 		})
 	})
 
 	function togglePanel(e) {
 		e.preventDefault()
 		e.stopPropagation()
-		toggleQueuePanel()
+		appState.queue_panel_visible = !appState.queue_panel_visible
+		// toggleQueuePanel()
 	}
 </script>
 
 <AuthListener />
 <KeyboardShortcuts />
 
-<div class="layout">
+<div class={['layout', {asideVisible: appState.queue_panel_visible}]}>
 	<header class="row">
 		<a href="/" class:active={page.route.id === '/'}>
 			{#if preloading}
@@ -80,7 +74,7 @@
 				<LiveBroadcasts {appState} />
 				<BroadcastControls {appState} />
 				<AddTrackModal />
-				<button onclick={togglePanel} class="btn" class:active={appState.queue_panel_visible}>
+				<button onclick={togglePanel} class:active={appState.queue_panel_visible}>
 					<Icon icon="sidebar-fill-right" size={20} />
 				</button>
 				<!-- <button onclick={toggleChatPanel}>Chat</button> -->
@@ -103,9 +97,9 @@
 			{/if}
 		</main>
 
-		{#if appState?.queue_panel_visible}
-			<QueuePanel {appState} />
-		{/if}
+		<!-- {#if appState?.queue_panel_visible} -->
+		<QueuePanel {appState} />
+		<!-- {/if} -->
 
 		{#if chatPanelVisible}
 			<DraggablePanel title="R4 Chat" panelId="chat">
@@ -114,7 +108,7 @@
 		{/if}
 	</div>
 
-	<LayoutFooter {appState} {preloading} {playerLoaded} />
+	<LayoutFooter {appState} {preloading} />
 </div>
 
 <style>
@@ -123,8 +117,7 @@
 		grid-template-rows: auto 1fr auto;
 		height: 100vh;
 
-		header,
-		footer {
+		header {
 			background: light-dark(var(--gray-2), var(--gray-3));
 		}
 	}
@@ -136,8 +129,15 @@
 		overflow: hidden;
 	}
 
-	.content:global(:has(aside)) {
+	.asideVisible .content {
 		grid-template-columns: 1fr minmax(460px, 25vw);
+		> :global(aside) {
+			display: flex;
+		}
+	}
+
+	.content > :global(aside) {
+		display: none;
 	}
 
 	.scroll {

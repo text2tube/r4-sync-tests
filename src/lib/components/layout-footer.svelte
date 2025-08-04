@@ -1,41 +1,40 @@
 <script>
-	import Icon from '$lib/components/icon.svelte'
-	import Player from '$lib/components/player.svelte'
 	import gsap from 'gsap'
 	import {Draggable} from 'gsap/Draggable'
 	import {InertiaPlugin} from 'gsap/InertiaPlugin'
+	import Player from '$lib/components/player.svelte'
+
+	// This component wraps the player and controls the "expanded" state,
+	// via a toggle button and a draggable element.
 
 	gsap.registerPlugin(Draggable, InertiaPlugin)
 
-	let {appState, preloading, playerLoaded} = $props()
+	let {appState, preloading} = $props()
 
 	let expanded = $state(false)
+	let enableDrag = $state(false)
+
+	/** @type {HTMLElement} */
 	let footerElement
 
 	// Setup GSAP swipe gestures
 	$effect(() => {
-		if (!footerElement || typeof window === 'undefined') return
+		if (!enableDrag || !footerElement || typeof window === 'undefined') return
 		const draggable = Draggable.create(footerElement, {
 			type: 'y',
-			inertia: false,
-			trigger: footerElement,
+			inertia: true,
+			// trigger: footerElement,
+			allowContextMenu: true, // allow long-presses, necessary for volume slider
+			dragClickables: false, // disable dragging on clickable elements
 			allowNativeTouchScrolling: false,
 			bounds: {minY: -5, maxY: 5},
-			snap: {y: 0},
+			// snap: {y: 0},
 			onDragEnd: function () {
-				const velocity = InertiaPlugin.getVelocity(this.target, 'y')
+				// const velocity = InertiaPlugin.getVelocity(this.target, 'y')
 				const dragY = this.y
-
-				console.log(`Y Velocity: ${velocity}, Drag Y: ${dragY}`)
-
-				if (dragY < 0) {
-					expanded = true
-				} else if (dragY > 0) {
-					expanded = false
-				}
+				expanded = dragY < 0
 			}
 		})
-		console.log(footerElement, draggable)
 		return () => {
 			draggable[0].kill()
 		}
@@ -43,13 +42,8 @@
 </script>
 
 <footer bind:this={footerElement} class={{expanded, showVideo: appState.show_video_player}}>
-	<label class="toggle">
-		<Icon icon="chevron-up" size={24} />
-		<Icon icon="chevron-down" size={24} />
-		<input type="checkbox" name="playerLayout" bind:checked={expanded} />
-	</label>
 	{#if !preloading}
-		<Player {appState} {expanded} />
+		<Player {appState} bind:expanded />
 	{/if}
 </footer>
 
@@ -60,58 +54,19 @@
 		background: light-dark(var(--gray-2), var(--gray-3));
 
 		position: fixed;
-		left: 0.5rem;
-		right: 0.5rem;
-		bottom: 1.5rem;
+		left: 0.2rem;
+		right: 0.2rem;
+		bottom: 0.5rem;
 		z-index: 10;
-		transition: all 400ms ease-in-out;
 		will-change: transform, height;
+		/* transition: all 300ms ease-in-out; */
 
 		&.expanded {
-			border: 0;
 			height: 100dvh;
 			left: 0;
 			right: 0;
 			bottom: 0;
-			display: flex;
-			align-items: center;
-			place-content: center;
-		}
-	}
-
-	.toggle {
-		position: absolute;
-		top: 0rem;
-		left: 0;
-		right: 0;
-		display: none;
-		display: flex;
-		place-content: center;
-		input {
-			display: none;
-		}
-		:global(.icon) {
-			width: 1.5rem;
-			opacity: 0.5;
-		}
-	}
-
-	footer:not(.expanded) :global(media-controller) {
-		display: none;
-	}
-
-	footer:not(.expanded) :global(youtube-video) {
-		/* display: none; */
-	}
-
-	.expanded .toggle {
-		:global(.icon:first-child) {
-			display: none;
-		}
-	}
-	:not(.expanded) .toggle {
-		:global(.icon:nth-child(2)) {
-			display: none;
+			border: 0;
 		}
 	}
 </style>

@@ -3,12 +3,14 @@
 	import {liveQuery, incrementalLiveQuery} from '$lib/live-query'
 	import Tracklist from './tracklist.svelte'
 	import TrackCard from './track-card.svelte'
+	import Modal from './modal.svelte'
 
 	/** @typedef {import('$lib/types').AppState} AppState */
 
 	const {appState} = $props()
 
 	let view = $state('queue') // 'queue' or 'history'
+	let showClearHistoryModal = $state(false)
 
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
@@ -42,8 +44,8 @@
 	$effect(() => {
 		return liveQuery(
 			`SELECT twm.*, h.started_at, h.ended_at, h.ms_played, h.reason_start, h.reason_end, h.skipped
-			 FROM play_history h 
-			 JOIN tracks_with_meta twm ON h.track_id = twm.id 
+			 FROM play_history h
+			 JOIN tracks_with_meta twm ON h.track_id = twm.id
 			 ORDER BY h.started_at ASC LIMIT 50`,
 			[],
 			(res) => {
@@ -52,12 +54,13 @@
 		)
 	})
 
-	function clearQueue() {
-		pg.sql`UPDATE app_state SET playlist_tracks = ARRAY[]::UUID[], playlist_track = NULL WHERE id = 1`
+	async function clearQueue() {
+		await pg.sql`UPDATE app_state SET playlist_tracks = ARRAY[]::UUID[], playlist_track = NULL WHERE id = 1`
 	}
 
-	function clearHistory() {
-		pg.sql`DELETE FROM play_history`
+	async function clearHistory() {
+		await pg.sql`DELETE FROM play_history`
+		showClearHistoryModal = false
 	}
 </script>
 
@@ -70,7 +73,9 @@
 		{#if view === 'queue' && trackIds.length > 0}
 			<button onclick={clearQueue}>Clear</button>
 		{:else if view === 'history' && playHistory.length > 0}
-			<button onclick={clearHistory} title="Clear playlist history">Clear</button>
+			<button onclick={() => (showClearHistoryModal = true)} title="Clear playlist history"
+				>Clear</button
+			>
 		{/if}
 	</header>
 	<main class="scroll">
@@ -85,7 +90,7 @@
 			{/if}
 		{:else if playHistory.length > 0}
 			<ul class="list tracks">
-				{#each playHistory as entry, index}
+				{#each playHistory as entry, index (index)}
 					<li>
 						<TrackCard track={entry} {index} {appState}>
 							<p class="history">
@@ -108,6 +113,17 @@
 		{/if}
 	</main>
 </aside>
+
+<Modal bind:showModal={showClearHistoryModal}>
+	{#snippet header()}
+		<h2>Clear listening history</h2>
+	{/snippet}
+	<p>Are you sure you want to clear your listening history? This cannot be undone.</p>
+	<menu>
+		<button onclick={() => (showClearHistoryModal = false)}>Cancel</button>
+		<button onclick={clearHistory} class="danger">Clear History</button>
+	</menu>
+</Modal>
 
 <style>
 	aside {
@@ -163,5 +179,9 @@
 		small {
 			color: var(--gray-9);
 		}
+	}
+
+	.tracks :global(.slug) {
+		display: none;
 	}
 </style>

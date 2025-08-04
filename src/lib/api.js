@@ -4,7 +4,6 @@ import {sdk} from '@radio4000/sdk'
 import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
 import {liveQuery} from '$lib/live-query'
-import {shuffleArray} from '$lib/utils'
 
 const log = logger.ns('api').seal()
 
@@ -130,10 +129,8 @@ export async function toggleQueuePanel() {
 }
 
 export function closePlayerOverlay() {
-	const playerCheckbox = document.querySelector('input[name="playerLayout"]')
-	if (playerCheckbox instanceof HTMLInputElement && playerCheckbox.checked) {
-		playerCheckbox.click()
-	}
+	const btn = document.querySelector('button.expand')
+	btn?.click()
 }
 
 export function openSearch() {
@@ -169,7 +166,6 @@ export async function addPlayHistory({previousTrackId, nextTrackId, endReason, s
 	const {rows} = await pg.sql`SELECT shuffle FROM app_state WHERE id = 1`
 	const shuffleState = rows[0]?.shuffle || false
 
-	// If an
 	if (previousTrackId && previousTrackId !== nextTrackId && endReason) {
 		const mediaController = document.querySelector('media-controller#r5')
 		const actualPlayTime = mediaController?.getAttribute('mediacurrenttime')

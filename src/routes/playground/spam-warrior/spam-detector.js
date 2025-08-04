@@ -203,10 +203,6 @@ export function analyzeChannel(channel, tracks = []) {
 
 	// Analyze tracks if provided
 	if (tracks.length > 0) {
-		const trackTitles = tracks.map((t) => t.title.toLowerCase()).join(' ')
-		const trackDescriptions = tracks.map((t) => (t.description || '').toLowerCase()).join(' ')
-		const trackText = `${trackTitles} ${trackDescriptions}`
-
 		// Check for business-like track titles
 		const businessTrackCount = tracks.filter((track) => {
 			const title = track.title.toLowerCase()

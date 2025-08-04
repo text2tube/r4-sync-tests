@@ -1,5 +1,4 @@
 <script>
-	import {pg} from '$lib/db'
 	import {liveQuery} from '$lib/live-query'
 	import Modal from '$lib/components/modal.svelte'
 	import Icon from '$lib/components/icon.svelte'
@@ -45,27 +44,10 @@
 	{#snippet header()}
 		<h2>Add track</h2>
 	{/snippet}
+
 	{#if channelId}
 		<r4-track-create channel_id={channelId} onsubmit={submit}></r4-track-create>
 	{:else}
 		<p><a href="/login">Sign in</a> first, please.</p>
 	{/if}
-
-	<!--
-	<form hidden>
-		<label for="url">URL</label>
-		<input type="url" required name="url" id="url" placeholder="Paste in a YouTube URL..." />
-
-		<label for="description">Description</label>
-		<input
-			type="text"
-			required
-			name="description"
-			id="description"
-			placeholder="Add description..."
-		/>
-		<hr />
-		<button type="submit">Create track</button>
-	</form>
-	-->
 </Modal>

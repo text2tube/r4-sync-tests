@@ -8,10 +8,10 @@
 	import {pullTrackMetaYouTubeFromChannel} from '$lib/sync/youtube'
 	import {relativeDate, relativeDateSolar} from '$lib/dates'
 	import Icon from '$lib/components/icon.svelte'
+	import SearchInput from '$lib/components/search-input.svelte'
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
-	import {pullMusicBrainz} from '$lib/sync/musicbrainz.js'
 
 	let {data} = $props()
 
@@ -21,7 +21,6 @@
 	/** @type {string[]} */
 	let trackIds = $state([])
 	let searchQuery = $state(data.search || '')
-	let isLoading = $state(false)
 	let debounceTimer = $state()
 	let updatingDurations = $state(false)
 
@@ -79,8 +78,6 @@
 
 	async function performSearch() {
 		if (!channel?.id || !searchQuery?.trim()) return
-
-		isLoading = true
 		try {
 			const query = `%${searchQuery.toLowerCase()}%`
 			const result = await pg.query(
@@ -93,8 +90,6 @@
 			trackIds = result.rows.map((row) => row.id)
 		} catch (error) {
 			console.error('Failed to load tracks:', error)
-		} finally {
-			isLoading = false
 		}
 	}
 
@@ -126,11 +121,9 @@
 
 <header>
 	<form onsubmit={handleSubmit}>
-		<Icon icon="search" />
-		<input
-			type="search"
-			placeholder="Search tracks in {channel?.name || 'channel'}..."
+		<SearchInput
 			bind:value={searchQuery}
+			placeholder="Search tracks in {channel?.name || 'channel'}..."
 			oninput={debouncedSearch}
 		/>
 		<menu>
@@ -198,6 +191,7 @@
 		position: sticky;
 		top: 0.5rem;
 		margin: 0.5rem;
+		z-index: 1;
 	}
 
 	form {
@@ -208,8 +202,7 @@
 		align-items: center;
 	}
 
-	input[type='search'] {
-		margin-left: -0.5rem;
+	form > :global(.search-input) {
 		flex: 1;
 	}
 

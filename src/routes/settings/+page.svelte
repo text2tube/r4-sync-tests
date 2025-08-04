@@ -1,5 +1,5 @@
 <script>
-	import {migrateDb, dropDb, pg, exportDb} from '$lib/db'
+	import {migrateDb, dropDb, exportDb} from '$lib/db'
 	import {sync} from '$lib/sync'
 	import {sdk} from '@radio4000/sdk'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'

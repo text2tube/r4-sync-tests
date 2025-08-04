@@ -3,20 +3,18 @@
 	import {formatDate} from '$lib/dates'
 	import {extractYouTubeId} from '$lib/utils'
 	import type {Track, AppState} from '$lib/types'
+	import LinkEntities from './link-entities.svelte'
+	import type {Snippet} from 'svelte'
 
-	let {
-		track,
-		index,
-		appState,
-		showImage = true,
-		children
-	}: {
+	interface Props {
 		track: Track
 		index: number
 		appState: AppState
 		showImage?: boolean
-		children?: any
-	} = $props()
+		children?: Snippet
+	}
+
+	let {track, index, appState, showImage = true, children}: Props = $props()
 
 	const permalink = $derived(`/${track.channel_slug}/tracks/${track.id}`)
 	const active = $derived(track.id === appState.playlist_track)
@@ -26,29 +24,44 @@
 
 	const click = (event: MouseEvent) => {
 		const el = event.target as HTMLElement
-		const clickedDate = el.parentNode instanceof HTMLTimeElement
-		if (!clickedDate) {
-			event.preventDefault()
-			playTrack(track.id, '', 'user_click_track')
+
+		if (el instanceof HTMLAnchorElement && el.href.includes('search=')) {
+			// Let hashtag/mention links through
+			return
 		}
+
+		if (el.parentNode instanceof HTMLTimeElement) {
+			// Let time element links through
+			return
+		}
+
+		event.preventDefault()
+		playTrack(track.id, '', 'user_click_track')
 	}
 	const doubleClick = () => playTrack(track.id, '', 'user_click_track')
 </script>
 
 <article class:active>
 	<a href={permalink} onclick={click} ondblclick={doubleClick} data-sveltekit-preload-data="tap">
-		<span>{index + 1}.</span>
-		{#if ytid && showImage}<img loading="lazy" src={imageSrc} alt={track.title} />{/if}
+		<span class="index">{index + 1}.</span>
+		{#if ytid && showImage}<img
+				loading="lazy"
+				src={imageSrc}
+				alt={track.title}
+				class="artwork"
+			/>{/if}
 		<div>
 			<h3 class="title">{track.title}</h3>
 			<div class="description">
-				<small>{track.description}</small>
+				<small>
+					<LinkEntities {track} text={track.description} />
+				</small>
 				{#if track.duration}<small>{track.duration}s</small>{/if}
 			</div>
 		</div>
 		<time>
 			{#if track.channel_slug}<small class="slug">@{track.channel_slug}</small>{/if}
-			<small>{formatDate(track.created_at)}</small></time
+			<small>{formatDate(new Date(track.created_at))}</small></time
 		>
 	</a>
 	{@render children?.({track})}
@@ -78,7 +91,7 @@
 		text-indent: 0.2em;
 	}
 
-	img {
+	.artwork {
 		width: 3rem;
 		height: 1.8rem;
 	}
@@ -102,5 +115,16 @@
 		place-content: center;
 		/* because this is the actual link with some trickery */
 		cursor: pointer;
+	}
+
+	article {
+		container-type: inline-size;
+	}
+	@container (width < 80ch) {
+		.index,
+		time,
+		.slug {
+			display: none;
+		}
 	}
 </style>

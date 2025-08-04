@@ -1,7 +1,7 @@
 <script>
 	import {onMount} from 'svelte'
 
-	const {children, title = 'Panel', panelId} = $props()
+	const {children, title = 'Panel'} = $props()
 
 	let panel = $state(null)
 	let isMinimized = $state(false)
