@@ -2,10 +2,8 @@
 	import 'media-chrome'
 	import 'youtube-video-element'
 	import {queryTrackWithChannel} from '$lib/api'
-	import {pg} from '$lib/db'
-	import {logger} from '$lib/logger'
 	import {appState} from '$lib/app-state.svelte'
-	import ChannelAvatar from './channel-avatar.svelte'
+	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
 
 	import {
@@ -20,9 +18,6 @@
 	import {extractYouTubeId} from '$lib/utils'
 	import {tick} from 'svelte'
 
-	const log = logger.ns('youtube_player').seal()
-
-	/** @typedef {import('$lib/types').AppState} AppState */
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
 
@@ -38,14 +33,6 @@
 	/** @type {Channel|undefined} */
 	let channel = $state()
 
-	// Volume persistence
-	let savedVolume = $state()
-	let savedMuted = $state()
-	let hasAppliedInitialValues = $state(false)
-
-	// mirror of app_state.is_playing
-	let isPlaying = $state(false)
-
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
 
@@ -55,7 +42,6 @@
 	let didPlay = $state(false)
 	const canPlay = $derived(Boolean(channel && track))
 	const autoplay = $derived(didPlay ? 1 : 0)
-
 	const isListeningToBroadcast = $derived(Boolean(appState.listening_to_channel_id))
 
 	/** @type {string} */
@@ -63,20 +49,6 @@
 		if (!track?.url) return ''
 		const ytid = extractYouTubeId(track.url)
 		return ytid ? `https://i.ytimg.com/vi/${ytid}/mqdefault.jpg` : '' // default, mqdefault, hqdefault, sddefault, maxresdefault
-	})
-
-	// Load saved volume values from DB
-	$effect(() => {
-		pg.query('select volume, muted from app_state where id = 1').then((res) => {
-			const row = res.rows[0]
-			savedVolume = row
-				? typeof row.volume === 'string'
-					? Number.parseFloat(row.volume)
-					: row.volume
-				: 0.1
-			savedMuted = row ? row.muted : true
-			console.log('loaded from db', savedVolume, savedMuted)
-		})
 	})
 
 	$effect(async () => {
@@ -112,14 +84,12 @@
 
 	function handlePlay() {
 		console.log('handlePlay')
-		isPlaying = true
 		didPlay = true
 		appState.is_playing = true
 	}
 
 	function handlePause() {
 		console.log('handlePause')
-		isPlaying = false
 		appState.is_playing = false
 	}
 
@@ -141,24 +111,15 @@
 	}
 
 	function applyInitialVolume() {
-		if (savedVolume !== undefined && savedMuted !== undefined && !hasAppliedInitialValues) {
-			hasAppliedInitialValues = true
-			yt.volume = savedVolume
-			yt.muted = savedMuted
-			// console.log('applied initial volume', savedVolume, savedMuted)
-		}
+		yt.volume = appState.volume
+		yt.muted = appState.volume === 0
 	}
 
 	function handleVolumeChange(e) {
-		// Ignore events until we've applied initial values
-		if (!hasAppliedInitialValues) return
-		const {volume, muted} = e.target
-		const different = volume !== savedVolume || muted !== savedMuted
-		if (!different) return
-		console.log('user changed volume to', volume, muted)
-		pg.sql`update app_state set muted = ${muted}, volume = ${volume} where id = 1`.then(() => {
-			log.log({volume, muted})
-		})
+		const {volume} = e.target
+		if (appState.volume === volume) return
+		console.log('volumeChange', volume)
+		appState.volume = volume
 	}
 
 	// Pre-buffer video if it's in cued state for smooth playback
@@ -170,7 +131,7 @@
 			play(yt)
 			setTimeout(() => {
 				pause(yt)
-				isPlaying = false
+				//appState.is_playing = false
 				console.log('prebuffering complete')
 			}, 200)
 		}
@@ -195,15 +156,17 @@
 			src={track?.url}
 			{autoplay}
 			playsinline={1}
+			volume={appState.volume}
+			muted={appState.volume === 0}
 			onloadcomplete={() => {
-				applyInitialVolume()
 				prebuffer()
+				applyInitialVolume()
 			}}
-			onvolumechange={handleVolumeChange}
 			onplay={handlePlay}
 			onpause={handlePause}
 			onended={handleEndTrack}
 			onerror={handleError}
+			volumechange={handleVolumeChange}
 		></youtube-video>
 		<media-loading-indicator slot="centered-chrome"></media-loading-indicator>
 	</media-controller>
@@ -216,7 +179,7 @@
 			{@render btnPlay()}
 			{@render btnNext()}
 			<media-mute-button class="btn"></media-mute-button>
-			<!-- <media-volume-range></media-volume-range> -->
+			<media-volume-range></media-volume-range>
 			<media-time-range></media-time-range>
 			<media-time-display showduration></media-time-display>
 			{@render btnToggleVideo()}
@@ -243,7 +206,7 @@
 
 {#snippet btnPlay()}
 	<button onclick={() => togglePlay(yt)} disabled={!canPlay} class="play">
-		<Icon icon={isPlaying ? 'pause' : 'play-fill'} />
+		<Icon icon={appState.is_playing ? 'pause' : 'play-fill'} />
 	</button>
 {/snippet}
 

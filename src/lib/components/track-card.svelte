@@ -98,7 +98,6 @@
 
 	.title {
 		font-size: var(--font-size-regular);
-		color: var(--gray-11);
 		font-weight: 400;
 
 		.active & {
