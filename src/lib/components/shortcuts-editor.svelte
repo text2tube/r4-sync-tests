@@ -28,9 +28,7 @@
 
 	// Load key bindings on mount
 	$effect(() => {
-		loadKeyBindings().then((result) => {
-			keyBindings = result
-		})
+		keyBindings = loadKeyBindings()
 	})
 
 	// Auto-save when key bindings change

@@ -25,13 +25,9 @@ let initialized = false
 // Initialize from database
 export async function initAppState() {
 	if (initialized) return
-
 	try {
 		const result = await pg.query('SELECT * FROM app_state WHERE id = 1')
-		console.log('initAppState', result)
-		if (result.rows[0]) {
-			Object.assign(appState, result.rows[0])
-		}
+		if (result.rows[0]) Object.assign(appState, result.rows[0])
 	} catch (err) {
 		console.warn('Failed to load app state from db:', err)
 	}
@@ -40,13 +36,9 @@ export async function initAppState() {
 
 // Persist to database
 export async function persistAppState() {
-	console.log('persistAppState called')
-	if (!initialized) {
-		console.log('not initialized')
-		return
-	}
-
+	if (!initialized) return
 	try {
+		// see $lib/types appState
 		await pg.sql`
 			INSERT INTO app_state (id, queue_panel_visible, theme, volume, counter, is_playing, shuffle, show_video_player, channels_display, playlist_track, broadcasting_channel_id, listening_to_channel_id, playlist_tracks, playlist_tracks_shuffled, channels, shortcuts)
 			VALUES (${appState.id}, ${appState.queue_panel_visible}, ${appState.theme}, ${appState.volume}, ${appState.counter}, ${appState.is_playing}, ${appState.shuffle}, ${appState.show_video_player}, ${appState.channels_display}, ${appState.playlist_track}, ${appState.broadcasting_channel_id}, ${appState.listening_to_channel_id}, ${appState.playlist_tracks}, ${appState.playlist_tracks_shuffled}, ${appState.channels}, ${JSON.stringify(appState.shortcuts)})
@@ -67,7 +59,6 @@ export async function persistAppState() {
 				channels = EXCLUDED.channels,
 				shortcuts = EXCLUDED.shortcuts
 		`
-		console.log('persisted app state')
 	} catch (err) {
 		console.warn('Failed to persist app state:', err)
 	}
