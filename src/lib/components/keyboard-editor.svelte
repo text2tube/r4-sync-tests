@@ -1,19 +1,16 @@
 <script>
-	import {
-		saveKeyBindings,
-		loadKeyBindings,
-		DEFAULT_KEY_BINDINGS,
-		initializeKeyboardShortcuts
-	} from '$lib/shortcuts'
+	import {DEFAULT_KEY_BINDINGS, initializeKeyboardShortcuts} from '$lib/keyboard'
+	import {appState} from '$lib/app-state.svelte'
 	import Icon from '$lib/components/icon.svelte'
 
 	const uid = $props.id()
 
-	/** @type {import('$lib/types').KeyBindingsConfig} */
-	let keyBindings = $state({})
 	let editing = $state(false)
 
-	// Get available actions for dropdown - filter to only shortcut actions
+	let keyBindings = $derived.by(() => {
+		return appState.shortcuts || DEFAULT_KEY_BINDINGS
+	})
+
 	const shortcutActions = [
 		'togglePlayerOverlay',
 		'openSearch',
@@ -21,69 +18,47 @@
 		'toggleQueuePanel',
 		'toggleTheme'
 	]
+
 	const availableActions = shortcutActions.map((name) => ({
 		name,
 		label: name.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())
 	}))
 
-	// Load key bindings on mount
-	$effect(() => {
-		keyBindings = loadKeyBindings()
-	})
-
-	// Auto-save when key bindings change
-	$effect(() => {
-		if (Object.keys(keyBindings).length > 0) {
-			saveKeyBindings(keyBindings)
-		}
-	})
-
-	async function handleDone() {
-		await saveKeyBindings(keyBindings)
+	function handleDone() {
 		editing = false
-		// Reload to apply new key bindings
-		// window.location.reload()
 		initializeKeyboardShortcuts()
 	}
 
 	function addKeyBinding() {
-		const newKey = ''
-		keyBindings[newKey] = 'togglePlayPause'
-		keyBindings = {...keyBindings}
+		const shortcuts = {...appState.shortcuts}
+		shortcuts[''] = 'togglePlayPause'
+		appState.shortcuts = shortcuts
 	}
 
-	/**
-	 * @param {string} key
-	 */
 	function removeKeyBinding(key) {
-		delete keyBindings[key]
-		keyBindings = {...keyBindings}
+		const shortcuts = {...appState.shortcuts}
+		delete shortcuts[key]
+		appState.shortcuts = shortcuts
 	}
 
-	/**
-	 * @param {string} oldKey
-	 * @param {string} newKey
-	 */
 	function updateKeyBindingKey(oldKey, newKey) {
 		if (oldKey !== newKey) {
-			const action = keyBindings[oldKey]
-			delete keyBindings[oldKey]
-			keyBindings[newKey] = action
-			keyBindings = {...keyBindings}
+			const shortcuts = {...appState.shortcuts}
+			const action = shortcuts[oldKey]
+			delete shortcuts[oldKey]
+			shortcuts[newKey] = action
+			appState.shortcuts = shortcuts
 		}
 	}
 
-	/**
-	 * @param {string} key
-	 * @param {string} action
-	 */
 	function updateKeyBindingAction(key, action) {
-		keyBindings[key] = action
-		keyBindings = {...keyBindings}
+		const shortcuts = {...appState.shortcuts}
+		shortcuts[key] = action
+		appState.shortcuts = shortcuts
 	}
 
 	function resetToDefaults() {
-		keyBindings = structuredClone(DEFAULT_KEY_BINDINGS)
+		appState.shortcuts = structuredClone(DEFAULT_KEY_BINDINGS)
 	}
 </script>
 

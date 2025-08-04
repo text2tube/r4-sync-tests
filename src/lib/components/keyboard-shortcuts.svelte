@@ -1,5 +1,5 @@
 <script>
-	import {initializeKeyboardShortcuts} from '$lib/shortcuts'
+	import {initializeKeyboardShortcuts} from '$lib/keyboard'
 
 	$effect(() => {
 		const cleanup = initializeKeyboardShortcuts()
