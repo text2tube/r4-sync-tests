@@ -22,7 +22,10 @@
 	}
 
 	function updateURL() {
-		const params = new URLSearchParams()
+		const params = new URL(page.url).searchParams
+		params.delete('search')
+		params.delete('order')
+		params.delete('dir')
 		if (searchValue) params.set('search', searchValue)
 		if (order !== 'created') params.set('order', order)
 		if (dir !== 'desc') params.set('dir', dir)

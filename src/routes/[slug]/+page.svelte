@@ -99,7 +99,8 @@
 	}
 
 	function updateURL() {
-		const params = new URLSearchParams()
+		const params = new URL(page.url).searchParams
+		params.delete('search')
 		const search = searchQuery.trim()
 		if (search) params.set('search', search)
 		const url = `/${data.slug}${params.toString() ? `?${params}` : ''}`

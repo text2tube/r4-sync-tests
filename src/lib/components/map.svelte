@@ -33,8 +33,8 @@
 
 	function createIcon(color) {
 		const svg =
-			`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\">` +
-			`<circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"${color}\" stroke=\"white\" stroke-width=\"2\"/>` +
+			`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">` +
+			`<circle cx="12" cy="12" r="10" fill="${color}" stroke="white" stroke-width="2"/>` +
 			`</svg>`
 		return L.icon({
 			iconUrl: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
@@ -44,7 +44,6 @@
 	}
 
 	function setup(node) {
-		const fill = getCssVar('--gray-12')
 		const fillNew = getCssVar('--color-accent')
 
 		map = L.map(node)
@@ -103,7 +102,7 @@
 		debounceTimer = setTimeout(() => {
 			const {lat, lng} = map.getCenter()
 			const newZoom = map.getZoom()
-			let query = new URLSearchParams(page.url.searchParams.toString())
+			let query = new URL(page.url).searchParams
 			query.set('latitude', lat.toFixed(5))
 			query.set('longitude', lng.toFixed(5))
 			query.set('zoom', newZoom)

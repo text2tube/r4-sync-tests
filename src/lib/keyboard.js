@@ -21,7 +21,8 @@ export function initializeKeyboardShortcuts() {
 				if (
 					event.target instanceof HTMLInputElement ||
 					event.target instanceof HTMLTextAreaElement ||
-					event.target instanceof HTMLSelectElement
+					event.target instanceof HTMLSelectElement ||
+					event.target.tagName === 'DATALIST'
 				)
 					return
 				actionFn(event)

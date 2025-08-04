@@ -5,20 +5,14 @@
 	import {toggleTheme, toggleQueuePanel} from '$lib/api'
 	import SearchInput from '$lib/components/search-input.svelte'
 	import {page} from '$app/state'
+	import {SvelteURLSearchParams} from 'svelte/reactivity'
 
-	let searchQuery = $state('')
 	let debounceTimer = $state()
 	let allChannels = $state([])
 
-	// Sync search input with URL
-	$effect(() => {
-		const urlSearch = page.url.searchParams.get('search')
-		if (urlSearch !== null && urlSearch !== searchQuery) {
-			searchQuery = urlSearch
-		} else if (urlSearch === null && searchQuery && page.url.pathname === '/search') {
-			searchQuery = ''
-		}
-	})
+	// Reactive URL params - recreate when page URL changes
+	let params = $derived(new SvelteURLSearchParams(page.url.searchParams))
+	let searchQuery = $derived(params.get('search') || '')
 
 	// Filtered channels for @mention autocomplete
 	let filteredChannels = $derived.by(() => {
@@ -55,12 +49,15 @@
 		}
 	}
 
-	function debouncedSearch() {
+	function debouncedSearch(value) {
 		clearTimeout(debounceTimer)
 		debounceTimer = setTimeout(() => {
-			if (searchQuery.trim()) {
-				const params = new URLSearchParams({search: searchQuery.trim()})
+			if (value.trim()) {
+				params.set('search', value.trim())
 				goto(`/search?${params}`)
+			} else {
+				params.delete('search')
+				goto('/')
 			}
 		}, 300)
 	}
@@ -68,7 +65,7 @@
 	function handleSubmit(event) {
 		event.preventDefault()
 		if (searchQuery.trim()) {
-			const params = new URLSearchParams({search: searchQuery.trim()})
+			params.set('search', searchQuery.trim())
 			goto(`/search?${params}`)
 		}
 	}
@@ -77,16 +74,17 @@
 		if (event.key === 'Escape' && !searchQuery.trim()) {
 			goto('/')
 		}
+		console.log(event.key, searchQuery)
 	}
 </script>
 
 <form onsubmit={handleSubmit}>
 	<SearchInput
-		bind:value={searchQuery}
+		value={searchQuery}
 		placeholder="Search or jump to…"
-		oninput={debouncedSearch}
+		oninput={(e) => debouncedSearch(e.target.value)}
 		onkeydown={handleKeydown}
-		list="command-suggestions"
+		DISABLEDlist="command-suggestions"
 	/>
 	<datalist id="command-suggestions">
 		{#each commands as command (command.id)}
