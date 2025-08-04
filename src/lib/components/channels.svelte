@@ -44,7 +44,7 @@
 				channels = results.rows
 			})
 			.then(({initialResults, unsubscribe}) => {
-				// channels = initialResults.rows
+				channels = initialResults.rows
 				cleanup = unsubscribe
 			})
 
@@ -60,8 +60,7 @@
 
 	async function setDisplay(value = 'grid') {
 		display = value
-		// Fire and forget - don't await
-		pg.sql`UPDATE app_state SET channels_display = ${display} WHERE id = 1`
+		await pg.sql`UPDATE app_state SET channels_display = ${display} WHERE id = 1`
 	}
 </script>
 
@@ -76,17 +75,17 @@
 			class:active={display === 'list'}
 			onclick={() => setDisplay('list')}
 		>
-			<Icon icon={'unordered-list'} />
+			<Icon icon="unordered-list" />
 		</button>
 		<button
 			title="View as grid"
 			class:active={display === 'grid'}
 			onclick={() => setDisplay('grid')}
 		>
-			<Icon icon={'grid'} />
+			<Icon icon="grid" />
 		</button>
 		<button title="View as map" class:active={display === 'map'} onclick={() => setDisplay('map')}>
-			<Icon icon={'map'} />
+			<Icon icon="map" />
 		</button>
 	</menu>
 
@@ -95,11 +94,13 @@
 			<MapComponent urlMode markers={channelMapMarkers} {center} {zoom}></MapComponent>
 		{/if}
 	{:else}
-		<div class={display}>
+		<ol class={display}>
 			{#each filteredChannels as channel (channel.id)}
-				<ChannelCard {channel} />
+				<li>
+					<ChannelCard {channel} />
+				</li>
 			{/each}
-		</div>
+		</ol>
 		<footer>
 			{#if filteredChannels?.length > 0}
 				<p>

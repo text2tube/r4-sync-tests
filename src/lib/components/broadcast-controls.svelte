@@ -1,6 +1,5 @@
 <script>
 	import {startBroadcasting, stopBroadcasting} from '$lib/broadcast'
-	import {goto} from '$app/navigation'
 	import Icon from '$lib/components/icon.svelte'
 
 	const {appState} = $props()

@@ -2,7 +2,6 @@ import {sdk} from '@radio4000/sdk'
 import {pg, debugLimit} from '$lib/db'
 import {pullV1Tracks, pullV1Channels} from '$lib/v1'
 import {logger} from '$lib/logger'
-import {batcher} from '$lib/batcher'
 const log = logger.ns('sync').seal()
 
 /**
@@ -143,13 +142,10 @@ export async function pullChannel(slug) {
  */
 export async function needsUpdate(slug) {
 	try {
-		// Get channel ID for remote query
 		const {
 			rows: [channel]
 		} = await pg.sql`select * from channels where slug = ${slug}`
-
-		const {id, firebase_id} = channel
-
+		const {id} = channel
 		if (!id || !channel.tracks_synced_at) return true
 
 		// Get latest local track update
@@ -163,12 +159,8 @@ export async function needsUpdate(slug) {
 		const localLatest = localRows[0]
 		if (!localLatest) return true
 
-		if (firebase_id) {
-			// v1 channels dont need updating because it is in read-only state since before this project
-			// @todo fetch tracks from v1 and pull to local??
-			log.log('sync:needs_update channel do we want to fetch tracks for v1 channel?', localLatest)
-			if (!localLatest) return true
-		}
+		// v1 channels dont need updating because it is in read-only state since before this project
+		if (channel.firebase_id && localLatest) return false
 
 		// Get latest remote track update
 		const {data: remoteLatest, error: remoteError} = await sdk.supabase

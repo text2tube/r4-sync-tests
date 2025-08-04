@@ -38,33 +38,15 @@
 </article>
 
 <style>
-	article > a {
-		text-decoration: none;
-		h3 {
-			text-decoration-line: underline;
-			text-decoration-thickness: 0.1px;
-			text-decoration-color: var(--gray-10);
-			text-underline-offset: max(0.1em, 2px);
-		}
-	}
-
-	article > a:focus,
-	article :global(button):focus {
-		outline: 3px solid var(--color-accent);
-		outline-offset: -2px;
-	}
-
 	article {
 		position: relative;
-		display: flex;
-		flex-flow: row nowrap;
-		gap: 0.5rem;
+	}
 
-		> a {
-			display: flex;
-			flex-flow: column nowrap;
-			gap: 0.5rem;
-		}
+	article > a {
+		display: flex;
+		flex-flow: column nowrap;
+		gap: 0.5rem;
+		text-decoration: none;
 
 		:global(.list) & {
 			display: grid;
@@ -77,6 +59,23 @@
 			display: flex;
 			flex-flow: column nowrap;
 		}
+
+		h3 {
+			text-decoration-line: underline;
+			text-decoration-thickness: 0.1px;
+			text-decoration-color: var(--gray-10);
+			text-underline-offset: max(0.1em, 2px);
+		}
+	}
+
+	article > a:hover h3 {
+		color: var(--color-accent);
+	}
+
+	article > a:focus,
+	article :global(button):focus {
+		outline: 3px solid var(--color-accent);
+		outline-offset: -2px;
 	}
 
 	figure {
@@ -89,20 +88,19 @@
 		min-height: 2rem;
 	}
 
-	article :global(button) {
+	/** hide play button unles hovered */
+	article:not(:hover) :global(.play-button) {
+		opacity: 0;
+	}
+
+	article :global(.play-button) {
 		position: absolute;
-		top: 0.5rem;
-		left: 0.5rem;
-		background: var(--gray-2);
-		width: 4rem;
+		top: 0.2rem;
+		left: 0.2rem;
+		width: 3rem;
 		border: 0;
 		box-shadow: none;
 		transition: none;
-	}
-
-	/** hide play button unles hovered */
-	article:not(article:hover) :global(figure + button) {
-		opacity: 0;
 	}
 
 	[data-busy='true'] {

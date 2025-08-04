@@ -3,7 +3,7 @@
 	import 'leaflet/dist/leaflet.css'
 	import {pg} from '$lib/db'
 	import {stopBroadcasting} from '$lib/broadcast'
-	import Player from '$lib/components/player.svelte'
+	import LayoutFooter from '$lib/components/layout-footer.svelte'
 	import QueuePanel from '$lib/components/queue-panel.svelte'
 	import TestCounter from '$lib/components/test-counter.svelte'
 	import ThemeToggle from '$lib/components/theme-toggle.svelte'
@@ -16,8 +16,7 @@
 	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import HeaderSearch from '$lib/components/header-search.svelte'
-	import {toggleQueuePanel, subscribeToAppState} from '$lib/api'
-	import {goto} from '$app/navigation'
+	import {subscribeToAppState} from '$lib/api'
 	import '@radio4000/components'
 	import {logger} from '$lib/logger'
 	import {page} from '$app/state'
@@ -26,39 +25,39 @@
 	const {data, children} = $props()
 
 	let chatPanelVisible = $state(false)
-	let playerLayoutCheckbox = $state(false)
 
 	/** @type {import('$lib/types').AppState} */
 	let appState = $state({})
-	const playerLoaded = $derived(appState.playlist_track)
 
-	// true until the database is initialized.
 	const preloading = $derived(data.preloading)
 
 	subscribeToAppState((state) => {
 		appState = state
 	})
 
-	function toggleChatPanel() {
-		chatPanelVisible = !chatPanelVisible
-	}
-
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
 	$effect(async () => {
-		window.addEventListener('beforeunload', async (event) => {
+		window.addEventListener('beforeunload', async () => {
 			log.log('beforeunload_closing_db')
 			// event.preventDefault()
 			await stopBroadcasting()
 			await pg.sql`UPDATE app_state SET is_playing = false`
-			// await pg.close()
+			await pg.close()
 		})
 	})
+
+	function togglePanel(e) {
+		e.preventDefault()
+		e.stopPropagation()
+		appState.queue_panel_visible = !appState.queue_panel_visible
+		// toggleQueuePanel()
+	}
 </script>
 
 <AuthListener />
 <KeyboardShortcuts />
 
-<div class="layout">
+<div class={['layout', {asideVisible: appState.queue_panel_visible}]}>
 	<header class="row">
 		<a href="/" class:active={page.route.id === '/'}>
 			{#if preloading}
@@ -71,13 +70,11 @@
 		<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
 		<div class="row right">
-			{#if appState}
+			{#if !preloading}
 				<LiveBroadcasts {appState} />
 				<BroadcastControls {appState} />
 				<AddTrackModal />
-			{/if}
-			{#if appState}
-				<button onclick={toggleQueuePanel} class="btn" class:active={appState.queue_panel_visible}>
+				<button onclick={togglePanel} class:active={appState.queue_panel_visible}>
 					<Icon icon="sidebar-fill-right" size={20} />
 				</button>
 				<!-- <button onclick={toggleChatPanel}>Chat</button> -->
@@ -100,27 +97,18 @@
 			{/if}
 		</main>
 
-		{#if appState?.queue_panel_visible}
-			<QueuePanel {appState} />
+		<!-- {#if appState?.queue_panel_visible} -->
+		<QueuePanel {appState} />
+		<!-- {/if} -->
+
+		{#if chatPanelVisible}
+			<DraggablePanel title="R4 Chat" panelId="chat">
+				<LiveChat />
+			</DraggablePanel>
 		{/if}
 	</div>
 
-	{#if chatPanelVisible}
-		<DraggablePanel title="R4 Chat" panelId="chat">
-			<LiveChat />
-		</DraggablePanel>
-	{/if}
-
-	<footer>
-		<label class="playerToggle">
-			<Icon icon="chevron-up" size={24} />
-			<Icon icon="chevron-down" size={24} />
-			<input type="checkbox" name="playerLayout" checked={playerLayoutCheckbox} />
-		</label>
-		{#if !preloading && playerLoaded}
-			<Player {appState} />
-		{/if}
-	</footer>
+	<LayoutFooter {appState} {preloading} />
 </div>
 
 <style>
@@ -128,6 +116,10 @@
 		display: grid;
 		grid-template-rows: auto 1fr auto;
 		height: 100vh;
+
+		header {
+			background: light-dark(var(--gray-2), var(--gray-3));
+		}
 	}
 
 	.content {
@@ -137,21 +129,21 @@
 		overflow: hidden;
 	}
 
-	.content:global(:has(aside)) {
+	.asideVisible .content {
 		grid-template-columns: 1fr minmax(460px, 25vw);
+		> :global(aside) {
+			display: flex;
+		}
+	}
+
+	.content > :global(aside) {
+		display: none;
 	}
 
 	.scroll {
 		display: flex;
 		flex-direction: column;
 		flex-grow: 1;
-	}
-
-	.layout {
-		header,
-		footer {
-			background: light-dark(var(--gray-2), var(--gray-3));
-		}
 	}
 
 	.row {
@@ -183,78 +175,6 @@
 	@media (max-width: 768px) {
 		.content {
 			grid-template-columns: 1fr;
-		}
-	}
-
-	footer {
-		position: fixed;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		z-index: 10;
-
-		border: 1px solid var(--gray-5);
-		border-radius: var(--border-radius);
-
-		@media (min-width: 600px) {
-			left: 1.5rem;
-			right: 1.5rem;
-			bottom: 1rem;
-		}
-	}
-
-	footer .playerToggle {
-		/* disabled until we make it nice */
-		display: none;
-
-		position: absolute;
-		top: 0;
-		left: 0;
-		/* large enough to cover the avatar and some title */
-		width: calc(100% / 3);
-		bottom: 0;
-		z-index: 1;
-		border-top-left-radius: var(--border-radius);
-		border-top-right-radius: var(--border-radius);
-	}
-
-	footer input {
-		/* visually  hide so you can still get keyboard ux */
-		position: absolute;
-		left: -999px;
-	}
-	footer label:not(:hover) :global(svg) {
-		opacity: 0.8;
-	}
-	footer label :global(svg) {
-		display: none;
-	}
-	footer label :global(svg path) {
-		stroke: var(--gray-12);
-	}
-
-	/* Toggled state */
-	footer:has(input:checked) label {
-		width: 100%;
-		bottom: auto;
-		top: 0.7rem;
-	}
-	footer:has(input:checked) {
-		left: 0;
-		right: 0;
-		height: 100%;
-
-		@media (min-width: 800px) {
-			left: 30%;
-		}
-
-		& :global(.playerToggle svg:first-of-type) {
-			display: none;
-		}
-		& :global(.playerToggle svg:last-of-type) {
-			display: block;
-			margin-top: 0.5rem;
-			margin-left: 0.5rem;
 		}
 	}
 </style>

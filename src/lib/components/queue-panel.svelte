@@ -42,8 +42,8 @@
 	$effect(() => {
 		return liveQuery(
 			`SELECT twm.*, h.started_at, h.ended_at, h.ms_played, h.reason_start, h.reason_end, h.skipped
-			 FROM play_history h 
-			 JOIN tracks_with_meta twm ON h.track_id = twm.id 
+			 FROM play_history h
+			 JOIN tracks_with_meta twm ON h.track_id = twm.id
 			 ORDER BY h.started_at ASC LIMIT 50`,
 			[],
 			(res) => {
@@ -52,12 +52,12 @@
 		)
 	})
 
-	function clearQueue() {
-		pg.sql`UPDATE app_state SET playlist_tracks = ARRAY[]::UUID[], playlist_track = NULL WHERE id = 1`
+	async function clearQueue() {
+		await pg.sql`UPDATE app_state SET playlist_tracks = ARRAY[]::UUID[], playlist_track = NULL WHERE id = 1`
 	}
 
-	function clearHistory() {
-		pg.sql`DELETE FROM play_history`
+	async function clearHistory() {
+		await pg.sql`DELETE FROM play_history`
 	}
 </script>
 
@@ -85,7 +85,7 @@
 			{/if}
 		{:else if playHistory.length > 0}
 			<ul class="list tracks">
-				{#each playHistory as entry, index}
+				{#each playHistory as entry, index (index)}
 					<li>
 						<TrackCard track={entry} {index} {appState}>
 							<p class="history">
@@ -163,5 +163,9 @@
 		small {
 			color: var(--gray-9);
 		}
+	}
+
+	.tracks :global(.slug) {
+		display: none;
 	}
 </style>

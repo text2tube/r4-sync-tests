@@ -69,8 +69,7 @@ export async function initializeKeyboardShortcuts() {
 
 		const handler = createKeybindingsHandler(bindings)
 		window.addEventListener('keydown', handler)
-		log.log('init', {keyBindingsConfig, bindings})
-
+		// log.log('init', {keyBindingsConfig, bindings})
 		return () => {
 			window.removeEventListener('keydown', handler)
 		}

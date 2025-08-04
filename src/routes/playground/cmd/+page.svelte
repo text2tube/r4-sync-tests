@@ -1,5 +1,5 @@
 <script lang="ts">
-	import {focusable_children, trap} from '$lib/focus'
+	import {trap} from '$lib/focus'
 
 	let container: HTMLElement | null = $state(null)
 
@@ -12,7 +12,7 @@
 	])
 
 	function handleResultClick(result) {
-		$inspect({result})
+		console.log('result clicked:', result)
 	}
 </script>
 

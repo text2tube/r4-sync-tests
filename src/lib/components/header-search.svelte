@@ -1,10 +1,9 @@
 <script>
 	import {goto} from '$app/navigation'
-	import {page} from '$app/state'
 	import {onMount} from 'svelte'
 	import {pg} from '$lib/db'
 	import {toggleTheme, toggleQueuePanel} from '$lib/api'
-	import Icon from '$lib/components/icon.svelte'
+	import SearchInput from '$lib/components/search-input.svelte'
 
 	let searchQuery = $state('')
 	let debounceTimer = $state()
@@ -81,14 +80,12 @@
 </script>
 
 <form onsubmit={handleSubmit}>
-	<Icon icon="search" size={16} />
-	<input
-		type="search"
-		list="command-suggestions"
-		placeholder="Search or jump to…"
+	<SearchInput
 		bind:value={searchQuery}
+		placeholder="Search or jump to…"
 		oninput={debouncedSearch}
 		onkeydown={handleKeydown}
+		list="command-suggestions"
 	/>
 	<datalist id="command-suggestions">
 		{#each commands as command (command.id)}
@@ -99,33 +96,3 @@
 		{/each}
 	</datalist>
 </form>
-
-<style>
-	form {
-		position: relative;
-		display: flex;
-		align-items: center;
-	}
-
-	form > :global(.icon) {
-		position: absolute;
-		left: 0.5rem;
-		z-index: 1;
-		opacity: 0.5;
-	}
-
-	input[type='search'] {
-		padding-left: 2rem;
-		padding-right: 0.5rem;
-		min-width: 180px;
-		font-size: var(--font-size-small);
-		border: 1px solid var(--gray-6);
-		border-radius: var(--border-radius);
-		background: var(--gray-1);
-	}
-
-	input[type='search']:focus {
-		outline: 2px solid var(--blue-7);
-		outline-offset: -1px;
-	}
-</style>

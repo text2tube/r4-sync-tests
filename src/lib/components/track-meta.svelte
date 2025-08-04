@@ -1,10 +1,7 @@
 <script>
 	import {pullMusicBrainz} from '$lib/sync/musicbrainz'
 	import {pullTrackMetaYouTube} from '$lib/sync/youtube'
-	import {logger} from '$lib/logger'
 	import {extractYouTubeId} from '$lib/utils'
-	import {invalidate, invalidateAll} from '$app/navigation'
-	const log = logger.ns('<TrackMeta>').seal()
 
 	/**
 	 * This component updates the track_meta table for this track

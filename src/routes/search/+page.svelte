@@ -3,7 +3,6 @@
 	import {page} from '$app/state'
 	import {pg} from '$lib/db'
 	import {subscribeToAppState, setPlaylist, addToPlaylist} from '$lib/api'
-	import Icon from '$lib/components/icon.svelte'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import TrackCard from '$lib/components/track-card.svelte'
 
@@ -142,14 +141,13 @@
 
 <article use:trap>
 	{#if searchQuery && !isLoading && tracks.length > 0}
-		<p>
-			?search={searchQuery}<br /><small>tip: use @slug to find tracks in a channel</small>
-		</p>
 		<menu>
-			<small>Found {channels.length} channels and {tracks.length} tracks</small>
 			<button type="button" onclick={() => setPlaylist(tracks.map((t) => t.id))}>Play all</button>
 			<button type="button" onclick={() => addToPlaylist(tracks.map((t) => t.id))}
 				>Add to queue</button
+			>
+			<small
+				>Showing {channels.length} channels and {tracks.length} tracks for "{searchQuery}"</small
 			>
 		</menu>
 	{/if}
@@ -157,6 +155,7 @@
 	{#if searchQuery && !isLoading}
 		{#if channels.length === 0 && tracks.length === 0}
 			<p>No results found for "{searchQuery}"</p>
+			<p>Tip: use @slug to find tracks in a channel</p>
 		{/if}
 
 		{#if channels.length > 0}
@@ -175,7 +174,6 @@
 		{#if tracks.length > 0}
 			<section>
 				<h2>Tracks ({tracks.length})</h2>
-
 				<ul class="list">
 					{#each tracks as track, index (track.id)}
 						<li>
@@ -203,19 +201,23 @@
 	}
 
 	menu {
-		margin: 0.5rem 0.5rem 0;
+		margin: 0.5rem 0.5rem 2rem;
 		align-items: center;
 		small {
 			margin-right: 0.5rem;
 		}
 	}
 
+	menu,
 	section {
 		margin-bottom: 2rem;
 	}
 
+	section {
+	}
+
 	h2 {
-		font-size: var(--font-size-regular);
+		font-size: var(--font-size-large);
 		margin: 0.5rem;
 	}
 

@@ -81,6 +81,10 @@ $effect(() => {
 })
 ```
 
+Snippets can be used for reusable "mini" components, when a file is too much https://svelte.dev/docs/svelte/snippet.
+Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.
+Use `bind:this` to get a reference to the element. You can even export methods on it.
+
 ## HTML/CSS
 
 - Semantic HTML over divs
@@ -110,8 +114,11 @@ $effect(() => {
 Ask me to perform queries for you, if it helps:
 (await window.r5.pg.sql`select * from app_state where id = 1`).rows[0]
 
-## Testing tool
+## Linting and formatting
 
-When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js
+Format and lint the code using `bun run lint`. Always good to do this before committing.  
+Additionally and optionally, use `bun run lint2` for even more things to review using Biome. Note that Biome doesn't outside script tags in .svelte files.
 
-Run tests with: `bun test`
+## Testing
+
+When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js. Run tests with: `bun test`

@@ -33,6 +33,7 @@ html {
 	font-family: firava, system-ui, sans-serif;
 	scroll-behavior: smooth;
 	color-scheme: light dark;
+	interpolate-size: allow-keywords;
 
 	background: var(--gray-1);
 	color: var(--gray-12);
@@ -66,14 +67,17 @@ body {
 
 h1 {
 	font-size: var(--font-size-title1);
+	font-weight: 600;
 	margin: 0;
 }
 h2 {
 	font-size: var(--font-size-title2);
+	font-weight: 600;
 	margin: 0;
 }
 h3 {
 	font-size: var(--font-size-title3);
+	font-weight: 400;
 	margin: 0;
 }
 

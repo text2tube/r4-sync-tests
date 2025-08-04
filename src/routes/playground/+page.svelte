@@ -1,5 +1,4 @@
 <script>
-	import {pg} from '$lib/db'
 	import {liveQuery} from '$lib/live-query'
 
 	let count = $state()

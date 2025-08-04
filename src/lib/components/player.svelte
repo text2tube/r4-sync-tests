@@ -1,25 +1,49 @@
 <script>
+	import 'media-chrome'
+	import 'youtube-video-element'
+	import {subscribeToAppState, queryTrackWithChannel} from '$lib/api'
 	import {pg} from '$lib/db'
-	import {playTrack, subscribeToAppState, queryTrackWithChannel} from '$lib/api'
-	import Icon from '$lib/components/icon.svelte'
-	import YoutubePlayer from '$lib/components/youtube-player.svelte'
-	import ChannelAvatar from './channel-avatar.svelte'
 	import {logger} from '$lib/logger'
-	const log = logger.ns('player').seal()
+	import ChannelAvatar from './channel-avatar.svelte'
+	import Icon from '$lib/components/icon.svelte'
 
-	/** @typedef {import('$lib/types').Channel} Channel */
-	/** @typedef {import('$lib/types').Track} Track */
+	import {
+		togglePlay,
+		next,
+		previous,
+		toggleShuffle,
+		toggleVideo,
+		play,
+		pause
+	} from '$lib/api/player'
+	import {extractYouTubeId} from '$lib/utils'
+	import {tick} from 'svelte'
+
+	const log = logger.ns('youtube_player').seal()
+
 	/** @typedef {import('$lib/types').AppState} AppState */
+	/** @typedef {import('$lib/types').Track} Track */
+	/** @typedef {import('$lib/types').Channel} Channel */
 
-	/** @type {{appState: AppState}} */
-	let {appState} = $props()
+	/** @type {{appState: AppState, expanded: boolean}} */
+	let {appState, expanded = $bindable()} = $props()
 
-	let autoplay = $state(false)
+	// The YouTube player element
+	let yt = $state()
 
-	let title = $state('')
-	let image = $state('')
-	let description = $state('')
-	let slug = $state('')
+	/** @type {Track|undefined} */
+	let track = $state()
+
+	/** @type {Channel|undefined} */
+	let channel = $state()
+
+	// Volume persistence
+	let savedVolume = $state()
+	let savedMuted = $state()
+	let hasAppliedInitialValues = $state(false)
+
+	// mirror of app_state.is_playing
+	let isPlaying = $state(false)
 
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
@@ -27,328 +51,249 @@
 	/** @type {string[]} */
 	let activeQueue = $derived(appState.shuffle ? appState.playlist_tracks_shuffled || [] : trackIds)
 
-	/** @type {Track|undefined} */
-	let track = $state()
+	let didPlay = $state(false)
+	const canPlay = $derived(Boolean(channel && track))
+	const autoplay = $derived(didPlay ? 1 : 0)
 
-	let yt = $state()
+	const isListeningToBroadcast = $derived(Boolean(appState.listening_to_channel_id))
 
-	/** @type {boolean} */
-	let isListeningToBroadcast = $derived(!!appState.listening_to_channel_id)
+	/** @type {string} */
+	let trackImage = $derived.by(() => {
+		if (!track?.url) return ''
+		const ytid = extractYouTubeId(track.url)
+		return ytid ? `https://i.ytimg.com/vi/${ytid}/mqdefault.jpg` : '' // default, mqdefault, hqdefault, sddefault, maxresdefault
+	})
+
+	// Load saved volume values from DB
+	$effect(() => {
+		pg.query('select volume, muted from app_state where id = 1').then((res) => {
+			const row = res.rows[0]
+			savedVolume = row
+				? typeof row.volume === 'string'
+					? Number.parseFloat(row.volume)
+					: row.volume
+				: 0.1
+			savedMuted = row ? row.muted : true
+			console.log('loaded from db', savedVolume, savedMuted)
+		})
+	})
 
 	subscribeToAppState(async (state) => {
 		const tid = state.playlist_track
 		const trackChanged = tid && tid !== track?.id
-		if (tid) await setChannelFromTrack(tid)
-		if (trackChanged) autoplay = true
+		if (trackChanged) {
+			// debugger
+			const ytplayer = yt || document.querySelector('youtube-video')
+			const paused = ytplayer.paused
+			// const wasPlaying = track && yt && !paused
+			await setChannelFromTrack(tid)
+			console.log('track changed', {track: track?.title, yt, paused, didPlay, autoplay})
+			// Only auto-play if we were already playing when track changed
+			if (didPlay && yt) {
+				console.log('Auto-playing next track, yt ready:', !!yt, 'didPlay:', didPlay)
+				// Wait for YouTube element to be ready before playing
+				yt.loadComplete.then(() => {
+					console.log('YouTube loadComplete, calling play')
+					play(yt)
+				})
+			}
+		}
 	})
 
-	/** @param {string} tid} */
+	/** @param {string} tid */
 	async function setChannelFromTrack(tid) {
 		if (!tid || tid === track?.id) return
 		const result = await queryTrackWithChannel(tid)
 		if (!result) return
 		track = result.track
-		title = result.channel.name
-		image = result.channel.image
-		description = result.channel.description
-		slug = result.channel.slug
+		channel = result.channel
 	}
 
-	function generateShuffleQueue() {
-		const shuffled = [...trackIds].sort(() => Math.random() - 0.5)
-
-		// If current track exists, put it first in shuffle queue
-		if (track?.id && shuffled.includes(track.id)) {
-			const filtered = shuffled.filter((id) => id !== track?.id)
-			return [track.id, ...filtered]
-		}
-		return shuffled
+	async function handlePlay() {
+		console.log('handlePlay')
+		isPlaying = true
+		didPlay = true
+		await pg.sql`UPDATE app_state SET is_playing = true WHERE id = 1`
 	}
 
-	function toggleShuffle() {
-		const newShuffleState = !appState.shuffle
-
-		if (newShuffleState) {
-			// Turning shuffle ON - generate new shuffle queue
-			const shuffledQueue = generateShuffleQueue()
-			pg.sql`UPDATE app_state SET shuffle = true, playlist_tracks_shuffled = ${shuffledQueue} WHERE id = 1`
-		} else {
-			// Turning shuffle OFF - clear shuffle queue
-			pg.sql`UPDATE app_state SET shuffle = false, playlist_tracks_shuffled = ${[]} WHERE id = 1`
-		}
+	async function handlePause() {
+		console.log('handlePause')
+		isPlaying = false
+		await pg.sql`UPDATE app_state SET is_playing = false WHERE id = 1`
 	}
 
-	function previous(reason) {
-		if (!track?.id) return
-		const idx = activeQueue.indexOf(track.id)
-		const prev = activeQueue[idx - 1]
-		if (prev) playTrack(prev, reason, reason)
-	}
-
-	function next(reason) {
-		if (!track?.id) return
-		const idx = activeQueue.indexOf(track.id)
-		const next = activeQueue[idx + 1]
-		if (next) {
-			const startReason =
-				reason === 'track_completed' || reason === 'youtube_error' ? 'auto_next' : reason
-			playTrack(next, reason, startReason)
-		}
-	}
-
-	function play() {
-		if (!track) {
-			log.log('play_no_track')
-			return
-		}
-		yt.play()
-		pg.sql`UPDATE app_state SET is_playing = true`
-		autoplay = true
-	}
-	function pause() {
-		yt.pause()
-		pg.sql`UPDATE app_state SET is_playing = false`
-		autoplay = false
-	}
-
+	/** @param {any} event */
 	function handleError(event) {
 		const code = event.target.error.code
-		if (code === 150) {
-			log.log('youtube_error_150')
-			next('youtube_error')
-		} else {
-			log.warn('Unhandled player error', code)
-		}
+		const msg = `youtube_error_${code}`
+		console.warn(msg)
+		next(track, activeQueue, msg)
 	}
 
 	function handleEndTrack() {
-		log.log('track_completed')
-		next('track_completed')
+		next(track, activeQueue, 'track_completed')
 	}
 
-	function eject() {
-		yt?.pause()
-		image = ''
-		title = ''
-		slug = ''
-		track = undefined
-		pg.sql`UPDATE app_state SET
-			playlist_tracks = ${[]},
-			playlist_track = null,
-			playlist_tracks_shuffled = ${[]},
-			show_video_player = false,
-			shuffle = false,
-			is_playing = false
-			WHERE id = 1`
+	function togglePlayerMode() {
+		expanded = !expanded
+		toggleVideo(appState)
 	}
 
-	function toggleVideo() {
-		pg.sql`UPDATE app_state SET show_video_player = ${!appState.show_video_player}`
+	function applyInitialVolume() {
+		if (savedVolume !== undefined && savedMuted !== undefined && !hasAppliedInitialValues) {
+			hasAppliedInitialValues = true
+			yt.volume = savedVolume
+			yt.muted = savedMuted
+			// console.log('applied initial volume', savedVolume, savedMuted)
+		}
 	}
-	function togglePlay() {
-		pg.sql`UPDATE app_state SET is_playing = ${!appState.is_playing}`
+
+	function handleVolumeChange(e) {
+		// Ignore events until we've applied initial values
+		if (!hasAppliedInitialValues) return
+		const {volume, muted} = e.target
+		const different = volume !== savedVolume || muted !== savedMuted
+		if (!different) return
+		console.log('user changed volume to', volume, muted)
+		pg.sql`update app_state set muted = ${muted}, volume = ${volume} where id = 1`.then(() => {
+			log.log({volume, muted})
+		})
+	}
+
+	// Pre-buffer video if it's in cued state for smooth playback
+	async function prebuffer() {
+		await tick()
+		const playerState = yt?.api?.getPlayerState?.()
+		if (playerState === 5 && !didPlay) {
+			console.log('prebuffering')
+			play(yt)
+			setTimeout(() => {
+				pause(yt)
+				isPlaying = false
+				console.log('prebuffering complete')
+			}, 200)
+		}
 	}
 </script>
 
-<article class={['player', {showVideo: appState.show_video_player}]}>
-	<header>
-		<figure>
-			<ChannelAvatar id={image} alt={title} />
-		</figure>
-		<div>
-			<h2>
-				<a href={`/${slug}`}>{title}</a>
+<div class={['player', expanded ? 'expanded' : 'compact']}>
+	{@render channelHeader()}
+
+	{#if !channel}
+		<p style="margin-left: 0.5rem">Find some sweet music</p>
+	{/if}
+
+	{#if channel}
+		{@render trackContent()}
+	{/if}
+
+	<media-controller id="r5" data-clickable="true">
+		<youtube-video
+			slot="media"
+			bind:this={yt}
+			src={track?.url}
+			{autoplay}
+			playsinline={1}
+			onloadcomplete={() => {
+				applyInitialVolume()
+				prebuffer()
+			}}
+			onvolumechange={handleVolumeChange}
+			onplay={handlePlay}
+			onpause={handlePause}
+			onended={handleEndTrack}
+			onerror={handleError}
+		></youtube-video>
+		<media-loading-indicator slot="centered-chrome"></media-loading-indicator>
+	</media-controller>
+
+	<menu>
+		<media-control-bar mediacontroller="r5">
+			{@render btnShuffle()}
+			{@render btnPrev()}
+			<!-- <media-play-button class="btn"></media-play-button> -->
+			{@render btnPlay()}
+			{@render btnNext()}
+			<media-mute-button class="btn"></media-mute-button>
+			<!-- <media-volume-range></media-volume-range> -->
+			<media-time-range></media-time-range>
+			<media-time-display showduration></media-time-display>
+			{@render btnToggleVideo()}
+		</media-control-bar>
+	</menu>
+
+	<media-control-bar class="timebar" mediacontroller="r5">
+		<media-time-range></media-time-range>
+		<media-time-display showduration></media-time-display>
+	</media-control-bar>
+</div>
+
+{#snippet btnPrev()}
+	<button onclick={() => previous(track, activeQueue, 'user_prev')} class="prev">
+		<Icon icon="previous-fill" />
+	</button>
+{/snippet}
+
+{#snippet btnNext()}
+	<button onclick={() => next(track, activeQueue, 'user_next')} disabled={!canPlay} class="next">
+		<Icon icon="next-fill" />
+	</button>
+{/snippet}
+
+{#snippet btnPlay()}
+	<button onclick={() => togglePlay(yt)} disabled={!canPlay} class="play">
+		<Icon icon={isPlaying ? 'pause' : 'play-fill'} />
+	</button>
+{/snippet}
+
+{#snippet btnShuffle()}
+	<button
+		onclick={(e) => {
+			e.preventDefault()
+			e.stopPropagation()
+			toggleShuffle(appState, trackIds)
+		}}
+		class={['shuffle', {active: appState.shuffle}]}
+	>
+		<Icon icon="shuffle" />
+	</button>
+{/snippet}
+
+<!-- {#snippet btnEject()}
+	<button onclick={() => eject()}>
+		<Icon icon="eject" />
+	</button>
+{/snippet} -->
+
+{#snippet btnToggleVideo()}
+	<button onclick={() => togglePlayerMode()} title="Show/hide video" class="expand">
+		<Icon icon="fullscreen" />
+		<!-- <Icon icon="video" /> -->
+	</button>
+{/snippet}
+
+{#snippet channelHeader()}
+	{#if channel}
+		<header class="channel">
+			<a href={`/${channel.slug}`}>
+				<ChannelAvatar id={channel.image} alt={channel.name} />
+			</a>
+			<h2><a href={`/${channel.slug}`}>{channel.name}</a></h2>
+		</header>
+	{/if}
+{/snippet}
+
+{#snippet trackContent()}
+	{#if channel && track}
+		<img class="artwork" src={trackImage} alt={track.title} />
+		<div class="text">
+			<h3>
 				{#if isListeningToBroadcast}
 					<span class="broadcast-indicator">🔴 LIVE</span>
 				{/if}
-			</h2>
-			<h3>{track?.title}</h3>
+				<a href={`/${channel.slug}/tracks/${track.id}`}>{track.title}</a>
+			</h3>
+			{#if track.description}<p><small>{track.description}</small></p>{/if}
 		</div>
-	</header>
-
-	<main class="center">
-		<menu>
-			<button onclick={eject} title="Clear queue and stop playback">
-				<Icon icon={'eject'} />
-			</button>
-			<button
-				onclick={toggleShuffle}
-				aria-pressed={appState.shuffle}
-				title={appState.shuffle ? 'Disable shuffle' : 'Enable shuffle'}
-			>
-				<Icon icon={'shuffle'} />
-			</button>
-			<button onclick={() => previous('user_prev')} title="Go previous track">
-				<Icon icon={'previous-fill'} />
-			</button>
-			{#if appState.is_playing}
-				<button class="pause" onclick={pause}>
-					<Icon icon={'pause'} />
-				</button>
-			{:else}
-				<button class="play" onclick={play}>
-					<Icon icon={'play-fill'} />
-				</button>
-			{/if}
-			<button onclick={() => next('user_next')} title="Go next track">
-				<Icon icon={'next-fill'} />
-			</button>
-			<button onclick={toggleVideo} title="Show/hide video">
-				<Icon icon={'video'} />
-			</button>
-		</menu>
-
-		<media-control-bar mediacontroller="r5">
-			<media-time-range></media-time-range>
-			<media-time-display showduration></media-time-display>
-		</media-control-bar>
-	</main>
-
-	<media-control-bar mediacontroller="r5">
-		<!-- <media-play-button></media-play-button> -->
-		<!-- <media-time-range></media-time-range> -->
-		<!-- <media-playback-rate-button></media-playback-rate-button> -->
-		<!-- <media-fullscreen-button></media-fullscreen-button> -->
-		<media-mute-button></media-mute-button>
-		<media-volume-range></media-volume-range>
-	</media-control-bar>
-
-	<YoutubePlayer
-		url={track?.url}
-		bind:yt
-		{autoplay}
-		onerror={handleError}
-		onended={handleEndTrack}
-	/>
-
-	<!-- <label class="volume">
-		{#if volume < 1}
-			<Icon icon={"volume-off-fill"} />
-		{:else if volume < 50}
-			<Icon icon={"volume1-fill"} />
-		{:else}
-			<Icon icon={"volume2-fill"} />
-		{/if}
-		<input type="range" min="0" max="100" name="volume" onchange={setVolume} />
-	</label>
- -->
-</article>
-
-<style>
-	header {
-		display: grid;
-		margin-left: 0.5rem;
-	}
-
-	main {
-		flex: 2;
-		display: flex;
-		flex-flow: column nowrap;
-		margin: 0 auto;
-		max-width: 640px;
-	}
-
-	menu {
-		display: flex;
-		margin: auto;
-		padding: 0;
-		place-content: center;
-	}
-
-	h3 {
-		font-weight: 400;
-	}
-
-	@media (max-width: 600px) {
-		media-volume-range {
-			display: none;
-		}
-	}
-
-	/* Fixed bottom */
-	:global(footer:not(:has(input:checked)) > article) {
-		display: flex;
-		gap: 0.5rem;
-
-		@media (min-width: 600px) {
-			:global(media-control-bar) {
-				margin-right: 0.5rem;
-			}
-		}
-
-		header {
-			width: 40ch;
-			@media (min-width: 600px) {
-			}
-
-			grid-template-columns: 4rem auto;
-			gap: 0.5rem;
-			margin-left: 0.5rem;
-			align-items: center;
-
-			div {
-				display: flex;
-				flex-flow: column wrap;
-				gap: 0.2rem;
-				line-height: 1;
-			}
-		}
-		main {
-			flex: 1;
-		}
-		menu {
-			margin-top: 0.5rem;
-		}
-		h2,
-		h3 {
-			font-size: var(--font-size-regular);
-		}
-	}
-
-	/* Full overlay */
-	:global(footer:has(input:checked) > article) {
-		height: 100%;
-		header {
-			margin: 3rem auto auto;
-			grid-template-columns: auto;
-			place-items: center;
-			text-align: center;
-		}
-		figure {
-			margin-bottom: 2vh;
-		}
-		menu {
-			padding: 0;
-			margin-top: 1rem;
-		}
-		:global(youtube-video) {
-			min-height: 300px;
-		}
-	}
-
-	[aria-pressed='false'] :global(svg) {
-		opacity: 0.2;
-	}
-
-	.broadcast-indicator {
-		font-size: 1em;
-		margin-left: 0.2rem;
-		color: red;
-	}
-
-	media-control-bar {
-		--media-control-height: 2rem;
-		--media-background-color: transparent;
-		--media-control-hover-background: transparent;
-		--media-button-icon-width: 1.5rem;
-		--media-button-padding: 0 0.5rem;
-		--media-control-padding: 0.5rem;
-		--media-control-background: none;
-		--media-primary-color: var(--gray-12);
-		--media-text-color: var(--gray-12);
-		--media-icon-color: var(--gray-12);
-		--media-range-track-background: hsla(0, 0%, 0%, 0.2);
-		--media-range-track-background: var(--gray-11);
-		--media-range-track-background: hsla(0, 0%, 0%, 0.2);
-	}
-</style>
+	{/if}
+{/snippet}

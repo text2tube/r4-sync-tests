@@ -101,7 +101,7 @@
 
 	{#if !editing}
 		<dl>
-			{#each Object.entries(keyBindings) as [key, action]}
+			{#each Object.entries(keyBindings) as [key, action] (key)}
 				<div>
 					<dt><kbd>{key || 'unset'}</kbd></dt>
 					<dd>{action.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</dd>
@@ -110,7 +110,7 @@
 		</dl>
 	{:else}
 		<form onsubmit={handleDone}>
-			{#each Object.entries(keyBindings) as [key, action]}
+			{#each Object.entries(keyBindings) as [key, action] (key)}
 				<div>
 					<label for={`${uid}-key`}>Key</label>
 					<input
@@ -128,7 +128,7 @@
 							updateKeyBindingAction(key, /** @type {HTMLSelectElement} */ (e.target).value)}
 						id={`${uid}-action`}
 					>
-						{#each availableActions as { name, label }}
+						{#each availableActions as { name, label } (name)}
 							<option value={name}>{label}</option>
 						{/each}
 					</select>

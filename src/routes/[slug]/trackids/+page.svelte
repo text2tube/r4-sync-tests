@@ -1,7 +1,5 @@
 <script>
 	let {data} = $props()
-
-	$inspect(data)
 </script>
 
 <svelte:head>
