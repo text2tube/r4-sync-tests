@@ -72,3 +72,41 @@ export function shuffleArray(array) {
 	}
 	return array
 }
+
+/**
+ * Regex for matching hashtags and mentions - shared across components
+ */
+export const ENTITY_REGEX =
+	/(^|\s)([#﹟＃@][\p{XID_Continue}\p{Extended_Pictographic}\p{Emoji_Component}_+-]+)/giu
+
+/**
+ * Parse text for entities (hashtags and mentions)
+ */
+export function parseEntities(text, callback) {
+	if (!text || typeof text !== 'string') return []
+
+	const entities = []
+	text.replace(ENTITY_REGEX, (match, prefix, entity, offset) => {
+		entities.push(callback(match, prefix, entity, offset))
+		return match
+	})
+
+	return entities.filter(Boolean)
+}
+
+/**
+ * Extract hashtags from text
+ */
+export function extractHashtags(text) {
+	if (!text || typeof text !== 'string') return []
+
+	const hashtags = []
+	text.replace(ENTITY_REGEX, (match, prefix, entity) => {
+		if (entity.startsWith('#')) {
+			hashtags.push(entity.toLowerCase())
+		}
+		return match
+	})
+
+	return hashtags
+}

@@ -55,6 +55,7 @@
 		</button>
 		<!-- <button disabled>Import local database</button> -->
 		<button onclick={exportDb}>Export local database</button>
+		<a href="/stats" class="btn">Stats</a>
 		<button onclick={logout}>Logout</button>
 	</menu>
 
