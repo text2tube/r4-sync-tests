@@ -39,9 +39,22 @@ export async function persistAppState() {
 	if (!initialized) return
 	try {
 		// see $lib/types appState
-		await pg.sql`
+		const channelsArray =
+			appState.channels.length > 0
+				? `ARRAY[${appState.channels.map((id) => `'${id}'`).join(',')}]::uuid[]`
+				: 'ARRAY[]::uuid[]'
+		const playlistTracksArray =
+			appState.playlist_tracks.length > 0
+				? `ARRAY[${appState.playlist_tracks.map((id) => `'${id}'`).join(',')}]::uuid[]`
+				: 'ARRAY[]::uuid[]'
+		const playlistTracksShuffledArray =
+			appState.playlist_tracks_shuffled.length > 0
+				? `ARRAY[${appState.playlist_tracks_shuffled.map((id) => `'${id}'`).join(',')}]::uuid[]`
+				: 'ARRAY[]::uuid[]'
+
+		await pg.exec(`
 			INSERT INTO app_state (id, queue_panel_visible, theme, volume, counter, is_playing, shuffle, show_video_player, channels_display, playlist_track, broadcasting_channel_id, listening_to_channel_id, playlist_tracks, playlist_tracks_shuffled, channels, player_expanded, shortcuts)
-			VALUES (${appState.id}, ${appState.queue_panel_visible}, ${appState.theme}, ${appState.volume}, ${appState.counter}, ${appState.is_playing}, ${appState.shuffle}, ${appState.show_video_player}, ${appState.channels_display}, ${appState.playlist_track}, ${appState.broadcasting_channel_id}, ${appState.listening_to_channel_id}, ${appState.playlist_tracks}, ${appState.playlist_tracks_shuffled}, ${appState.channels}, ${appState.player_expanded}, ${JSON.stringify(appState.shortcuts)})
+			VALUES (${appState.id}, ${appState.queue_panel_visible}, '${appState.theme}', ${appState.volume}, ${appState.counter}, ${appState.is_playing}, ${appState.shuffle}, ${appState.show_video_player}, '${appState.channels_display}', ${appState.playlist_track ? `'${appState.playlist_track}'` : 'NULL'}, ${appState.broadcasting_channel_id ? `'${appState.broadcasting_channel_id}'` : 'NULL'}, ${appState.listening_to_channel_id ? `'${appState.listening_to_channel_id}'` : 'NULL'}, ${playlistTracksArray}, ${playlistTracksShuffledArray}, ${channelsArray}, ${appState.player_expanded || false}, '${JSON.stringify(appState.shortcuts)}')
 			ON CONFLICT (id) DO UPDATE SET
 				queue_panel_visible = EXCLUDED.queue_panel_visible,
 				theme = EXCLUDED.theme,
@@ -59,7 +72,7 @@ export async function persistAppState() {
 				channels = EXCLUDED.channels,
 				player_expanded = EXCLUDED.player_expanded,
 				shortcuts = EXCLUDED.shortcuts
-		`
+		`)
 	} catch (err) {
 		console.warn('Failed to persist app state:', err)
 	}

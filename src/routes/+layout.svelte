@@ -14,6 +14,7 @@
 	import '@radio4000/components'
 	import {logger} from '$lib/logger'
 	import {onMount} from 'svelte'
+	import {checkUser} from '$lib/api'
 
 	const log = logger.ns('layout').seal()
 
@@ -25,6 +26,7 @@
 
 	onMount(async () => {
 		await initAppState()
+		await checkUser()
 		skipPersist = false
 	})
 
