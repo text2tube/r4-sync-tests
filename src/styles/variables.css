@@ -1,7 +1,6 @@
 :root {
 	/* --green: hsl(120, 21%, 52%); */
 	/* --lavender: hsl(257, 62%, 82%); */
-	/* --red: hsl(11, 78%, 38%); */
 	/* --yellow: hsl(33, 82%, 58%); */
 
 	--color-green: #799d6a;
@@ -10,7 +9,7 @@
 	--color-light-gray: #e8e8d3;
 	--color-orange: #ffb964;
 	--color-purple: hsl(259.7, 80.3%, 50.2%);
-	--color-red: #cf6a4c;
+	--color-red: hsl(11, 78%, 38%);
 	--color-slate: #668799;
 	--color-tan: #c59f6f;
 

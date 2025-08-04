@@ -7,7 +7,7 @@ const log = logger.ns('shortcuts').seal()
 
 /** @type {import('./types.js').KeyBindingsConfig} */
 export const DEFAULT_KEY_BINDINGS = {
-	Escape: 'closePlayerOverlay',
+	Escape: 'togglePlayerOverlay',
 	'$mod+k': 'openSearch',
 	'/': 'openSearch',
 	k: 'togglePlayPause',

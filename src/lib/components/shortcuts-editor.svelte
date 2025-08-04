@@ -15,7 +15,7 @@
 
 	// Get available actions for dropdown - filter to only shortcut actions
 	const shortcutActions = [
-		'closePlayerOverlay',
+		'togglePlayerOverlay',
 		'openSearch',
 		'togglePlayPause',
 		'toggleQueuePanel',
@@ -131,7 +131,7 @@
 						{/each}
 					</select>
 					<button type="button" onclick={() => removeKeyBinding(key)}>
-						<Icon icon="delete" size={20} />
+						<Icon icon="delete" size={16} />
 					</button>
 				</div>
 			{/each}
@@ -213,5 +213,12 @@
 		border-radius: 3px;
 		font-family: monospace;
 		font-size: 0.9em;
+	}
+
+	form {
+		display: flex;
+		flex-flow: column;
+		gap: 0.2rem;
+		align-items: flex-start;
 	}
 </style>

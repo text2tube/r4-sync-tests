@@ -124,7 +124,7 @@ export async function toggleQueuePanel() {
 	appState.queue_panel_visible = !appState.queue_panel_visible
 }
 
-export function closePlayerOverlay() {
+export function togglePlayerOverlay() {
 	const btn = document.querySelector('button.expand')
 	btn?.click()
 }
