@@ -4,10 +4,21 @@
 	import {pg} from '$lib/db'
 	import {toggleTheme, toggleQueuePanel} from '$lib/api'
 	import SearchInput from '$lib/components/search-input.svelte'
+	import {page} from '$app/state'
 
 	let searchQuery = $state('')
 	let debounceTimer = $state()
 	let allChannels = $state([])
+
+	// Sync search input with URL
+	$effect(() => {
+		const urlSearch = page.url.searchParams.get('search')
+		if (urlSearch !== null && urlSearch !== searchQuery) {
+			searchQuery = urlSearch
+		} else if (urlSearch === null && searchQuery && page.url.pathname === '/search') {
+			searchQuery = ''
+		}
+	})
 
 	// Filtered channels for @mention autocomplete
 	let filteredChannels = $derived.by(() => {

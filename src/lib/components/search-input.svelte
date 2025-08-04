@@ -1,22 +1,24 @@
 <script>
 	import Icon from '$lib/components/icon.svelte'
 
+	/* A normal input, but with a search icon "inside" (on top) */
+
 	let {value = $bindable(''), placeholder = 'Search...', ...restProps} = $props()
 </script>
 
-<div class="search-input">
+<div>
 	<Icon icon="search" size={16} />
 	<input type="search" {placeholder} bind:value {...restProps} />
 </div>
 
 <style>
-	.search-input {
+	div {
 		position: relative;
 		display: flex;
 		align-items: center;
 	}
 
-	.search-input > :global(.icon) {
+	div > :global(.icon) {
 		position: absolute;
 		left: 0.5rem;
 		z-index: 1;
@@ -24,17 +26,7 @@
 	}
 
 	input[type='search'] {
-		padding-left: 2rem;
-		padding-right: 0.5rem;
-		min-width: 180px;
+		padding-left: 1.7rem;
 		font-size: var(--font-size-small);
-		border: 1px solid var(--gray-6);
-		border-radius: var(--border-radius);
-		background: var(--gray-1);
-	}
-
-	input[type='search']:focus {
-		outline: 2px solid var(--blue-7);
-		outline-offset: -1px;
 	}
 </style>

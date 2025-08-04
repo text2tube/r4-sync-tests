@@ -182,6 +182,7 @@ input[type='url'] {
 	border: 0.1rem solid var(--gray-6);
 	border-radius: var(--border-radius);
 	box-shadow: inset 2px 2px var(--gray-3);
+	line-height: 1;
 }
 
 menu {
