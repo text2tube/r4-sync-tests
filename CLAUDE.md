@@ -117,7 +117,7 @@ Ask me to perform queries for you, if it helps:
 ## Linting and formatting
 
 Format and lint the code using `bun run lint`. Always good to do this before committing.  
-Additionally and optionally, use `bun run lint2` for even more things to review using Biome.
+Additionally and optionally, use `bun run lint2` for even more things to review using Biome. Note that Biome doesn't outside script tags in .svelte files.
 
 ## Testing
 

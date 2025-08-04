@@ -61,7 +61,7 @@
 
 <section class="chat">
 	<div class="messages">
-		{#each messages as msg}
+		{#each messages as msg (msg.timestamp)}
 			<div class="message">
 				<strong>{msg.username}:</strong>
 				<span>{msg.text}</span>

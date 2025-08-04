@@ -52,12 +52,12 @@
 		)
 	})
 
-	function clearQueue() {
-		pg.sql`UPDATE app_state SET playlist_tracks = ARRAY[]::UUID[], playlist_track = NULL WHERE id = 1`
+	async function clearQueue() {
+		await pg.sql`UPDATE app_state SET playlist_tracks = ARRAY[]::UUID[], playlist_track = NULL WHERE id = 1`
 	}
 
-	function clearHistory() {
-		pg.sql`DELETE FROM play_history`
+	async function clearHistory() {
+		await pg.sql`DELETE FROM play_history`
 	}
 </script>
 

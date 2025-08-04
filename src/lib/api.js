@@ -4,7 +4,6 @@ import {sdk} from '@radio4000/sdk'
 import {leaveBroadcast} from '$lib/broadcast'
 import {logger} from '$lib/logger'
 import {liveQuery} from '$lib/live-query'
-import {shuffleArray} from '$lib/utils'
 
 const log = logger.ns('api').seal()
 

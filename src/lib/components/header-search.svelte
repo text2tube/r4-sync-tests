@@ -1,6 +1,5 @@
 <script>
 	import {goto} from '$app/navigation'
-	import {page} from '$app/state'
 	import {onMount} from 'svelte'
 	import {pg} from '$lib/db'
 	import {toggleTheme, toggleQueuePanel} from '$lib/api'

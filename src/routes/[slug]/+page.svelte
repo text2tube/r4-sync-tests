@@ -12,7 +12,6 @@
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
-	import {pullMusicBrainz} from '$lib/sync/musicbrainz.js'
 
 	let {data} = $props()
 
@@ -22,7 +21,6 @@
 	/** @type {string[]} */
 	let trackIds = $state([])
 	let searchQuery = $state(data.search || '')
-	let isLoading = $state(false)
 	let debounceTimer = $state()
 	let updatingDurations = $state(false)
 
@@ -80,8 +78,6 @@
 
 	async function performSearch() {
 		if (!channel?.id || !searchQuery?.trim()) return
-
-		isLoading = true
 		try {
 			const query = `%${searchQuery.toLowerCase()}%`
 			const result = await pg.query(
@@ -94,8 +90,6 @@
 			trackIds = result.rows.map((row) => row.id)
 		} catch (error) {
 			console.error('Failed to load tracks:', error)
-		} finally {
-			isLoading = false
 		}
 	}
 

@@ -2,7 +2,6 @@ import {sdk} from '@radio4000/sdk'
 import {pg, debugLimit} from '$lib/db'
 import {pullV1Tracks, pullV1Channels} from '$lib/v1'
 import {logger} from '$lib/logger'
-import {batcher} from '$lib/batcher'
 const log = logger.ns('sync').seal()
 
 /**
