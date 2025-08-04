@@ -40,8 +40,8 @@ export async function persistAppState() {
 	try {
 		// see $lib/types appState
 		await pg.sql`
-			INSERT INTO app_state (id, queue_panel_visible, theme, volume, counter, is_playing, shuffle, show_video_player, channels_display, playlist_track, broadcasting_channel_id, listening_to_channel_id, playlist_tracks, playlist_tracks_shuffled, channels, shortcuts)
-			VALUES (${appState.id}, ${appState.queue_panel_visible}, ${appState.theme}, ${appState.volume}, ${appState.counter}, ${appState.is_playing}, ${appState.shuffle}, ${appState.show_video_player}, ${appState.channels_display}, ${appState.playlist_track}, ${appState.broadcasting_channel_id}, ${appState.listening_to_channel_id}, ${appState.playlist_tracks}, ${appState.playlist_tracks_shuffled}, ${appState.channels}, ${JSON.stringify(appState.shortcuts)})
+			INSERT INTO app_state (id, queue_panel_visible, theme, volume, counter, is_playing, shuffle, show_video_player, channels_display, playlist_track, broadcasting_channel_id, listening_to_channel_id, playlist_tracks, playlist_tracks_shuffled, channels, player_expanded, shortcuts)
+			VALUES (${appState.id}, ${appState.queue_panel_visible}, ${appState.theme}, ${appState.volume}, ${appState.counter}, ${appState.is_playing}, ${appState.shuffle}, ${appState.show_video_player}, ${appState.channels_display}, ${appState.playlist_track}, ${appState.broadcasting_channel_id}, ${appState.listening_to_channel_id}, ${appState.playlist_tracks}, ${appState.playlist_tracks_shuffled}, ${appState.channels}, ${appState.player_expanded}, ${JSON.stringify(appState.shortcuts)})
 			ON CONFLICT (id) DO UPDATE SET
 				queue_panel_visible = EXCLUDED.queue_panel_visible,
 				theme = EXCLUDED.theme,
@@ -57,6 +57,7 @@ export async function persistAppState() {
 				playlist_tracks = EXCLUDED.playlist_tracks,
 				playlist_tracks_shuffled = EXCLUDED.playlist_tracks_shuffled,
 				channels = EXCLUDED.channels,
+				player_expanded = EXCLUDED.player_expanded,
 				shortcuts = EXCLUDED.shortcuts
 		`
 	} catch (err) {

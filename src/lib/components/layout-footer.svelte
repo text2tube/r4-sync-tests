@@ -12,7 +12,6 @@
 
 	let {preloading} = $props()
 
-	let expanded = $state(false)
 	let enableDrag = $state(false)
 
 	/** @type {HTMLElement} */
@@ -33,7 +32,7 @@
 			onDragEnd: function () {
 				// const velocity = InertiaPlugin.getVelocity(this.target, 'y')
 				const dragY = this.y
-				expanded = dragY < 0
+				appState.player_expanded = dragY < 0
 			}
 		})
 		return () => {
@@ -42,9 +41,15 @@
 	})
 </script>
 
-<footer bind:this={footerElement} class={{expanded, showVideo: appState.show_video_player}}>
+<footer
+	bind:this={footerElement}
+	class={{
+		expanded: appState.player_expanded,
+		showVideo: appState.show_video_player
+	}}
+>
 	{#if !preloading}
-		<Player bind:expanded />
+		<Player />
 	{/if}
 </footer>
 

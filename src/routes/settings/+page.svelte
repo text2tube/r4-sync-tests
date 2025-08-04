@@ -4,7 +4,7 @@
 	import {sdk} from '@radio4000/sdk'
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
 	import SyncDebug from '$lib/components/sync-debug.svelte'
-	import ShortcutsEditor from '$lib/components/shortcuts-editor.svelte'
+	import KeyboardEditor from '$lib/components/keyboard-editor.svelte'
 
 	let syncing = $state(false)
 	let resetting = $state(false)
@@ -43,7 +43,7 @@
 
 <article>
 	<menu>
-		<button onclick={resetDatabase} data-loading={resetting} disabled={resetting}>
+		<button onclick={resetDatabase} data-loading={resetting} disabled={resetting} class="danger">
 			{#if resetting}Resetting...{:else}Reset local database{/if}
 		</button>
 		<button onclick={handleSync} data-loading={syncing} disabled={syncing}>
@@ -64,7 +64,7 @@
 	<p>All application state interact directly with the local database.</p>
 
 	<hr />
-	<ShortcutsEditor />
+	<KeyboardEditor />
 	<hr />
 	<button onclick={logout}>Logout</button>
 	<hr />

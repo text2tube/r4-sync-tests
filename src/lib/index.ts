@@ -14,7 +14,7 @@ export {
 		needsUpdate
 	}
 	ui: {
-		togglePlayerOverlay,
+		togglePlayerExpanded,
 		openSearch,
 		togglePlayPause,
 		toggleQueuePanel,

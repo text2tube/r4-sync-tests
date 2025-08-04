@@ -14,7 +14,7 @@
 	const {preloading} = $props()
 </script>
 
-<header class="row">
+<header>
 	<a href="/" class:active={page.route.id === '/'}>
 		{#if preloading}
 			R0

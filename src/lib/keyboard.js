@@ -3,7 +3,7 @@ import * as api from '$lib/api.js'
 import {appState} from '$lib/app-state.svelte'
 
 export const DEFAULT_KEY_BINDINGS = {
-	Escape: 'togglePlayerOverlay',
+	Escape: 'togglePlayerExpanded',
 	'$mod+k': 'openSearch',
 	'/': 'openSearch',
 	k: 'togglePlayPause',

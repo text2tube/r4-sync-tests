@@ -12,7 +12,7 @@
 	})
 
 	const shortcutActions = [
-		'togglePlayerOverlay',
+		'togglePlayerExpanded',
 		'openSearch',
 		'togglePlayPause',
 		'toggleQueuePanel',

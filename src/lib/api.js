@@ -18,7 +18,7 @@ export async function checkUser() {
 		const {data: user, error} = await sdk.users.readUser()
 		log.log('check_user', user, error)
 		if (!user) {
-			appState.channels = null
+			appState.channels = []
 		} else {
 			const {data: channels} = await sdk.channels.readUserChannels()
 			log.log('check_user', {channels})
@@ -124,9 +124,9 @@ export async function toggleQueuePanel() {
 	appState.queue_panel_visible = !appState.queue_panel_visible
 }
 
-export function togglePlayerOverlay() {
-	const btn = document.querySelector('button.expand')
-	btn?.click()
+export function togglePlayerExpanded() {
+	appState.player_expanded = !appState.player_expanded
+	appState.show_video_player = !appState.show_video_player
 }
 
 export function openSearch() {

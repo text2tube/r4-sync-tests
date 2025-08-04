@@ -6,23 +6,13 @@
 	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
 	import Icon from '$lib/components/icon.svelte'
 
-	import {
-		togglePlay,
-		next,
-		previous,
-		toggleShuffle,
-		toggleVideo,
-		play,
-		pause
-	} from '$lib/api/player'
+	import {togglePlay, next, previous, toggleShuffle, play, pause} from '$lib/api/player'
+	import {togglePlayerExpanded} from '$lib/api'
 	import {extractYouTubeId} from '$lib/utils'
 	import {tick} from 'svelte'
 
 	/** @typedef {import('$lib/types').Track} Track */
 	/** @typedef {import('$lib/types').Channel} Channel */
-
-	/** @type {{expanded: boolean}} */
-	let {expanded = $bindable()} = $props()
 
 	// The YouTube player element
 	let yt = $state()
@@ -105,11 +95,6 @@
 		next(track, activeQueue, 'track_completed')
 	}
 
-	function togglePlayerMode() {
-		expanded = !expanded
-		toggleVideo()
-	}
-
 	function applyInitialVolume() {
 		yt.volume = appState.volume
 		yt.muted = appState.volume === 0
@@ -138,7 +123,7 @@
 	}
 </script>
 
-<div class={['player', expanded ? 'expanded' : 'compact']}>
+<div class={['player', appState.player_expanded ? 'expanded' : 'compact']}>
 	{@render channelHeader()}
 
 	{#if !channel}
@@ -230,7 +215,7 @@
 {/snippet} -->
 
 {#snippet btnToggleVideo()}
-	<button onclick={() => togglePlayerMode()} title="Show/hide video" class="expand">
+	<button onclick={() => togglePlayerExpanded()} title="Show/hide video" class="expand">
 		<Icon icon="fullscreen" />
 		<!-- <Icon icon="video" /> -->
 	</button>

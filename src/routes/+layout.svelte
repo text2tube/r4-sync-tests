@@ -32,9 +32,11 @@
 		if (skipPersist) return
 		// Take a snapshot to track all property changes
 		$state.snapshot(appState)
-		persistAppState().catch((err) => {
-			console.error('Failed to persist app state from effect:', err)
-		})
+		persistAppState()
+			.then(() => console.log('persisted'))
+			.catch((err) => {
+				console.error('Failed to persist app state from effect:', err)
+			})
 	})
 
 	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
