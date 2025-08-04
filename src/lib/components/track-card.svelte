@@ -2,19 +2,19 @@
 	import {playTrack} from '$lib/api'
 	import {formatDate} from '$lib/dates'
 	import {extractYouTubeId} from '$lib/utils'
-	import type {Track, AppState} from '$lib/types'
+	import type {Track} from '$lib/types'
 	import LinkEntities from './link-entities.svelte'
 	import type {Snippet} from 'svelte'
+	import {appState} from '$lib/app-state.svelte'
 
 	interface Props {
 		track: Track
 		index: number
-		appState: AppState
 		showImage?: boolean
 		children?: Snippet
 	}
 
-	let {track, index, appState, showImage = true, children}: Props = $props()
+	let {track, index, showImage = true, children}: Props = $props()
 
 	const permalink = $derived(`/${track.channel_slug}/tracks/${track.id}`)
 	const active = $derived(track.id === appState.playlist_track)

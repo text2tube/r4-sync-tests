@@ -3,6 +3,7 @@ import {pg} from '$lib/db'
 import {logger} from '$lib/logger'
 import {playTrack} from '$lib/api'
 import {pullChannel, pullTracks} from '$lib/sync'
+import {appState} from '$lib/app-state.svelte'
 
 const log = logger.ns('broadcast').seal()
 
@@ -14,13 +15,13 @@ let lastTrackId = null
 let broadcastSyncChannel = null
 
 /** @param {string} channelId */
-export async function startBroadcasting(channelId) {
-	await pg.sql`UPDATE app_state SET broadcasting_channel_id = ${channelId} WHERE id = 1`
+export function startBroadcasting(channelId) {
+	appState.broadcasting_channel_id = channelId
 	log.log('start', {channelId})
 }
 
-export async function stopBroadcasting() {
-	await pg.sql`UPDATE app_state SET broadcasting_channel_id = NULL WHERE id = 1`
+export function stopBroadcasting() {
+	appState.broadcasting_channel_id = null
 	log.log(':stop')
 }
 
@@ -43,8 +44,8 @@ export async function joinBroadcast(channelId) {
 	}
 }
 
-export async function leaveBroadcast() {
-	await pg.sql`UPDATE app_state SET listening_to_channel_id = NULL WHERE id = 1`
+export function leaveBroadcast() {
+	appState.listening_to_channel_id = null
 	log.log('broadcast:leave')
 }
 
@@ -166,7 +167,7 @@ export async function syncPlayBroadcast(broadcast) {
 			await pullChannel(slug)
 			await pullTracks(slug)
 			await playTrack(track_id, '', 'broadcast_sync')
-			await pg.sql`UPDATE app_state SET listening_to_channel_id = ${broadcast.channel_id} WHERE id = 1`
+			appState.listening_to_channel_id = broadcast.channel_id
 			log.log('sync_play_broadcast', track_id)
 			return true
 		}

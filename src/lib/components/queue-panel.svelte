@@ -1,13 +1,10 @@
 <script>
 	import {pg} from '$lib/db'
 	import {liveQuery, incrementalLiveQuery} from '$lib/live-query'
+	import {appState} from '$lib/app-state.svelte'
 	import Tracklist from './tracklist.svelte'
 	import TrackCard from './track-card.svelte'
 	import Modal from './modal.svelte'
-
-	/** @typedef {import('$lib/types').AppState} AppState */
-
-	const {appState} = $props()
 
 	let view = $state('queue') // 'queue' or 'history'
 	let showClearHistoryModal = $state(false)
@@ -54,8 +51,9 @@
 		)
 	})
 
-	async function clearQueue() {
-		await pg.sql`UPDATE app_state SET playlist_tracks = ARRAY[]::UUID[], playlist_track = NULL WHERE id = 1`
+	function clearQueue() {
+		appState.playlist_tracks = []
+		appState.playlist_track = undefined
 	}
 
 	async function clearHistory() {
@@ -92,7 +90,7 @@
 			<ul class="list tracks">
 				{#each playHistory as entry, index (index)}
 					<li>
-						<TrackCard track={entry} {index} {appState}>
+						<TrackCard track={entry} {index}>
 							<p class="history">
 								<small>
 									{new Date(entry.started_at).toLocaleTimeString()}

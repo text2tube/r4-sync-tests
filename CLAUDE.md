@@ -84,6 +84,7 @@ $effect(() => {
 Snippets can be used for reusable "mini" components, when a file is too much https://svelte.dev/docs/svelte/snippet.
 Attachments can be used for reusable behaviours/effects on elements https://svelte.dev/docs/svelte/@attach.
 Use `bind:this` to get a reference to the element. You can even export methods on it.
+$derived can be mutated
 
 ## HTML/CSS
 
@@ -122,3 +123,5 @@ Additionally and optionally, use `bun run lint2` for even more things to review 
 ## Testing
 
 When valuable, we can write tests using vitest. Put them next to the original file and name them xxx.test.js. Run tests with: `bun test`
+
+claude code: you do not need to start the dev server.

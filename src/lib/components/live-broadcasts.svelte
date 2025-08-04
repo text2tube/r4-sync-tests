@@ -8,11 +8,10 @@
 		syncPlayBroadcast
 	} from '$lib/broadcast'
 	import {readBroadcastsWithChannel} from '$lib/api'
+	import {appState} from '$lib/app-state.svelte'
 	import ChannelAvatar from './channel-avatar.svelte'
 	import {logger} from '$lib/logger'
 	const log = logger.ns('broadcast').seal()
-
-	const {appState} = $props()
 
 	/** @type {import('$lib/types').BroadcastWithChannel[]} */
 	let activeBroadcasts = $state([])
@@ -55,10 +54,10 @@
 			const hasLocalBroadcastState = !!state?.broadcasting_channel_id
 
 			if (isUserBroadcasting && !hasLocalBroadcastState) {
-				await pg.sql`UPDATE app_state SET broadcasting_channel_id = ${userChannelId} WHERE id = 1`
+				appState.broadcasting_channel_id = userChannelId
 				log.log('start', {channelId: userChannelId})
 			} else if (!isUserBroadcasting && hasLocalBroadcastState) {
-				await pg.sql`UPDATE app_state SET broadcasting_channel_id = NULL WHERE id = 1`
+				appState.broadcasting_channel_id = null
 				log.log('clear')
 			}
 		}
@@ -86,7 +85,7 @@
 						const {rows} = await pg.sql`SELECT listening_to_channel_id FROM app_state WHERE id = 1`
 						const currentListeningTo = rows[0]?.listening_to_channel_id
 						if (currentListeningTo === deletedChannelId) {
-							await pg.sql`UPDATE app_state SET listening_to_channel_id = NULL WHERE id = 1`
+							appState.listening_to_channel_id = null
 							log.log('clear_listening_state', {channelId: deletedChannelId})
 						}
 					}

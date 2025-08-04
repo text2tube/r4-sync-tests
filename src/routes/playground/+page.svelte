@@ -1,15 +1,17 @@
 <script>
-	import {liveQuery} from '$lib/live-query'
+	// import {liveQuery} from '$lib/live-query'
+	import {toggleQueuePanel} from '$lib/api'
+	import {appState} from '$lib/app-state.svelte'
 
 	let count = $state()
 	const double = $derived(count * 2)
 
-	$effect(() => {
-		return liveQuery(`select counter from app_state where id = 1`, [], (stuff) => {
-			console.log('app state live query from /playground ran')
-			count = stuff.rows[0].counter
-		})
-	})
+	// $effect(() => {
+	// 	return liveQuery(`select counter from app_state where id = 1`, [], (stuff) => {
+	// 		console.log('app state live query from /playground ran')
+	// 		count = stuff.rows[0].counter
+	// 	})
+	// })
 
 	function add() {
 		throw new Error('something bad happened')
@@ -17,6 +19,16 @@
 	}
 </script>
 
-<button onclick={add}>throw an unexpected error</button>
+<h1>playground</h1>
 
+<section>
+	<button onclick={toggleQueuePanel}> 🔄 Toggle Queue Panel </button>
+	<p>queue_panel_visible: {appState.queue_panel_visible}</p>
+	<input type="range" min="0" max="1" step="0.1" bind:value={appState.volume} />
+	<p>volume: {appState.volume}</p>
+</section>
+
+<hr />
+
+<button onclick={add}>throw an unexpected error</button>
 <p>{count} x 2 = {double}</p>

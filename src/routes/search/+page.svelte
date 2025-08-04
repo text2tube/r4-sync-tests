@@ -2,15 +2,9 @@
 	import {trap} from '$lib/focus'
 	import {page} from '$app/state'
 	import {pg} from '$lib/db'
-	import {subscribeToAppState, setPlaylist, addToPlaylist} from '$lib/api'
+	import {setPlaylist, addToPlaylist} from '$lib/api'
 	import ChannelCard from '$lib/components/channel-card.svelte'
 	import TrackCard from '$lib/components/track-card.svelte'
-
-	/** @type {import('$lib/types.ts').AppState} */
-	let appState = $state({})
-	subscribeToAppState((state) => {
-		appState = state
-	})
 
 	/** @type {import('$lib/types.ts').Channel[]} */
 	let channels = $state([])
@@ -177,7 +171,7 @@
 				<ul class="list">
 					{#each tracks as track, index (track.id)}
 						<li>
-							<TrackCard {track} {index} {appState} />
+							<TrackCard {track} {index} />
 						</li>
 					{/each}
 				</ul>

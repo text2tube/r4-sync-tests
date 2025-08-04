@@ -1,6 +1,5 @@
 <script>
 	import {incrementalLiveQuery} from '$lib/live-query'
-	import {subscribeToAppState} from '$lib/api'
 	import TrackCard from '$lib/components/track-card.svelte'
 
 	/** @typedef {import('$lib/types').Track} Track */
@@ -10,12 +9,6 @@
 
 	/** @type {Track[]}*/
 	let tracks = $state([])
-
-	/** @type {import('$lib/types').AppState} */
-	let appState = $state({})
-	subscribeToAppState((state) => {
-		appState = state
-	})
 
 	$effect(() => {
 		if (tracksProp) {
@@ -49,7 +42,7 @@
 	<ul class="list tracks">
 		{#each tracks as track, index (index)}
 			<li>
-				<TrackCard {track} {index} {appState} />
+				<TrackCard {track} {index} />
 				{@render footer?.({track})}
 			</li>
 		{/each}

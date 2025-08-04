@@ -1,0 +1,9 @@
+PGlite API Quick Reference
+
+query(sql, params?, options?) - single statement with params
+sql`...` - template literal for queries  
+exec(sql, options?) - multi-statement, no params
+transaction(callback) - atomic operations
+
+Options: rowMode, parsers, serializers, blob
+Returns: Promise<Results> (query/sql) or Promise<Results[]> (exec)

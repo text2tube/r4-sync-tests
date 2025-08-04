@@ -1,13 +1,8 @@
 <script>
 	import {initializeKeyboardShortcuts} from '$lib/shortcuts'
 
-	let cleanup = () => {}
-
 	$effect(() => {
-		initializeKeyboardShortcuts().then((cleanupFn) => {
-			cleanup = cleanupFn
-		})
-
+		const cleanup = initializeKeyboardShortcuts()
 		return () => {
 			cleanup()
 		}

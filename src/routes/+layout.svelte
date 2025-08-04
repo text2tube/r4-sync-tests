@@ -16,42 +16,48 @@
 	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte'
 	import Icon from '$lib/components/icon.svelte'
 	import HeaderSearch from '$lib/components/header-search.svelte'
-	import {subscribeToAppState} from '$lib/api'
+	import {appState, initAppState, persistAppState} from '$lib/app-state.svelte'
 	import '@radio4000/components'
 	import {logger} from '$lib/logger'
 	import {page} from '$app/state'
+	import {onMount} from 'svelte'
+	import {toggleQueuePanel} from '$lib/api'
+
 	const log = logger.ns('layout').seal()
 
 	const {data, children} = $props()
 
+	let skipPersist = $state(true)
 	let chatPanelVisible = $state(false)
-
-	/** @type {import('$lib/types').AppState} */
-	let appState = $state({})
-
+	const playerLoaded = $derived(appState.playlist_track)
 	const preloading = $derived(data.preloading)
 
-	subscribeToAppState((state) => {
-		appState = state
+	onMount(async () => {
+		await initAppState()
+		skipPersist = false
 	})
 
-	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
-	$effect(async () => {
-		window.addEventListener('beforeunload', async () => {
-			log.log('beforeunload_closing_db')
-			// event.preventDefault()
-			await stopBroadcasting()
-			await pg.sql`UPDATE app_state SET is_playing = false`
-			await pg.close()
+	$effect(() => {
+		if (skipPersist) return
+		// Take a snapshot to track all property changes
+		$state.snapshot(appState)
+		persistAppState().catch((err) => {
+			console.error('Failed to persist app state from effect:', err)
 		})
 	})
 
-	function togglePanel(e) {
-		e.preventDefault()
-		e.stopPropagation()
-		appState.queue_panel_visible = !appState.queue_panel_visible
-		// toggleQueuePanel()
-	}
+	// "Close" the database on page unload. I have not noticed any difference, but seems like a good thing to do.
+	$effect(() => {
+		const handler = async () => {
+			log.log('beforeunload_closing_db')
+			// event.preventDefault()
+			stopBroadcasting()
+			appState.is_playing = false
+			await pg.close()
+		}
+		window.addEventListener('beforeunload', handler)
+		return () => window.removeEventListener('beforeunload', handler)
+	})
 </script>
 
 <AuthListener />
@@ -71,10 +77,10 @@
 
 		<div class="row right">
 			{#if !preloading}
-				<LiveBroadcasts {appState} />
-				<BroadcastControls {appState} />
+				<LiveBroadcasts />
+				<BroadcastControls />
 				<AddTrackModal />
-				<button onclick={togglePanel} class:active={appState.queue_panel_visible}>
+				<button onclick={toggleQueuePanel} class:active={appState.queue_panel_visible}>
 					<Icon icon="sidebar-fill-right" size={20} />
 				</button>
 				<!-- <button onclick={toggleChatPanel}>Chat</button> -->
@@ -97,9 +103,9 @@
 			{/if}
 		</main>
 
-		<!-- {#if appState?.queue_panel_visible} -->
-		<QueuePanel {appState} />
-		<!-- {/if} -->
+		{#if appState.queue_panel_visible}
+			<QueuePanel />
+		{/if}
 
 		{#if chatPanelVisible}
 			<DraggablePanel title="R4 Chat" panelId="chat">
@@ -108,7 +114,7 @@
 		{/if}
 	</div>
 
-	<LayoutFooter {appState} {preloading} />
+	<LayoutFooter {preloading} {playerLoaded} />
 </div>
 
 <style>
