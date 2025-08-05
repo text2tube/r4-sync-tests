@@ -9,17 +9,15 @@ media-control-bar {
 	--media-icon-color: var(--gray-12);
 	/* --media-control-height: 2rem; */
 	/* --media-control-background: transparent; */
-	--media-control-background: var(--button-bg);
-	--media-control-hover-background: transparent;
-	--media-control-background: var(--gray-1);
 	--media-control-padding: 0.5rem;
+	--media-control-background: transparent;
+	--media-control-hover-background: transparent;
 
 	--media-button-icon-width: 1.5rem;
 	--media-button-icon-height: 1.5rem;
 	--media-button-padding: 0 0.5rem;
 
-	--media-range-track-background: hsla(0, 0%, 0%, 0.2);
-	--media-range-track-background: var(--gray-11);
+	--media-range-track-background: var(--gray-12);
 	--media-loading-indicator-icon-width: 2rem;
 	--media-loading-indicator-icon-height: 2rem;
 }

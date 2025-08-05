@@ -11,6 +11,8 @@
 	--color-slate: #668799;
 	--color-tan: #c59f6f;
 	--color-yellow: hsl(33, 82%, 58%);
+	--color-acidgreen: #b8e68a;
+	--color-deeppurple: hsl(295, 22%, 12%);
 
 	--border-radius: 0.4rem;
 	--font-size-micro: 0.6875rem;
@@ -42,6 +44,8 @@
 	--color-accent-dark1: color-mix(in lab, black, var(--color-accent) 20%);
 	--color-accent-dark2: color-mix(in lab, black, var(--color-accent) 10%);
 	--color-accent-dark3: color-mix(in lab, black, var(--color-accent) 5%);
+	--player-accent: light-dark(var(--color-acidgreen), var(--color-deeppurple));
+	--button-accent: light-dark(var(--gray-1), color-mix(in lab, black, var(--color-deeppurple) 30%));
 }
 
 :root.light {

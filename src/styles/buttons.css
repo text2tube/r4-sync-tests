@@ -23,7 +23,7 @@ button,
 	min-height: 2rem;
 	padding: 0 0.5rem;
 
-	background: var(--gray-1);
+	background: var(--button-accent);
 	color: var(--gray-12);
 
 	box-shadow:

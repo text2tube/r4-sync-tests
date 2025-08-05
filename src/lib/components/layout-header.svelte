@@ -49,7 +49,7 @@
 		place-items: center;
 		gap: 0.2rem;
 		padding: 0.5rem;
-		background: light-dark(var(--gray-2), var(--gray-3));
+		background: var(--header-accent);
 		border-bottom: 1px solid var(--gray-5);
 
 		.right {

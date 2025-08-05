@@ -55,9 +55,9 @@
 
 <style>
 	footer {
-		border: 1px solid var(--gray-5);
+		border: 1px solid var(--gray-7);
 		border-radius: var(--border-radius);
-		background: light-dark(var(--gray-2), var(--gray-3));
+		background: var(--player-accent);
 
 		position: fixed;
 		left: 0.2rem;
