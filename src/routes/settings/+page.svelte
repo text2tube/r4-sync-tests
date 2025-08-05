@@ -5,6 +5,7 @@
 	import PgliteRepl from '$lib/components/pglite-repl.svelte'
 	/*import SyncDebug from '$lib/components/sync-debug.svelte'*/
 	import KeyboardEditor from '$lib/components/keyboard-editor.svelte'
+	import CssVariablesEditor from '$lib/components/css-variables-editor.svelte'
 
 	let syncing = $state(false)
 	let resetting = $state(false)
@@ -74,6 +75,9 @@
 	</section>
 	<section>
 		<KeyboardEditor />
+	</section>
+	<section>
+		<CssVariablesEditor />
 	</section>
 	<section>
 		<PgliteRepl />

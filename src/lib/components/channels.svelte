@@ -15,6 +15,8 @@
 	/** @type {import('$lib/types').Channel[]}*/
 	let channels = $state([])
 
+	//$inspect(appState.channels_display, initialDisplay, display)
+
 	let filteredChannels = $derived(
 		channels.filter((c) => (onlyChannelsWithImages ? c.image : true)).slice(0, limit)
 	)

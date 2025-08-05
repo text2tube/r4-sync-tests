@@ -23,19 +23,23 @@
 
 	let filteredQueueTracks = $derived(
 		searchQuery
-			? fuzzysort.go(searchQuery, queueTracks, {
-				keys: ['title', 'tags', 'channel_name'],
-				threshold: -10000
-			}).map(result => result.obj)
+			? fuzzysort
+					.go(searchQuery, queueTracks, {
+						keys: ['title', 'tags', 'channel_name'],
+						threshold: -10000
+					})
+					.map((result) => result.obj)
 			: queueTracks
 	)
 
 	let filteredPlayHistory = $derived(
 		searchQuery
-			? fuzzysort.go(searchQuery, playHistory, {
-				keys: ['title', 'tags', 'channel_name'],
-				threshold: -10000
-			}).map(result => result.obj)
+			? fuzzysort
+					.go(searchQuery, playHistory, {
+						keys: ['title', 'tags', 'channel_name'],
+						threshold: -10000
+					})
+					.map((result) => result.obj)
 			: playHistory
 	)
 

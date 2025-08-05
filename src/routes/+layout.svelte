@@ -27,17 +27,25 @@
 	onMount(async () => {
 		await initAppState()
 		await checkUser()
+		applyCustomCssVariables()
 		skipPersist = false
 	})
+
+	function applyCustomCssVariables() {
+		const root = document.documentElement
+		Object.entries(appState.custom_css_variables || {}).forEach(([name, value]) => {
+			if (value) root.style.setProperty(name, value)
+		})
+	}
 
 	$effect(() => {
 		if (skipPersist) return
 		// Take a snapshot to track all property changes
 		$state.snapshot(appState)
 		persistAppState()
-			.then(() => console.log('persisted'))
+			.then(() => log.log('persisted app_state'))
 			.catch((err) => {
-				console.error('Failed to persist app state from effect:', err)
+				log.error('Failed to persist app state from effect:', err)
 			})
 	})
 

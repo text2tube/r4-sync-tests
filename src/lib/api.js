@@ -15,13 +15,14 @@ const log = logger.ns('api').seal()
 
 export async function checkUser() {
 	try {
-		const {data: user, error} = await sdk.users.readUser()
-		log.log('check_user', user, error)
+		const {data: user} = await sdk.users.readUser()
+		// log.log('check_user', user, error)
 		if (!user) {
 			appState.channels = []
+			appState.broadcasting_channel_id = undefined
 		} else {
 			const {data: channels} = await sdk.channels.readUserChannels()
-			log.log('check_user', {channels})
+			// log.log('check_user', {channels})
 			if (channels) {
 				appState.channels = channels.map((/** @type {any} */ c) => c.id)
 			}

@@ -54,6 +54,7 @@ export interface AppState {
 	is_playing?: boolean
 	theme?: string
 	volume?: number
+	custom_css_variables?: object
 	counter?: number
 	channels_display?: string
 	// the user's channels
