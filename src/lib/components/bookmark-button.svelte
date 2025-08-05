@@ -37,4 +37,3 @@
 >
 	<Icon icon={isBookmarked ? 'favorite-fill' : 'favorite'} size={24} />
 </button>
-
