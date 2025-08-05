@@ -50,11 +50,11 @@ build staging system first, optimize never.
 const EDITABLE_FIELDS = ['title', 'tags', 'description']
 
 export async function stageEdit(trackId, field, oldValue, newValue) {
-  if (!EDITABLE_FIELDS.includes(field)) {
-    throw new Error(`field ${field} not editable`)
-  }
-  
-  await pg.sql`
+	if (!EDITABLE_FIELDS.includes(field)) {
+		throw new Error(`field ${field} not editable`)
+	}
+
+	await pg.sql`
     INSERT INTO track_edits (track_id, field, old_value, new_value)
     VALUES (${trackId}, ${field}, ${oldValue}, ${newValue})
     ON CONFLICT (track_id, field) DO UPDATE SET
@@ -64,24 +64,24 @@ export async function stageEdit(trackId, field, oldValue, newValue) {
 }
 
 export async function commitEdits() {
-  const edits = await pg.sql`SELECT * FROM track_edits`
-  
-  await pg.transaction(async (tx) => {
-    for (const edit of edits.rows) {
-      if (edit.field === 'title') {
-        await tx.sql`UPDATE tracks SET title = ${edit.new_value} WHERE id = ${edit.track_id}`
-      } else if (edit.field === 'tags') {
-        await tx.sql`UPDATE tracks SET tags = ${edit.new_value} WHERE id = ${edit.track_id}`
-      } else if (edit.field === 'description') {
-        await tx.sql`UPDATE tracks SET description = ${edit.new_value} WHERE id = ${edit.track_id}`
-      }
-    }
-    await tx.sql`DELETE FROM track_edits`
-  })
+	const edits = await pg.sql`SELECT * FROM track_edits`
+
+	await pg.transaction(async (tx) => {
+		for (const edit of edits.rows) {
+			if (edit.field === 'title') {
+				await tx.sql`UPDATE tracks SET title = ${edit.new_value} WHERE id = ${edit.track_id}`
+			} else if (edit.field === 'tags') {
+				await tx.sql`UPDATE tracks SET tags = ${edit.new_value} WHERE id = ${edit.track_id}`
+			} else if (edit.field === 'description') {
+				await tx.sql`UPDATE tracks SET description = ${edit.new_value} WHERE id = ${edit.track_id}`
+			}
+		}
+		await tx.sql`DELETE FROM track_edits`
+	})
 }
 
 export async function discardEdits() {
-  await pg.sql`DELETE FROM track_edits`
+	await pg.sql`DELETE FROM track_edits`
 }
 ```
 
@@ -92,9 +92,10 @@ drag to select ranges. click tag to filter. hover shows preview. right-click for
 the tag problem: tagcloud reveals chaos like `#electronic #electronica #electro #Electronic`. bulk rename/merge to clean taxonomy. extract structured tags from freeform descriptions.
 
 composable workflow:
+
 ```
 select tracks containing "#electronic"
-→ rename tag to "#electronica" 
+→ rename tag to "#electronica"
 → preview affected tracks
 → apply changes
 ```
