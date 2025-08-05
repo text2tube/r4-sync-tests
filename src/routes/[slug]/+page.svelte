@@ -120,23 +120,6 @@
 	}
 </script>
 
-<header>
-	<form onsubmit={handleSubmit}>
-		<SearchInput
-			bind:value={searchQuery}
-			placeholder="Search tracks in {channel?.name || 'channel'}..."
-			oninput={debouncedSearch}
-		/>
-		<menu>
-			<button onclick={() => setPlaylist(trackIds)}>Play All</button>
-			<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
-			<button onclick={updateDurations} disabled={updatingDurations}>
-				{updatingDurations ? '⏳' : '⏱️'} &darr; Pull durations
-			</button>
-		</menu>
-	</form>
-</header>
-
 {#if channel}
 	<article>
 		<header>
@@ -163,14 +146,23 @@
 		</header>
 		<section>
 			{#if trackIds.length > 0}
-				<header>
-					<h2>
-						{channel.track_count} tracks
-						{#if searchQuery}
-							({trackIds.length} results for "<em>{searchQuery}</em>")
-						{/if}
-					</h2>
+				<header style="padding-top: 1rem">
+					<form onsubmit={handleSubmit}>
+						<SearchInput
+							bind:value={searchQuery}
+							placeholder="Search {channel?.name || 'channel'}..."
+							oninput={debouncedSearch}
+						/>
+						<menu>
+							<button onclick={() => setPlaylist(trackIds)}>Play All</button>
+							<button onclick={() => addToPlaylist(trackIds)}>Add to queue</button>
+							<button onclick={updateDurations} disabled={updatingDurations}>
+								{updatingDurations ? '⏳' : '⏱️'} &darr; Pull durations
+							</button>
+						</menu>
+					</form>
 				</header>
+
 				<Tracklist ids={trackIds} />
 			{:else if !channel.tracks_synced_at}
 				<p>Tracks syncing…</p>
@@ -184,13 +176,9 @@
 {/if}
 
 <style>
-	header {
-		margin-bottom: 1rem;
-	}
-
 	header:has(form) {
 		position: sticky;
-		top: 0.5rem;
+		top: -0.5rem;
 		margin: 0.5rem;
 		z-index: 1;
 	}
@@ -243,12 +231,5 @@
 		justify-content: space-between;
 		align-items: center;
 		margin-right: 0.5rem;
-		border-bottom: 1px solid var(--gray-5);
-		margin-bottom: 0;
-	}
-
-	section h2 {
-		font-size: var(--font-size-regular);
-		margin: 0.5rem;
 	}
 </style>

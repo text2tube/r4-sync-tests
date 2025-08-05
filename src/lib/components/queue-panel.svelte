@@ -5,9 +5,11 @@
 	import Tracklist from './tracklist.svelte'
 	import TrackCard from './track-card.svelte'
 	import Modal from './modal.svelte'
+	import SearchInput from './search-input.svelte'
 
 	let view = $state('queue') // 'queue' or 'history'
 	let showClearHistoryModal = $state(false)
+	let searchQuery = $state('')
 
 	/** @type {string[]} */
 	let trackIds = $derived(appState.playlist_tracks || [])
@@ -17,6 +19,28 @@
 
 	/** @type {(import('$lib/types').Track & import('$lib/types').PlayHistory)[]} */
 	let playHistory = $state([])
+
+	let filteredQueueTracks = $derived(
+		searchQuery
+			? queueTracks.filter(
+					(track) =>
+						track.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+						track.tags?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+						track.channel_name?.toLowerCase().includes(searchQuery.toLowerCase())
+				)
+			: queueTracks
+	)
+
+	let filteredPlayHistory = $derived(
+		searchQuery
+			? playHistory.filter(
+					(entry) =>
+						entry.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+						entry.tags?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+						entry.channel_name?.toLowerCase().includes(searchQuery.toLowerCase())
+				)
+			: playHistory
+	)
 
 	$effect(() => {
 		if (trackIds.length === 0) {
@@ -80,19 +104,32 @@
 			>
 		{/if}
 	</header>
+	<div class="search-container">
+		<SearchInput bind:value={searchQuery} placeholder="Search {view}..." />
+	</div>
 	<main class="scroll">
 		{#if view === 'queue'}
-			{#if trackIds.length > 0}
-				<Tracklist tracks={queueTracks} />
-			{:else}
+			{#if filteredQueueTracks.length > 0}
+				<Tracklist tracks={filteredQueueTracks} />
+			{:else if trackIds.length > 0 && searchQuery}
+				<div class="empty-state">
+					<p>No tracks found</p>
+					<p><small>Try a different search term</small></p>
+				</div>
+			{:else if trackIds.length === 0}
 				<div class="empty-state">
 					<p>No tracks in queue</p>
 					<p><small>Select a channel to start playing</small></p>
 				</div>
+			{:else}
+				<div class="empty-state">
+					<p>No tracks found</p>
+					<p><small>Try a different search term</small></p>
+				</div>
 			{/if}
-		{:else if playHistory.length > 0}
+		{:else if filteredPlayHistory.length > 0}
 			<ul class="list tracks">
-				{#each playHistory as entry, index (index)}
+				{#each filteredPlayHistory as entry, index (index)}
 					<li>
 						<TrackCard track={entry} {index}>
 							<p class="history">
@@ -107,6 +144,11 @@
 					</li>
 				{/each}
 			</ul>
+		{:else if playHistory.length > 0 && searchQuery}
+			<div class="empty-state">
+				<p>No history found</p>
+				<p><small>Try a different search term</small></p>
+			</div>
 		{:else}
 			<div class="empty-state">
 				<p>No play history</p>
@@ -181,6 +223,16 @@
 		small {
 			color: var(--gray-9);
 		}
+	}
+
+	.search-container {
+		padding: 0.5rem;
+		border-bottom: 1px solid var(--gray-5);
+		background: light-dark(var(--gray-1), var(--gray-2));
+	}
+
+	.search-container :global(input) {
+		width: 100%;
 	}
 
 	.tracks :global(.slug) {
