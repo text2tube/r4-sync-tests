@@ -202,3 +202,115 @@ export async function autoSync() {
 	log.log('autosync')
 	await sync().catch((err) => console.error('auto_sync:error', err))
 }
+
+/**
+ * Pull user's remote follows into local database
+ * @param {string} userChannelId - ID of the user's channel
+ */
+export async function pullFollowers(userChannelId) {
+	try {
+		const {data: remoteFollows, error} = await sdk.channels.readFollowings(userChannelId)
+		if (error) throw error
+
+		await pg.transaction(async (tx) => {
+			// Clear existing synced follows for this user
+			await tx.sql`DELETE FROM followers WHERE follower_id = ${userChannelId} AND synced_at IS NOT NULL`
+
+			// Insert all remote follows
+			if (remoteFollows?.length) {
+				for (const followedChannel of remoteFollows) {
+					// Insert/update follower relationship
+					await tx.sql`
+						INSERT INTO followers (follower_id, channel_id, created_at, synced_at)
+						VALUES (${userChannelId}, ${followedChannel.id}, ${followedChannel.created_at}, CURRENT_TIMESTAMP)
+						ON CONFLICT (follower_id, channel_id) DO UPDATE SET
+							created_at = ${followedChannel.created_at},
+							synced_at = CURRENT_TIMESTAMP
+					`
+
+					// Insert/update channel metadata (readFollowings returns full channel objects)
+					await tx.sql`
+						INSERT INTO channels (id, name, slug, description, image, created_at, updated_at, latitude, longitude, url)
+						VALUES (
+							${followedChannel.id}, ${followedChannel.name}, ${followedChannel.slug},
+							${followedChannel.description}, ${followedChannel.image},
+							${followedChannel.created_at}, ${followedChannel.updated_at},
+							${followedChannel.latitude}, ${followedChannel.longitude},
+							${followedChannel.url}
+						)
+						ON CONFLICT (id) DO UPDATE SET
+							name = EXCLUDED.name,
+							slug = EXCLUDED.slug,
+							description = EXCLUDED.description,
+							image = EXCLUDED.image,
+							updated_at = EXCLUDED.updated_at,
+							latitude = EXCLUDED.latitude,
+							longitude = EXCLUDED.longitude,
+							url = EXCLUDED.url
+					`
+				}
+			}
+		})
+
+		log.log('pull_followers', {userChannelId, count: remoteFollows?.length || 0})
+	} catch (err) {
+		log.error('pull_followers_error', err)
+		throw err
+	}
+}
+
+/**
+ * Check if user has local-only followers and prompt for import
+ * @param {string} userChannelId - ID of the user's channel
+ */
+export async function syncFollowersOnSignIn(userChannelId) {
+	// Check for local-only followers
+	const {rows: localFollowers} = await pg.sql`
+		SELECT COUNT(*) as count FROM followers 
+		WHERE follower_id = 'local-user'
+	`
+	const localCount = parseInt(localFollowers[0].count)
+
+	if (localCount > 0) {
+		// Auto-import local followers when signing in
+		// TODO: Add UI prompt in the following page instead of alert
+		const shouldImport = true
+
+		if (shouldImport) {
+			// Move local followers to user's channel and sync to remote
+			const {rows: localBookmarks} = await pg.sql`
+				SELECT channel_id FROM followers WHERE follower_id = 'local-user'
+			`
+
+			await pg.transaction(async (tx) => {
+				for (const bookmark of localBookmarks) {
+					// Add to user's follows
+					await tx.sql`
+						INSERT INTO followers (follower_id, channel_id, created_at, synced_at)
+						VALUES (${userChannelId}, ${bookmark.channel_id}, CURRENT_TIMESTAMP, NULL)
+						ON CONFLICT (follower_id, channel_id) DO NOTHING
+					`
+
+					// Sync to remote
+					try {
+						await sdk.channels.followChannel(userChannelId, bookmark.channel_id)
+						await tx.sql`
+							UPDATE followers 
+							SET synced_at = CURRENT_TIMESTAMP 
+							WHERE follower_id = ${userChannelId} AND channel_id = ${bookmark.channel_id}
+						`
+					} catch (err) {
+						log.error('sync_follower_error', err)
+						// Continue with other followers even if one fails
+					}
+				}
+
+				// Remove local-only followers
+				await tx.sql`DELETE FROM followers WHERE follower_id = 'local-user'`
+			})
+		}
+	}
+
+	// Pull remote followers
+	await pullFollowers(userChannelId)
+}

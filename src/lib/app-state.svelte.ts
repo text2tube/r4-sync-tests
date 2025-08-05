@@ -1,4 +1,6 @@
 import {pg} from '$lib/db'
+import {logger} from '$lib/logger'
+const log = logger.ns('app_state').seal()
 
 // Global reactive state - no context needed
 export const appState = $state({
@@ -34,7 +36,7 @@ export async function initAppState() {
 	if (initialized) return
 	try {
 		const result = await pg.query('SELECT * FROM app_state WHERE id = 1')
-		console.log('initAppState', result.rows[0].channels_display)
+		log.log('init', result.rows[0])
 		if (result.rows[0]) Object.assign(appState, result.rows[0])
 	} catch (err) {
 		console.warn('Failed to load app state from db:', err)

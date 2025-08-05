@@ -23,6 +23,9 @@
 		{/if}
 	</a>
 	<HeaderSearch />
+	<a href="/following" class="btn" class:active={page.route.id === '/following'}>
+		<Icon icon="favorite" size={20} />
+	</a>
 	<!-- <a href="/playground/spam-warrior" class="btn">Spam Warrior</a> -->
 
 	<div class="row right">
