@@ -4,6 +4,7 @@
 	import {appState} from '$lib/app-state.svelte'
 
 	let showModal = $state(false)
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	let lastCreatedTrack = $state()
 
 	const channelId = $derived(appState.channels?.length > 0 ? appState.channels[0] : undefined)
@@ -17,7 +18,6 @@
 
 	function submit(event) {
 		lastCreatedTrack = event.detail.data
-		console.log({lastCreatedTrack})
 		// @todo insert track into local db. or use pullTracks? Maybe the better option for consistency
 	}
 </script>
