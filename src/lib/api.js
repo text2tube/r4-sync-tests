@@ -1,5 +1,6 @@
 import {pg} from '$lib/db'
-import {needsUpdate, pullTracks, syncFollowersOnSignIn, pullFollowers} from '$lib/sync'
+import {needsUpdate, pullTracks} from '$lib/sync'
+import {migrateAndSyncFollowers, pullFollowers} from '$lib/sync/followers'
 import {sdk} from '@radio4000/sdk'
 import {leaveBroadcast} from '$lib/broadcast'
 import {shuffleArray} from '$lib/utils'
@@ -29,7 +30,7 @@ export async function checkUser() {
 
 				// Sync followers when user signs in (not on every check)
 				if (wasSignedOut && appState.channels.length) {
-					syncFollowersOnSignIn(appState.channels[0]).catch((err) =>
+					migrateAndSyncFollowers(appState.channels[0]).catch((err) =>
 						log.error('sync_followers_on_signin_error', err)
 					)
 				}
