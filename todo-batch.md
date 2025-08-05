@@ -24,7 +24,8 @@ CREATE TABLE track_edits (
   field TEXT NOT NULL,
   old_value TEXT,
   new_value TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (track_id, field)
 );
 ```
 
@@ -33,21 +34,26 @@ single user, local pglite. simple.
 
 ## build it
 
-1. table + virtual scrolling (use @humanspeak/svelte-virtual-list)
-2. selection system (click, drag, filter)
+1. basic table (no pagination needed for 3k rows)
+2. selection system (click, shift+click, filter)
 3. inline editing → draft to track_edits
 4. preview/apply/discard
 5. tagcloud view
 6. bulk tag operations
 7. composable transforms
 
-pglite is fast locally. use batcher.js for heavy lifting.
+build staging system first, optimize never.
 
 ## api sketch
 
 ```js
+const EDITABLE_FIELDS = ['title', 'tags', 'description']
+
 export async function stageEdit(trackId, field, oldValue, newValue) {
-  // upsert - replace existing edit for same track/field
+  if (!EDITABLE_FIELDS.includes(field)) {
+    throw new Error(`field ${field} not editable`)
+  }
+  
   await pg.sql`
     INSERT INTO track_edits (track_id, field, old_value, new_value)
     VALUES (${trackId}, ${field}, ${oldValue}, ${newValue})
@@ -62,13 +68,19 @@ export async function commitEdits() {
   
   await pg.transaction(async (tx) => {
     for (const edit of edits.rows) {
-      await tx.sql`UPDATE tracks SET ${edit.field} = ${edit.new_value} WHERE id = ${edit.track_id}`
+      if (edit.field === 'title') {
+        await tx.sql`UPDATE tracks SET title = ${edit.new_value} WHERE id = ${edit.track_id}`
+      } else if (edit.field === 'tags') {
+        await tx.sql`UPDATE tracks SET tags = ${edit.new_value} WHERE id = ${edit.track_id}`
+      } else if (edit.field === 'description') {
+        await tx.sql`UPDATE tracks SET description = ${edit.new_value} WHERE id = ${edit.track_id}`
+      }
     }
     await tx.sql`DELETE FROM track_edits`
   })
 }
 
-export async function rollbackEdits() {
+export async function discardEdits() {
   await pg.sql`DELETE FROM track_edits`
 }
 ```
