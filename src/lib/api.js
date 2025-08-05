@@ -1,10 +1,11 @@
 import {pg} from '$lib/db'
 import {needsUpdate, pullTracks} from '$lib/sync'
+import {migrateAndSyncFollowers, pullFollowers} from '$lib/sync/followers'
 import {sdk} from '@radio4000/sdk'
 import {leaveBroadcast} from '$lib/broadcast'
-import {logger} from '$lib/logger'
 import {shuffleArray} from '$lib/utils'
 import {appState} from '$lib/app-state.svelte'
+import {logger} from '$lib/logger'
 
 const log = logger.ns('api').seal()
 
@@ -24,7 +25,15 @@ export async function checkUser() {
 			const {data: channels} = await sdk.channels.readUserChannels()
 			// log.log('check_user', {channels})
 			if (channels) {
+				const wasSignedOut = !appState.channels?.length
 				appState.channels = channels.map((/** @type {any} */ c) => c.id)
+
+				// Sync followers when user signs in (not on every check)
+				if (wasSignedOut && appState.channels.length) {
+					migrateAndSyncFollowers(appState.channels[0]).catch((err) =>
+						log.error('sync_followers_on_signin_error', err)
+					)
+				}
 			}
 			return user
 		}
@@ -209,4 +218,70 @@ export async function queryChannelsWithTrackCounts() {
 		ORDER BY c.name
 	`
 	return rows
+}
+
+/**
+ * @param {string} followerId - ID of the user's channel
+ * @param {string} channelId - ID of the channel to follow
+ */
+export async function addFollower(followerId, channelId) {
+	await pg.sql`
+		INSERT INTO followers (follower_id, channel_id, created_at, synced_at)
+		VALUES (${followerId}, ${channelId}, CURRENT_TIMESTAMP, NULL)
+		ON CONFLICT (follower_id, channel_id) DO NOTHING
+	`
+}
+
+/**
+ * @param {string} followerId - ID of the user's channel
+ * @param {string} channelId - ID of the channel to unfollow
+ */
+export async function removeFollower(followerId, channelId) {
+	await pg.sql`
+		DELETE FROM followers 
+		WHERE follower_id = ${followerId} AND channel_id = ${channelId}
+	`
+}
+
+/**
+ * @param {string} followerId - ID of the user's channel
+ * @returns {Promise<import('$lib/types').Channel[]>}
+ */
+export async function queryFollowers(followerId) {
+	const {rows} = await pg.sql`
+		SELECT c.*
+		FROM followers f
+		JOIN channels c ON f.channel_id = c.id
+		WHERE f.follower_id = ${followerId}
+		ORDER BY f.created_at DESC
+	`
+	return rows
+}
+
+/**
+ * Ensure followers are loaded for a user, auto-pulling if needed
+ * @param {string} followerId - ID of the user's channel
+ * @returns {Promise<import('$lib/types').Channel[]>}
+ */
+export async function ensureFollowers(followerId) {
+	const existing = await queryFollowers(followerId)
+	if (existing.length === 0 && followerId !== 'local-user') {
+		await pullFollowers(followerId)
+		return await queryFollowers(followerId)
+	}
+	return existing
+}
+
+/**
+ * @param {string} followerId - ID of the user's channel
+ * @param {string} channelId - ID of the channel to check
+ * @returns {Promise<boolean>}
+ */
+export async function isFollowing(followerId, channelId) {
+	const {rows} = await pg.sql`
+		SELECT 1 FROM followers 
+		WHERE follower_id = ${followerId} AND channel_id = ${channelId}
+		LIMIT 1
+	`
+	return rows.length > 0
 }

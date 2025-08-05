@@ -10,7 +10,7 @@
 	import LiveChat from '$lib/components/live-chat.svelte'
 	import DraggablePanel from '$lib/components/draggable-panel.svelte'
 	import KeyboardShortcuts from '$lib/components/keyboard-shortcuts.svelte'
-	import {appState, initAppState, persistAppState} from '$lib/app-state.svelte'
+	import {appState, persistAppState} from '$lib/app-state.svelte'
 	import '@radio4000/components'
 	import {logger} from '$lib/logger'
 	import {onMount} from 'svelte'
@@ -25,7 +25,6 @@
 	const preloading = $derived(data.preloading)
 
 	onMount(async () => {
-		await initAppState()
 		await checkUser()
 		applyCustomCssVariables()
 		skipPersist = false
