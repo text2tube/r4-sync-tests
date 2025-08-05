@@ -6,6 +6,7 @@ IDEAS
 - themable ui, introduce semantic css variables
 - the <youtube-player> fires volumechange seemingly at will, many times on load, which currently overwrites any appState.volume the user might already have. In other words, your volume preferences is persisted, but also overwritten on load
 - set pwa theme color based on color scheme? https://github.com/w3c/manifest/issues/975 https://github.com/whatwg/html/pull/6569
+- add app_state.hide_track_artwork setting and respect it in track cards etc. by default we show artwork
 
 HARD ONES
 

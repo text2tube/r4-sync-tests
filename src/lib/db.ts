@@ -16,6 +16,7 @@ import migration07sql from '$lib/migrations/07-add_channel-coordinates-url.sql?r
 import migration08sql from '$lib/migrations/08-enable_pg_trgm.sql?raw'
 import migration09sql from '$lib/migrations/09-create_track_meta.sql?raw'
 import migration10sql from '$lib/migrations/10-create_ytid_function_and_view.sql?raw'
+import migration11sql from '$lib/migrations/11-create_followers.sql?raw'
 
 // This will limit the amount of channels pulled.
 export const debugLimit = 2000
@@ -30,7 +31,8 @@ const migrations = [
 	{name: '07-add_channel-coordinates-url', sql: migration07sql},
 	{name: '08-enable_pg_trgm', sql: migration08sql},
 	{name: '09-create_track_meta', sql: migration09sql},
-	{name: '10-create_ytid_function_and_view', sql: migration10sql}
+	{name: '10-create_ytid_function_and_view', sql: migration10sql},
+	{name: '11-create_followers', sql: migration11sql}
 ]
 
 // Switch between in-memory and OPFS persisted indexeddb for PostgreSQL

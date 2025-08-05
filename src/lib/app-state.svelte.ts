@@ -1,17 +1,20 @@
 import {pg} from '$lib/db'
+import {logger} from '$lib/logger'
+import type {AppState} from './types'
+const log = logger.ns('app_state').seal()
 
-// Global reactive state - no context needed
-export const appState = $state({
+export const appState: AppState = $state({
 	id: 1,
 	counter: 0,
 
-	channels: [], // <-- from user
+	channels: [],
 	custom_css_variables: {},
 	shortcuts: {},
 
 	channels_display: 'grid',
 	queue_panel_visible: false,
 	show_video_player: true,
+	player_expanded: false,
 
 	playlist_track: undefined,
 	playlist_tracks: [],
@@ -34,8 +37,10 @@ export async function initAppState() {
 	if (initialized) return
 	try {
 		const result = await pg.query('SELECT * FROM app_state WHERE id = 1')
-		console.log('initAppState', result.rows[0].channels_display)
-		if (result.rows[0]) Object.assign(appState, result.rows[0])
+		log.log('init', result.rows[0])
+		if (result.rows[0]) {
+			Object.assign(appState, result.rows[0])
+		}
 	} catch (err) {
 		console.warn('Failed to load app state from db:', err)
 	}
