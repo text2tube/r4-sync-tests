@@ -4,7 +4,6 @@
 	import {appState} from '$lib/app-state.svelte'
 
 	let showModal = $state(false)
-	let lastCreatedTrack = $state()
 
 	const channelId = $derived(appState.channels?.length > 0 ? appState.channels[0] : undefined)
 	const isSignedIn = $derived(!!appState.user)
@@ -13,12 +12,6 @@
 	function handleKeyDown(event) {
 		if (event.target?.tagName === 'PGLITE-REPL' || event.target?.tagName === 'INPUT') return
 		if (event.key === 'c' && !event.metaKey && !event.ctrlKey) showModal = true
-	}
-
-	function submit(event) {
-		lastCreatedTrack = event.detail.data
-		console.log({lastCreatedTrack})
-		// @todo insert track into local db. or use pullTracks? Maybe the better option for consistency
 	}
 </script>
 
@@ -44,7 +37,7 @@
 	{/snippet}
 
 	{#if channelId}
-		<r4-track-create channel_id={channelId} onsubmit={submit}></r4-track-create>
+		<r4-track-create channel_id={channelId}></r4-track-create>
 	{:else if isSignedIn}
 		<p>
 			You need to create a channel first. Go to <a

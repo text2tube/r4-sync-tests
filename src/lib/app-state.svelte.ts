@@ -34,7 +34,6 @@ export async function initAppState() {
 	if (initialized) return
 	try {
 		const result = await pg.query('SELECT * FROM app_state WHERE id = 1')
-		console.log('initAppState', result.rows[0].channels_display)
 		if (result.rows[0]) Object.assign(appState, result.rows[0])
 	} catch (err) {
 		console.warn('Failed to load app state from db:', err)
