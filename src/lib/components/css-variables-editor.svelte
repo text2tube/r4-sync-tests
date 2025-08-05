@@ -38,7 +38,11 @@
 		const root = document.documentElement
 		cssVariables.forEach(({name}) => {
 			const value = customVariables[name]
-			value ? root.style.setProperty(name, value) : root.style.removeProperty(name)
+			if (value) {
+				root.style.setProperty(name, value)
+			} else {
+				root.style.removeProperty(name)
+			}
 		})
 	}
 </script>
