@@ -9,7 +9,7 @@
 	import {relativeDate, relativeDateSolar} from '$lib/dates'
 	import Icon from '$lib/components/icon.svelte'
 	import SearchInput from '$lib/components/search-input.svelte'
-	import ChannelAvatar from '$lib/components/channel-avatar.svelte'
+	import ChannelHero from '$lib/components/channel-hero.svelte'
 	import ButtonPlay from '$lib/components/button-play.svelte'
 	import Tracklist from '$lib/components/tracklist.svelte'
 
@@ -123,7 +123,7 @@
 {#if channel}
 	<article>
 		<header>
-			<ChannelAvatar id={channel.image} alt={channel.name} />
+			<ChannelHero {channel} />
 			<h1>
 				{channel.name}
 				<ButtonPlay {channel} />
@@ -195,8 +195,7 @@
 		flex: 1;
 	}
 
-	article header :global(img) {
-		border-radius: var(--border-radius);
+	article header :global(figure) {
 		margin: 1rem 1rem 0rem 1.5rem;
 		max-width: 60%;
 

@@ -1,7 +1,6 @@
 <script>
 	import {trimWithEllipsis} from '$lib/utils'
-	import ButtonPlay from './button-play.svelte'
-	import ChannelAvatar from './channel-avatar.svelte'
+	import ChannelHero from './channel-hero.svelte'
 
 	/** @type {{channel: import('$lib/types').Channel}}*/
 	let {channel} = $props()
@@ -15,11 +14,8 @@
 </script>
 
 <article ondblclick={doubleclick} data-busy={channel.busy}>
-	<ButtonPlay {channel} class="play-button" />
 	<a href={`/${channel.slug}`}>
-		<figure>
-			<ChannelAvatar id={channel.image} alt={channel.name} />
-		</figure>
+		<ChannelHero {channel} />
 		<div>
 			<h3>
 				{channel.name}
@@ -78,7 +74,7 @@
 		outline-offset: -2px;
 	}
 
-	figure {
+	article :global(figure) {
 		max-width: 50vw;
 		aspect-ratio: 1/1;
 		background: var(--gray-2);
@@ -86,21 +82,6 @@
 		border-radius: var(--border-radius);
 		/* for channels with no image */
 		min-height: 2rem;
-	}
-
-	/** hide play button unles hovered */
-	article:not(:hover) :global(.play-button) {
-		opacity: 0;
-	}
-
-	article :global(.play-button) {
-		position: absolute;
-		top: 0.2rem;
-		left: 0.2rem;
-		width: 3rem;
-		border: 0;
-		box-shadow: none;
-		transition: none;
 	}
 
 	[data-busy='true'] {
