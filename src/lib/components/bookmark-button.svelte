@@ -7,8 +7,12 @@
 	let {channel, class: className = ''} = $props()
 
 	let followerId = $derived(appState.channels?.[0] || 'local-user')
-	let isBookmarked = $derived.by(async () => {
-		return await isFollowing(followerId, channel.id)
+	let isBookmarked = $state(false)
+
+	$effect(() => {
+		isFollowing(followerId, channel.id).then((x) => {
+			isBookmarked = x
+		})
 	})
 
 	async function toggleBookmark(event) {
@@ -34,30 +38,3 @@
 	<Icon icon={isBookmarked ? 'favorite-fill' : 'favorite'} size={24} />
 </button>
 
-<style>
-	button {
-		background: rgba(0, 0, 0, 0.5);
-		color: white;
-		border: none;
-		border-radius: var(--border-radius);
-		padding: 0.5rem;
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		transition: background-color 0.2s;
-	}
-
-	button:hover {
-		background: rgba(0, 0, 0, 0.7);
-	}
-
-	button:focus {
-		outline: 2px solid var(--color-accent);
-	}
-
-	svg {
-		width: 100%;
-		height: 100%;
-	}
-</style>
