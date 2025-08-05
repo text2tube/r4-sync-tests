@@ -103,8 +103,8 @@
 	function handleVolumeChange(e) {
 		const {volume} = e.target
 		if (appState.volume === volume) return
-		console.log('volumeChange', volume)
 		appState.volume = volume
+		console.log('volumeChange', volume)
 	}
 
 	// Pre-buffer video if it's in cued state for smooth playback
@@ -163,10 +163,10 @@
 			<!-- <media-play-button class="btn"></media-play-button> -->
 			{@render btnPlay()}
 			{@render btnNext()}
-			<media-mute-button class="btn"></media-mute-button>
-			<media-volume-range></media-volume-range>
 			<media-time-range></media-time-range>
 			<media-time-display showduration></media-time-display>
+			<media-mute-button class="btn"></media-mute-button>
+			<media-volume-range></media-volume-range>
 			{@render btnToggleVideo()}
 		</media-control-bar>
 	</menu>

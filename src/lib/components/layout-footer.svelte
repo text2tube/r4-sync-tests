@@ -62,7 +62,7 @@
 		position: fixed;
 		left: 0.2rem;
 		right: 0.2rem;
-		bottom: 0.5rem;
+		bottom: 0.2rem;
 		z-index: 10;
 		will-change: transform, height;
 		/* transition: all 300ms ease-in-out; */

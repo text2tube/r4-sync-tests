@@ -1,10 +1,8 @@
 :root {
-	/* --green: hsl(120, 21%, 52%); */
-	/* --lavender: hsl(257, 62%, 82%); */
-	/* --yellow: hsl(33, 82%, 58%); */
-
-	--color-green: #799d6a;
-	--color-lavender: #c6b6ee;
+	/* --color-green: #799d6a; */
+	--color-green: hsl(120, 21%, 52%);
+	/* --color-lavender: #c6b6ee; */
+	--color-lavender: hsl(257, 62%, 82%);
 	--color-light-blue: #8fbfdc;
 	--color-light-gray: #e8e8d3;
 	--color-orange: #ffb964;
@@ -12,6 +10,7 @@
 	--color-red: hsl(11, 78%, 38%);
 	--color-slate: #668799;
 	--color-tan: #c59f6f;
+	--color-yellow: hsl(33, 82%, 58%);
 
 	--border-radius: 0.4rem;
 	--font-size-micro: 0.6875rem;

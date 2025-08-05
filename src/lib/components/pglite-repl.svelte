@@ -21,10 +21,8 @@
 	<p>Try querying channels, tracks or app_state using SQL.</p>
 	<pglite-repl bind:this={el}></pglite-repl>
 {:else}
-	<button onclick={enable}>Enable PGlite REPL</button>
+	<button onclick={enable}>Enter PGlite REPL</button>
 {/if}
 
 <style>
-	pglite-repl {
-	}
 </style>

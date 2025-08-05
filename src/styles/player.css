@@ -1,24 +1,23 @@
+/* The player has two states: compact & expanded 
+ * each provides responsive layout from small to huge */
+
 media-controller,
 media-control-bar {
-	/* --media-control-height: 2rem; */
 	--media-background-color: transparent;
-
+	--media-text-color: var(--gray-12);
+	--media-primary-color: var(--gray-12);
+	--media-icon-color: var(--gray-12);
+	/* --media-control-height: 2rem; */
 	/* --media-control-background: transparent; */
 	--media-control-background: var(--button-bg);
 	--media-control-hover-background: transparent;
-
 	--media-control-background: var(--gray-1);
-	--media-text-color: var(--gray-12);
+	--media-control-padding: 0.5rem;
 
 	--media-button-icon-width: 1.5rem;
 	--media-button-icon-height: 1.5rem;
-
 	--media-button-padding: 0 0.5rem;
 
-	--media-control-padding: 0.5rem;
-	--media-primary-color: var(--gray-12);
-	--media-text-color: var(--gray-12);
-	--media-icon-color: var(--gray-12);
 	--media-range-track-background: hsla(0, 0%, 0%, 0.2);
 	--media-range-track-background: var(--gray-11);
 	--media-loading-indicator-icon-width: 2rem;
@@ -104,8 +103,9 @@ media-time-display {
 	}
 
 	@media (max-width: 700px) {
-		media-time-display {
-			/* display: none; */
+		/* media-time-display, */
+		media-volume-range {
+			display: none;
 		}
 		media-time-range {
 			width: 60px;
@@ -120,7 +120,6 @@ media-time-display {
 	}
 
 	@media (max-width: 500px) {
-		/* media-time-display, */
 		.artwork,
 		.prev,
 		media-time-range {

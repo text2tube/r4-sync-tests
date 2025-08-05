@@ -43,9 +43,6 @@
 
 <article>
 	<menu>
-		<button onclick={resetDatabase} data-loading={resetting} disabled={resetting} class="danger">
-			{#if resetting}Resetting...{:else}Reset local database{/if}
-		</button>
 		<button onclick={handleSync} data-loading={syncing} disabled={syncing}>
 			{#if syncing}
 				Syncing
@@ -55,12 +52,18 @@
 		</button>
 		<!-- <button disabled>Import local database</button> -->
 		<button onclick={exportDb}>Export local database</button>
+		<button onclick={resetDatabase} data-loading={resetting} disabled={resetting} class="danger">
+			{#if resetting}Resetting...{:else}Reset local database{/if}
+		</button>
+	</menu>
+
+	<menu>
 		<a href="/stats" class="btn">Stats</a>
 		<button onclick={logout}>Logout</button>
 	</menu>
 
 	<section>
-		<p>This is an experiment.</p>
+		<h2>Settings</h2>
 		<p>
 			Just like <a href="https://radio4000.com">radio4000.com</a>, this web app pulls its data from
 			the Radio4000 PostgreSQL database. But it pulls it into another PostgreSQL database sitting
@@ -70,10 +73,10 @@
 		<p>Writes are done remotely.</p>
 	</section>
 	<section>
-		<PgliteRepl />
+		<KeyboardEditor />
 	</section>
 	<section>
-		<KeyboardEditor />
+		<PgliteRepl />
 	</section>
 	<!--<SyncDebug />-->
 </article>
@@ -81,10 +84,10 @@
 <style>
 	menu,
 	section {
-		margin: 0 0.5rem;
+		margin: 0.5rem;
 	}
-	menu {
-		margin-top: 0.5rem;
+	menu + section {
+		margin-top: 1rem;
 	}
 	p {
 		max-width: 100ch;

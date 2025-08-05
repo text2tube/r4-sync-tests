@@ -130,16 +130,14 @@
 
 <style>
 	section {
-		margin: 1rem 0;
+		margin-bottom: 1rem;
 	}
 
 	header {
 		display: flex;
-		justify-content: space-between;
 		align-items: center;
 		margin-bottom: 0.5rem;
-		/* padding-bottom: 0.5rem; */
-		/* border-bottom: 1px solid var(--gray-5); */
+		gap: 1rem;
 	}
 
 	dl {
