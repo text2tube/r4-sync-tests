@@ -5,12 +5,9 @@
 	/** @type {{channel: import('$lib/types').Channel, class?: string}} */
 	let {channel, class: className = ''} = $props()
 
-	let isBookmarked = $state(false)
 	let followerId = $derived(appState.channels?.[0] || 'local-user')
-
-	// Check if channel is bookmarked when component loads or user changes
-	$effect(async () => {
-		isBookmarked = await isFollowing(followerId, channel.id)
+	let isBookmarked = $derived.by(async () => {
+		return await isFollowing(followerId, channel.id)
 	})
 
 	async function toggleBookmark(event) {
