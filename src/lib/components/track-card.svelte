@@ -44,12 +44,7 @@
 <article class:active>
 	<a href={permalink} onclick={click} ondblclick={doubleClick} data-sveltekit-preload-data="tap">
 		<span class="index">{index + 1}.</span>
-		{#if ytid && showImage}<img
-				loading="lazy"
-				src={imageSrc}
-				alt={track.title}
-				class="artwork"
-			/>{/if}
+		{#if ytid && showImage}<img src={imageSrc} alt={track.title} class="artwork" />{/if}
 		<div>
 			<h3 class="title">{track.title}</h3>
 			<div class="description">

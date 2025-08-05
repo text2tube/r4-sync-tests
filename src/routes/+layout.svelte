@@ -72,9 +72,7 @@
 			{/if}
 		</main>
 
-		{#if appState.queue_panel_visible}
-			<QueuePanel />
-		{/if}
+		<QueuePanel />
 
 		{#if chatPanelVisible}
 			<DraggablePanel title="R4 Chat">
@@ -88,6 +86,8 @@
 
 <style>
 	.layout {
+		--aside-width: 60ch;
+
 		display: grid;
 		grid-template-rows: auto 1fr auto;
 		height: 100vh;
@@ -98,17 +98,26 @@
 		grid-template-columns: 1fr;
 		height: 100%;
 		overflow: hidden;
-	}
-
-	.asideVisible .content {
-		grid-template-columns: 1fr minmax(460px, 25vw);
+		position: relative;
 		> :global(aside) {
-			display: flex;
+			transform: translate3d(100%, 0, 0);
+			position: absolute;
+			right: 0;
+			top: 0;
+			bottom: 0;
+			width: var(--aside-width);
+			transition: transform 100ms ease-in;
 		}
 	}
 
-	.content > :global(aside) {
-		display: none;
+	.asideVisible .content {
+		grid-template-columns: 1fr var(--aside-width);
+		> :global(aside) {
+			display: flex;
+			transform: translate3d(0, 0, 0);
+			transition-duration: 200ms;
+			transition-timing-function: ease-out;
+		}
 	}
 
 	.scroll {

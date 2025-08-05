@@ -65,8 +65,12 @@
 <aside>
 	<header>
 		<div class="view-buttons">
-			<button onclick={() => (view = 'queue')} class:active={view === 'queue'}>Queue</button>
-			<button onclick={() => (view = 'history')} class:active={view === 'history'}>History</button>
+			<button onclick={() => (view = 'queue')} class:active={view === 'queue'}
+				>Queue ({queueTracks.length})</button
+			>
+			<button onclick={() => (view = 'history')} class:active={view === 'history'}
+				>History ({playHistory.length})</button
+			>
 		</div>
 		{#if view === 'queue' && trackIds.length > 0}
 			<button onclick={clearQueue}>Clear</button>

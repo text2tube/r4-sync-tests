@@ -140,7 +140,7 @@ media-time-range {
 	display: flex;
 	flex-flow: column;
 	place-items: center;
-	padding: 2rem;
+	padding: 1rem;
 
 	.channel {
 		display: flex;
@@ -181,6 +181,7 @@ media-time-range {
 	youtube-video {
 		aspect-ratio: 16 / 9;
 		height: auto;
+		min-width: 200px;
 	}
 
 	/* hidden in expanded mode, because we have .timebar */
@@ -192,14 +193,22 @@ media-time-range {
 		margin-top: auto;
 		order: 5;
 
-		/* bigger menu */
-		media-mute-button,
-		button {
-			padding: 0.2rem 1rem;
+		@media (min-width: 700px) {
+			/* bigger menu */
+			media-mute-button,
+			button {
+				padding: 0.2rem 1rem;
+			}
+			svg {
+				width: 2rem;
+				height: 2rem;
+			}
 		}
-		svg {
-			width: 2rem;
-			height: 2rem;
+	}
+
+	@media (max-width: 700px) {
+		media-volume-range {
+			display: none;
 		}
 	}
 }
