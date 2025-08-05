@@ -6,6 +6,7 @@
 	import TrackCard from './track-card.svelte'
 	import Modal from './modal.svelte'
 	import SearchInput from './search-input.svelte'
+	import fuzzysort from 'fuzzysort'
 
 	let view = $state('queue') // 'queue' or 'history'
 	let showClearHistoryModal = $state(false)
@@ -22,23 +23,19 @@
 
 	let filteredQueueTracks = $derived(
 		searchQuery
-			? queueTracks.filter(
-					(track) =>
-						track.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-						track.tags?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-						track.channel_name?.toLowerCase().includes(searchQuery.toLowerCase())
-				)
+			? fuzzysort.go(searchQuery, queueTracks, {
+				keys: ['title', 'tags', 'channel_name'],
+				threshold: -10000
+			}).map(result => result.obj)
 			: queueTracks
 	)
 
 	let filteredPlayHistory = $derived(
 		searchQuery
-			? playHistory.filter(
-					(entry) =>
-						entry.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-						entry.tags?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-						entry.channel_name?.toLowerCase().includes(searchQuery.toLowerCase())
-				)
+			? fuzzysort.go(searchQuery, playHistory, {
+				keys: ['title', 'tags', 'channel_name'],
+				threshold: -10000
+			}).map(result => result.obj)
 			: playHistory
 	)
 
