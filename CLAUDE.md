@@ -71,6 +71,26 @@ pg.live.changes() a lower level API that emits the changes (insert/update/delete
 
 In `/src/lib/api.js` you can find reusable functions for data operations.
 
+### Local-First Data Pattern
+
+For user-specific data that works offline and syncs when authenticated:
+
+1. **Auto-loading** - Create functions that check local first, pull remote if empty
+2. **Local operations** - All reads/writes work locally, sync is separate concern
+
+```js
+export async function ensureFollowers(id) {
+	const existing = await queryFollowers(id)
+	if (!existing) {
+		await pullFollowers(id)
+		return await queryFollowers(id)
+	}
+	return existing
+}
+```
+
+This pattern eliminates dual-identity branching logic and makes offline-first features trivial.
+
 ## Svelte 5 syntax
 
 ```js
