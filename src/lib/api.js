@@ -229,8 +229,6 @@ export async function addFollower(followerId, channelId) {
 		VALUES (${followerId}, ${channelId}, CURRENT_TIMESTAMP, NULL)
 		ON CONFLICT (follower_id, channel_id) DO NOTHING
 	`
-
-	// Always keep follows local-only - remote sync handled by pullFollowers
 }
 
 /**
@@ -238,8 +236,6 @@ export async function addFollower(followerId, channelId) {
  * @param {string} channelId - ID of the channel to unfollow
  */
 export async function removeFollower(followerId, channelId) {
-	// Always keep unfollows local-only - remote sync handled by pullFollowers
-
 	await pg.sql`
 		DELETE FROM followers 
 		WHERE follower_id = ${followerId} AND channel_id = ${channelId}
