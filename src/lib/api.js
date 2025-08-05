@@ -1,5 +1,5 @@
 import {pg} from '$lib/db'
-import {needsUpdate, pullTracks, syncFollowersOnSignIn} from '$lib/sync'
+import {needsUpdate, pullTracks, syncFollowersOnSignIn, pullFollowers} from '$lib/sync'
 import {sdk} from '@radio4000/sdk'
 import {leaveBroadcast} from '$lib/broadcast'
 import {shuffleArray} from '$lib/utils'
@@ -255,6 +255,20 @@ export async function queryFollowers(followerId) {
 		ORDER BY f.created_at DESC
 	`
 	return rows
+}
+
+/**
+ * Ensure followers are loaded for a user, auto-pulling if needed
+ * @param {string} followerId - ID of the user's channel
+ * @returns {Promise<import('$lib/types').Channel[]>}
+ */
+export async function ensureFollowers(followerId) {
+	const existing = await queryFollowers(followerId)
+	if (existing.length === 0 && followerId !== 'local-user') {
+		await pullFollowers(followerId)
+		return await queryFollowers(followerId)
+	}
+	return existing
 }
 
 /**

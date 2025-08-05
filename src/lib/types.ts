@@ -47,25 +47,25 @@ export type Track = {
 }
 
 export interface AppState {
-	id?: number
-	playlist_tracks?: string[]
-	playlist_tracks_shuffled?: string[]
+	id: number
+	playlist_tracks: string[]
+	playlist_tracks_shuffled: string[]
 	playlist_track?: string
-	is_playing?: boolean
-	theme?: string
-	volume?: number
-	custom_css_variables?: object
-	counter?: number
-	channels_display?: string
-	// the user's channels
-	channels?: string[]
-	shuffle?: boolean
+	is_playing: boolean
+	theme: string
+	volume: number
+	custom_css_variables: Record<string, string>
+	counter: number
+	channels_display: string
+	/** the user's channels */
+	channels: string[]
+	shuffle: boolean
 	broadcasting_channel_id?: string
 	listening_to_channel_id?: string
-	queue_panel_visible?: boolean
-	show_video_player?: boolean
+	queue_panel_visible: boolean
+	show_video_player: boolean
 	player_expanded?: boolean
-	shortcuts?: Record<string, string>
+	shortcuts: Record<string, string>
 }
 
 export type KeyBindingsConfig = Record<string, string>

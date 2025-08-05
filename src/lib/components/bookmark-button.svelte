@@ -6,29 +6,22 @@
 	let {channel, class: className = ''} = $props()
 
 	let isBookmarked = $state(false)
+	let followerId = $derived(appState.channels?.[0] || 'local-user')
 
 	// Check if channel is bookmarked when component loads or user changes
 	$effect(async () => {
-		if (appState.channels?.length) {
-			const userChannelId = appState.channels[0]
-			isBookmarked = await isFollowing(userChannelId, channel.id)
-		} else {
-			// For anonymous users, use a local identifier
-			isBookmarked = await isFollowing('local-user', channel.id)
-		}
+		isBookmarked = await isFollowing(followerId, channel.id)
 	})
 
 	async function toggleBookmark(event) {
 		event.stopPropagation()
 		event.preventDefault()
 
-		const userChannelId = appState.channels?.length ? appState.channels[0] : 'local-user'
-
 		if (isBookmarked) {
-			await removeFollower(userChannelId, channel.id)
+			await removeFollower(followerId, channel.id)
 			isBookmarked = false
 		} else {
-			await addFollower(userChannelId, channel.id)
+			await addFollower(followerId, channel.id)
 			isBookmarked = true
 		}
 	}

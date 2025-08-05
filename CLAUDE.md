@@ -71,6 +71,32 @@ pg.live.changes() a lower level API that emits the changes (insert/update/delete
 
 In `/src/lib/api.js` you can find reusable functions for data operations.
 
+### Local-First Data Pattern
+
+For user-specific data that works offline and syncs when authenticated:
+
+1. **Unified identity** - Use `$derived(appState.channels?.[0] || 'local-user')` consistently
+2. **Auto-loading** - Create `ensureData()` functions that check local first, pull remote if empty
+3. **Migration on signin** - Move 'local-user' records to actual user ID, sync to remote
+4. **Local operations** - All reads/writes work locally, sync is separate concern
+
+```js
+// Pattern: ensureData functions
+export async function ensureFollowers(followerId) {
+	const existing = await queryFollowers(followerId)
+	if (existing.length === 0 && followerId !== 'local-user') {
+		await pullFollowers(followerId)
+		return await queryFollowers(followerId)
+	}
+	return existing
+}
+
+// Pattern: unified identity in components
+let followerId = $derived(appState.channels?.[0] || 'local-user')
+```
+
+This pattern eliminates dual-identity branching logic and makes offline-first features trivial.
+
 ## Svelte 5 syntax
 
 ```js

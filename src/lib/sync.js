@@ -260,57 +260,45 @@ export async function pullFollowers(userChannelId) {
 }
 
 /**
- * Check if user has local-only followers and prompt for import
+ * Migrate local followers to authenticated user on signin
  * @param {string} userChannelId - ID of the user's channel
  */
 export async function syncFollowersOnSignIn(userChannelId) {
-	// Check for local-only followers
+	// Check for local-only followers to migrate
 	const {rows: localFollowers} = await pg.sql`
-		SELECT COUNT(*) as count FROM followers 
-		WHERE follower_id = 'local-user'
+		SELECT channel_id FROM followers WHERE follower_id = 'local-user'
 	`
-	const localCount = parseInt(localFollowers[0].count)
 
-	if (localCount > 0) {
-		// Auto-import local followers when signing in
-		// TODO: Add UI prompt in the following page instead of alert
-		const shouldImport = true
+	if (localFollowers.length > 0) {
+		await pg.transaction(async (tx) => {
+			for (const {channel_id} of localFollowers) {
+				// Migrate to user's follows
+				await tx.sql`
+					INSERT INTO followers (follower_id, channel_id, created_at, synced_at)
+					VALUES (${userChannelId}, ${channel_id}, CURRENT_TIMESTAMP, NULL)
+					ON CONFLICT (follower_id, channel_id) DO NOTHING
+				`
 
-		if (shouldImport) {
-			// Move local followers to user's channel and sync to remote
-			const {rows: localBookmarks} = await pg.sql`
-				SELECT channel_id FROM followers WHERE follower_id = 'local-user'
-			`
-
-			await pg.transaction(async (tx) => {
-				for (const bookmark of localBookmarks) {
-					// Add to user's follows
+				// Sync to remote
+				try {
+					await sdk.channels.followChannel(userChannelId, channel_id)
 					await tx.sql`
-						INSERT INTO followers (follower_id, channel_id, created_at, synced_at)
-						VALUES (${userChannelId}, ${bookmark.channel_id}, CURRENT_TIMESTAMP, NULL)
-						ON CONFLICT (follower_id, channel_id) DO NOTHING
+						UPDATE followers 
+						SET synced_at = CURRENT_TIMESTAMP 
+						WHERE follower_id = ${userChannelId} AND channel_id = ${channel_id}
 					`
-
-					// Sync to remote
-					try {
-						await sdk.channels.followChannel(userChannelId, bookmark.channel_id)
-						await tx.sql`
-							UPDATE followers 
-							SET synced_at = CURRENT_TIMESTAMP 
-							WHERE follower_id = ${userChannelId} AND channel_id = ${bookmark.channel_id}
-						`
-					} catch (err) {
-						log.error('sync_follower_error', err)
-						// Continue with other followers even if one fails
-					}
+				} catch (err) {
+					log.error('sync_follower_error', err)
 				}
+			}
 
-				// Remove local-only followers
-				await tx.sql`DELETE FROM followers WHERE follower_id = 'local-user'`
-			})
-		}
+			// Remove local-only followers after migration
+			await tx.sql`DELETE FROM followers WHERE follower_id = 'local-user'`
+		})
+
+		log.log('migrate_local_followers', {userChannelId, count: localFollowers.length})
 	}
 
-	// Pull remote followers
+	// Pull remote followers to complete sync
 	await pullFollowers(userChannelId)
 }
